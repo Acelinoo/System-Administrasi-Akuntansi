@@ -24,95 +24,129 @@ export default async function AccDetailPage({
     <>
       <div className="page-header">
         <div>
-          <h1>{item.noKas}</h1>
-          <div className="page-header-subtitle">{item.description}</div>
+          <div className="flex items-center gap-3">
+            <h1>{item.noKas}</h1>
+            <span className={`status ${statusInfo.className}`}>
+              <span className="status-dot" />
+              {statusInfo.label}
+            </span>
+            <span className="text-xs text-muted">
+              • {formatDate(item.batch.accDate)}
+            </span>
+          </div>
+          <div className="page-header-subtitle">
+            <span className="font-semibold text-slate-800">{item.project.code}</span> — {item.description}
+          </div>
         </div>
         <Link href="/acc" className="btn btn-secondary">
-          ← Kembali
+          ← Kembali ke Data ACC
         </Link>
       </div>
 
       <div className="page-body">
-        {/* Status + Financials */}
+        {/* 1. PROMINENT FINANCIAL SUMMARY (MONETIRA 4-CARD HERO) */}
         <div className="stat-grid mb-6">
-          <div className="stat-card">
-            <div className="stat-label">Status</div>
-            <span className={`status ${statusInfo.className}`} style={{ fontSize: "0.82rem", padding: "4px 12px" }}>
-              <span className="status-dot"></span>
-              {statusInfo.label}
-            </span>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Nominal ACC</div>
-            <div className="stat-value">{formatRupiah(Number(item.approvedAmount))}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Total Realisasi</div>
-            <div className="stat-value positive">{formatRupiah(totalRealized)}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Sisa Outstanding</div>
-            <div className={`stat-value ${outstanding > 0 ? "warning" : ""}`}>
-              {formatRupiah(outstanding)}
+          <div className="stat-card" style={{ borderColor: "var(--blue-200)", background: "#ffffff" }}>
+            <div>
+              <div className="stat-label" style={{ color: "var(--blue-600)" }}>Nominal ACC (Dasar Administrasi)</div>
+              <div className="stat-value primary">{formatRupiah(Number(item.approvedAmount))}</div>
             </div>
+            <div className="stat-sub font-medium" style={{ color: "var(--blue-600)" }}>
+              ✓ Nilai sah yang disetujui atasan
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Nominal Pengajuan Awal (Ref)</div>
+              <div className="stat-value text-muted" style={{ fontSize: "1.35rem" }}>
+                {item.requestedAmount ? formatRupiah(Number(item.requestedAmount)) : "-"}
+              </div>
+            </div>
+            <div className="stat-sub">Referensi pengajuan di luar sistem</div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Realisasi Pencairan</div>
+              <div className={`stat-value ${totalRealized > 0 ? "positive" : ""}`}>
+                {formatRupiah(totalRealized)}
+              </div>
+            </div>
+            <div className="stat-sub">
+              {Number(item.approvedAmount) > 0
+                ? `${((totalRealized / Number(item.approvedAmount)) * 100).toFixed(1)}% telah dicairkan`
+                : "Rp0"}
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Sisa Outstanding</div>
+              <div className={`stat-value ${outstanding > 0 ? "warning" : "positive"}`}>
+                {formatRupiah(outstanding)}
+              </div>
+            </div>
+            <div className="stat-sub">Kewajiban pencairan tersisa</div>
           </div>
         </div>
 
-        {/* Detail Info */}
+        {/* 2. DETAIL CARDS (2-COLUMN GRID) */}
         <div className="grid-2 mb-6">
+          {/* Card 1: Info Data ACC */}
           <div className="card">
             <div className="card-header">
               <h2>Informasi Data ACC</h2>
             </div>
             <div className="card-body">
-              <table style={{ width: "100%", fontSize: "0.85rem" }}>
+              <table style={{ width: "100%", fontSize: "0.85rem", borderCollapse: "collapse" }}>
                 <tbody>
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0", width: "40%" }}>No Kas</td>
-                    <td className="font-medium text-mono">{item.noKas}</td>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0", width: "40%" }}>No Kas</td>
+                    <td className="font-semibold text-mono text-slate-900">{item.noKas}</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Jenis Kas</td>
+                    <td className="font-medium text-slate-800">{item.cashType === "KU" ? "KU — Kas Umum (Operasional)" : "KT — Kas Terikat (Proyek)"}</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Kode Batch</td>
+                    <td className="text-mono text-slate-700">{item.batch.batchCode}</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Tanggal ACC</td>
+                    <td className="text-slate-800">{formatDate(item.batch.accDate)}</td>
+                  </tr>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Atasan Peng-ACC</td>
+                    <td className="font-semibold text-slate-900">{item.batch.approvedByName}</td>
                   </tr>
                   <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Jenis Kas</td>
-                    <td>{item.cashType === "KU" ? "Kas Umum (KU)" : "Kas Terikat (KT)"}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Batch</td>
-                    <td className="text-mono">{item.batch.batchCode}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Tanggal ACC</td>
-                    <td>{formatDate(item.batch.accDate)}</td>
-                  </tr>
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Atasan Peng-ACC</td>
-                    <td>{item.batch.approvedByName}</td>
-                  </tr>
-                  {item.requestedAmount && (
-                    <tr>
-                      <td className="text-secondary" style={{ padding: "6px 0" }}>Nominal Pengajuan Awal (Ref)</td>
-                      <td className="text-muted">{formatRupiah(Number(item.requestedAmount))}</td>
-                    </tr>
-                  )}
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Nominal ACC (Dasar Administrasi)</td>
-                    <td className="font-semibold text-primary">{formatRupiah(Number(item.approvedAmount))}</td>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Status Administrasi</td>
+                    <td>
+                      <span className={`status ${statusInfo.className}`}>
+                        <span className="status-dot" />
+                        {statusInfo.label}
+                      </span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
+          {/* Card 2: Klasifikasi Proyek & Beban */}
           <div className="card">
             <div className="card-header">
-              <h2>Klasifikasi</h2>
+              <h2>Klasifikasi Proyek & Beban</h2>
             </div>
             <div className="card-body">
-              <table style={{ width: "100%", fontSize: "0.85rem" }}>
+              <table style={{ width: "100%", fontSize: "0.85rem", borderCollapse: "collapse" }}>
                 <tbody>
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0", width: "40%" }}>Proyek</td>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0", width: "40%" }}>Proyek</td>
                     <td>
-                      <span className="font-medium">{item.project.code}</span>
+                      <span className="font-semibold text-slate-900">{item.project.code}</span>
                       <span className="text-muted"> — {item.project.name}</span>
                       {item.project.confirmationStatus === "REQUIRES_BUSINESS_CONFIRMATION" && (
                         <div className="mt-1">
@@ -122,91 +156,76 @@ export default async function AccDetailPage({
                           >
                             REQUIRES BUSINESS CONFIRMATION
                           </span>
-                          {item.project.possibleParentCode && (
-                            <span className="text-[11px] text-muted ml-1.5">
-                              (Kandidat Subproyek: {item.project.possibleParentCode})
-                            </span>
-                          )}
                         </div>
                       )}
                     </td>
                   </tr>
                   {item.subUnit && (
-                    <tr>
-                      <td className="text-secondary" style={{ padding: "6px 0" }}>Sub Unit</td>
-                      <td>
-                        {item.subUnit.code} — {item.subUnit.name}
-                      </td>
+                    <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                      <td className="text-secondary" style={{ padding: "8px 0" }}>Sub Unit</td>
+                      <td className="text-slate-800">{item.subUnit.code} — {item.subUnit.name}</td>
                     </tr>
                   )}
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Kategori</td>
-                    <td>{item.category.name}</td>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Kategori Biaya</td>
+                    <td className="font-medium text-slate-800">{item.category.name}</td>
                   </tr>
                   {item.subCategory && (
-                    <tr>
-                      <td className="text-secondary" style={{ padding: "6px 0" }}>Sub Kategori</td>
-                      <td>{item.subCategory.name}</td>
+                    <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                      <td className="text-secondary" style={{ padding: "8px 0" }}>Sub Kategori</td>
+                      <td className="text-slate-800">{item.subCategory.name}</td>
                     </tr>
                   )}
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>PIC Lapangan</td>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>PIC Lapangan</td>
                     <td>
                       {item.assignmentStatus === "UNASSIGNED_MANDOR" ? (
                         <div>
                           <span
-                            className="text-xs px-2 py-0.5 rounded font-bold inline-block"
+                            className="text-[10px] px-1.5 py-0.5 rounded font-bold inline-block"
                             style={{ background: "#ffedd5", color: "#c2410c", border: "1px solid #fed7aa" }}
                           >
                             UNASSIGNED MANDOR
                           </span>
-                          <div className="text-xs text-muted mt-1">
-                            PIC Lapangan belum ditentukan berdasarkan evidence sumber Excel.
-                          </div>
+                          <span className="text-xs text-muted ml-1.5">(Belum ditentukan)</span>
                         </div>
                       ) : (
-                        <span className="font-medium">{item.pic.name}</span>
+                        <span className="font-semibold text-slate-900">{item.pic.name}</span>
                       )}
                     </td>
                   </tr>
-                  <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Submitter Administratif</td>
+                  <tr style={{ borderBottom: "1px solid var(--color-border-subtle)" }}>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Submitter Administratif</td>
                     <td>
-                      <span className="font-medium">{item.batch.administrativeSubmitter || "NISA"}</span>
-                      <span className="text-xs text-muted ml-2">(Staff penginput administrasi)</span>
+                      <span className="font-medium text-slate-800">{item.batch.administrativeSubmitter || "NISA"}</span>
+                      <span className="text-xs text-muted ml-1.5">(Staff penginput)</span>
                     </td>
                   </tr>
                   <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Uraian</td>
-                    <td>{item.description}</td>
+                    <td className="text-secondary" style={{ padding: "8px 0" }}>Uraian Kebutuhan</td>
+                    <td className="text-slate-900 font-medium">{item.description}</td>
                   </tr>
-                  {item.notes && (
-                    <tr>
-                      <td className="text-secondary" style={{ padding: "6px 0" }}>Catatan</td>
-                      <td className="text-muted">{item.notes}</td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        {/* Realization History */}
+        {/* 3. RIWAYAT PENCAIRAN / REALISASI */}
         <div className="card">
           <div className="card-header">
             <h2>Riwayat Pencairan / Realisasi</h2>
-            <span className="text-sm text-secondary">
-              {item.disbursementItems.length} transaksi
+            <span className="text-xs text-muted font-medium">
+              {item.disbursementItems.length} transaksi voucher
             </span>
           </div>
           <div className="card-body-flush">
             {item.disbursementItems.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">💸</div>
-                <div className="empty-state-title">Belum ada pencairan</div>
+                <div className="empty-state-title">Belum ada realisasi pencairan</div>
                 <div className="empty-state-desc">
-                  Item ini belum memiliki realisasi pencairan.
+                  Item ini belum memiliki catatan pencairan dana.
                 </div>
               </div>
             ) : (
@@ -217,7 +236,7 @@ export default async function AccDetailPage({
                     <th>Tanggal</th>
                     <th>Metode</th>
                     <th>Akun Pembayar</th>
-                    <th className="text-right">Nominal</th>
+                    <th className="text-right">Nominal Realisasi</th>
                     <th>Status</th>
                   </tr>
                 </thead>
@@ -226,24 +245,26 @@ export default async function AccDetailPage({
                     const txInfo = txStatusLabel(di.disbursement.status);
                     return (
                       <tr key={di.id}>
-                        <td className="col-mono">
-                          {di.disbursement.disbursementNumber}
+                        <td className="col-mono font-semibold">
+                          <Link href={`/disbursements/${di.disbursementId}`} className="text-primary hover:underline">
+                            {di.disbursement.disbursementNumber}
+                          </Link>
                         </td>
-                        <td className="text-sm">
+                        <td className="text-sm text-muted">
                           {formatDate(di.disbursement.disbursementDate)}
                         </td>
                         <td className="text-sm">
                           {di.disbursement.paymentMethod}
                         </td>
-                        <td className="text-sm">
+                        <td className="text-sm font-medium">
                           {di.disbursement.cashAccount.accountName}
                         </td>
-                        <td className="col-num font-semibold">
+                        <td className="col-num font-semibold text-slate-900">
                           {formatRupiah(Number(di.realizedAmount))}
                         </td>
                         <td>
                           <span className={`status ${txInfo.className}`}>
-                            <span className="status-dot"></span>
+                            <span className="status-dot" />
                             {txInfo.label}
                           </span>
                         </td>

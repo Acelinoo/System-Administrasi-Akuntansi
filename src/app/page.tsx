@@ -2,145 +2,154 @@ import Link from "next/link";
 import { getDashboardStats } from "./actions/acc.actions";
 import { getCashBalances } from "./actions/disbursement.actions";
 import { formatRupiah, formatDate, accStatusLabel, txStatusLabel } from "@/lib/utils/format";
+import { PlusIcon, DisbursementIcon } from "./components/Icons";
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
   const balances = await getCashBalances();
 
+  const pctRealized =
+    stats.totalAccAmount > 0
+      ? ((stats.totalRealizedAmount / stats.totalAccAmount) * 100).toFixed(1)
+      : "0.0";
+
   return (
     <>
       <div className="page-header">
         <div>
-          <div className="flex items-center gap-2">
-            <h1>Dashboard Administrasi</h1>
-            <span
-              className="text-xs px-2 py-0.5 rounded font-bold"
-              style={{ background: "#dcfce7", color: "#15803d" }}
-            >
-              REAL DATA ONLY
-            </span>
-          </div>
+          <h1>Dashboard</h1>
           <div className="page-header-subtitle">
-            Ringkasan posisi keuangan, alokasi ACC, realisasi pencairan, dan likuiditas kas operasional proyek
+            Ringkasan administrasi proyek dan keuangan
           </div>
         </div>
         <div className="flex gap-2">
           <Link href="/acc/new" className="btn btn-primary btn-sm">
-            ➕ Input ACC Baru
+            <PlusIcon size={14} />
+            <span>Input Data ACC</span>
           </Link>
           <Link href="/disbursements/new" className="btn btn-secondary btn-sm">
-            💸 Pencairan Baru
+            <DisbursementIcon size={14} />
+            <span>Pencairan Baru</span>
           </Link>
         </div>
       </div>
 
       <div className="page-body">
-        {/* 1. FINANCIAL SUMMARY METRICS (STEP 3 REQUIRED) */}
+        {/* 1. FINANCIAL SUMMARY METRICS (MONETIRA 4-CARD HERO HIERARCHY) */}
         <div className="stat-grid mb-6">
           <div className="stat-card">
-            <div className="stat-label">Total Data ACC</div>
-            <div className="stat-value font-semibold">
-              {formatRupiah(stats.totalAccAmount)}
+            <div>
+              <div className="stat-label">Total Data ACC</div>
+              <div className="stat-value primary">{formatRupiah(stats.totalAccAmount)}</div>
             </div>
-            <div className="stat-sub">{stats.totalAccItems} item dari {stats.totalBatches} batch</div>
+            <div className="stat-sub">{stats.totalAccItems} item • {stats.totalBatches} batch terdaftar</div>
           </div>
 
           <div className="stat-card">
-            <div className="stat-label">Total Realisasi (Pencairan)</div>
-            <div className="stat-value danger font-semibold">
-              {formatRupiah(stats.totalRealizedAmount)}
-            </div>
-            <div className="stat-sub">
-              {stats.totalAccAmount > 0
-                ? `${((stats.totalRealizedAmount / stats.totalAccAmount) * 100).toFixed(1)}% telah dicairkan`
-                : "Pengeluaran voucher (posted)"}
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-label">Total Sisa Outstanding</div>
-            <div
-              className="stat-value font-semibold"
-              style={{
-                color: stats.totalOutstandingAmount > 0 ? "var(--color-warning)" : "var(--color-success)",
-              }}
-            >
-              {formatRupiah(stats.totalOutstandingAmount)}
-            </div>
-            <div className="stat-sub">Kewajiban ACC belum dicairkan</div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-label">Total Dana Masuk (Inflow)</div>
-            <div className="stat-value positive font-semibold">
-              {formatRupiah(stats.totalInflow)}
+            <div>
+              <div className="stat-label">Total Dana Masuk</div>
+              <div className="stat-value positive">{formatRupiah(stats.totalInflow)}</div>
             </div>
             <div className="stat-sub">Drop dana atasan/manajemen (posted)</div>
           </div>
 
           <div className="stat-card">
-            <div className="stat-label">Saldo Kas & Bank (Likuiditas)</div>
-            <div
-              className="stat-value font-semibold"
-              style={{
-                color: balances.totalLiquidity >= 0 ? "var(--color-success)" : "var(--color-danger)",
-              }}
-            >
-              {formatRupiah(balances.totalLiquidity)}
+            <div>
+              <div className="stat-label">Total Realisasi</div>
+              <div className="stat-value">{formatRupiah(stats.totalRealizedAmount)}</div>
             </div>
-            <div className="stat-sub">Total saldo aktif seluruh rekening</div>
+            <div className="stat-sub">{pctRealized}% dari total alokasi ACC</div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Total Sisa Outstanding</div>
+              <div className={`stat-value ${stats.totalOutstandingAmount > 0 ? "warning" : "positive"}`}>
+                {formatRupiah(stats.totalOutstandingAmount)}
+              </div>
+            </div>
+            <div className="stat-sub">Kewajiban ACC belum dicairkan</div>
           </div>
         </div>
 
-        {/* 2. STATUS BREAKDOWN & CASH ACCOUNTS */}
+        {/* 2. OVERVIEW ROW: STATUS ALOKASI ACC + SALDO KAS & BANK */}
         <div className="grid-2 mb-6">
+          {/* Status Alokasi Card */}
           <div className="card">
             <div className="card-header">
               <h2>Status Alokasi ACC</h2>
-              <span className="text-sm text-secondary">
-                {stats.totalAccItems} item total
-              </span>
+              <span className="text-xs text-muted font-medium">{stats.totalAccItems} item transaksi</span>
             </div>
             <div className="card-body">
-              <div className="stat-grid" style={{ gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                <div style={{ padding: "12px", background: "var(--color-bg-subtle)", borderRadius: "var(--radius-md)" }}>
-                  <div className="stat-label">Approved</div>
-                  <div className="stat-value" style={{ color: "var(--blue-600)", fontSize: "1.5rem" }}>
-                    {stats.approvedItems}
-                  </div>
-                  <div className="stat-sub">Belum dicairkan</div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: 12,
+                  marginBottom: 16,
+                }}
+              >
+                <div style={{ background: "var(--slate-50)", padding: "12px", borderRadius: "8px", border: "1px solid var(--slate-100)" }}>
+                  <div className="text-xs text-muted font-medium mb-1">Approved</div>
+                  <div className="text-xl font-bold" style={{ color: "var(--blue-600)" }}>{stats.approvedItems}</div>
+                  <div className="text-xs text-muted mt-1">Belum cair</div>
                 </div>
-                <div style={{ padding: "12px", background: "var(--color-bg-subtle)", borderRadius: "var(--radius-md)" }}>
-                  <div className="stat-label">Sebagian Cair</div>
-                  <div className="stat-value warning" style={{ fontSize: "1.5rem" }}>
-                    {stats.partialItems}
-                  </div>
-                  <div className="stat-sub">Realisasi bertahap</div>
+                <div style={{ background: "var(--slate-50)", padding: "12px", borderRadius: "8px", border: "1px solid var(--slate-100)" }}>
+                  <div className="text-xs text-muted font-medium mb-1">Sebagian</div>
+                  <div className="text-xl font-bold" style={{ color: "var(--amber-600)" }}>{stats.partialItems}</div>
+                  <div className="text-xs text-muted mt-1">Bertahap</div>
                 </div>
-                <div style={{ padding: "12px", background: "var(--color-bg-subtle)", borderRadius: "var(--radius-md)" }}>
-                  <div className="stat-label">Lunas</div>
-                  <div className="stat-value positive" style={{ fontSize: "1.5rem" }}>
-                    {stats.realizedItems}
-                  </div>
-                  <div className="stat-sub">Selesai dicairkan</div>
+                <div style={{ background: "var(--slate-50)", padding: "12px", borderRadius: "8px", border: "1px solid var(--slate-100)" }}>
+                  <div className="text-xs text-muted font-medium mb-1">Lunas</div>
+                  <div className="text-xl font-bold" style={{ color: "var(--green-600)" }}>{stats.realizedItems}</div>
+                  <div className="text-xs text-muted mt-1">Selesai</div>
                 </div>
-                <div style={{ padding: "12px", background: "var(--color-bg-subtle)", borderRadius: "var(--radius-md)" }}>
-                  <div className="stat-label">Batal</div>
-                  <div className="stat-value text-muted" style={{ fontSize: "1.5rem" }}>
-                    {stats.cancelledItems}
-                  </div>
-                  <div className="stat-sub">Dibatalkan</div>
+                <div style={{ background: "var(--slate-50)", padding: "12px", borderRadius: "8px", border: "1px solid var(--slate-100)" }}>
+                  <div className="text-xs text-muted font-medium mb-1">Batal</div>
+                  <div className="text-xl font-bold" style={{ color: "var(--slate-400)" }}>{stats.cancelledItems}</div>
+                  <div className="text-xs text-muted mt-1">Dibatalkan</div>
                 </div>
+              </div>
+
+              {/* Restrained Allocation Progress Bar */}
+              <div style={{ height: 6, background: "var(--slate-100)", borderRadius: 3, overflow: "hidden", display: "flex" }}>
+                <div
+                  style={{
+                    width: `${stats.totalAccItems > 0 ? (stats.realizedItems / stats.totalAccItems) * 100 : 0}%`,
+                    background: "var(--green-600)",
+                  }}
+                  title={`Lunas: ${stats.realizedItems}`}
+                />
+                <div
+                  style={{
+                    width: `${stats.totalAccItems > 0 ? (stats.partialItems / stats.totalAccItems) * 100 : 0}%`,
+                    background: "var(--amber-500)",
+                  }}
+                  title={`Sebagian: ${stats.partialItems}`}
+                />
+                <div
+                  style={{
+                    width: `${stats.totalAccItems > 0 ? (stats.approvedItems / stats.totalAccItems) * 100 : 0}%`,
+                    background: "var(--blue-500)",
+                  }}
+                  title={`Approved: ${stats.approvedItems}`}
+                />
               </div>
             </div>
           </div>
 
+          {/* Saldo Kas & Bank Card */}
           <div className="card">
             <div className="card-header">
               <h2>Saldo Akun Kas & Bank</h2>
-              <Link href="/master/accounts" className="text-xs text-primary font-medium">
-                Kelola Akun →
-              </Link>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-secondary">
+                  Likuiditas: <strong className="tabular-nums" style={{ color: balances.totalLiquidity >= 0 ? "var(--green-700)" : "var(--red-600)" }}>{formatRupiah(balances.totalLiquidity)}</strong>
+                </span>
+                <Link href="/master/accounts" className="text-xs text-primary font-medium hover:underline ml-2">
+                  Kelola →
+                </Link>
+              </div>
             </div>
             <div className="card-body-flush">
               {balances.accounts.length === 0 ? (
@@ -162,22 +171,14 @@ export default async function DashboardPage() {
                     {balances.accounts.map((acc) => (
                       <tr key={acc.accountId}>
                         <td>
-                          <span className="font-medium">{acc.accountName}</span>
-                          <br />
-                          <span className="text-xs text-muted text-mono">
-                            {acc.accountCode}
-                          </span>
+                          <div className="font-semibold text-slate-900">{acc.accountName}</div>
+                          <div className="text-xs text-muted text-mono">{acc.accountCode}</div>
                         </td>
                         <td>
-                          <span className="text-xs status status-info" style={{ padding: "2px 8px" }}>
-                            {acc.accountType}
-                          </span>
+                          <span className="status status-info">{acc.accountType}</span>
                         </td>
-                        <td className="col-num">
-                          <span
-                            className={acc.currentBalance >= 0 ? "positive" : "danger"}
-                            style={{ fontWeight: 600 }}
-                          >
+                        <td className="col-num font-semibold">
+                          <span className={acc.currentBalance >= 0 ? "text-slate-900" : "danger"}>
                             {formatRupiah(acc.currentBalance)}
                           </span>
                         </td>
@@ -190,13 +191,13 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 3. MONITORING: ACC TERBARU & REALISASI TERBARU */}
+        {/* 3. MONITORING TABLES ROW: DATA ACC TERBARU & REALISASI TERBARU */}
         <div className="grid-2 mb-6">
-          {/* ACC TERBARU */}
+          {/* DATA ACC TERBARU */}
           <div className="card">
             <div className="card-header">
               <h2>Data ACC Terbaru</h2>
-              <Link href="/acc" className="text-xs text-primary font-medium">
+              <Link href="/acc" className="text-xs text-primary font-medium hover:underline">
                 Lihat Semua ACC →
               </Link>
             </div>
@@ -225,21 +226,22 @@ export default async function DashboardPage() {
                         const statusInfo = accStatusLabel(item.status);
                         return (
                           <tr key={item.id}>
-                            <td className="col-mono font-medium">
-                              <Link href={`/acc/${item.id}`} className="text-primary hover:underline">
+                            <td className="col-mono">
+                              <Link href={`/acc/${item.id}`} className="text-primary hover:underline font-semibold">
                                 {item.noKas}
                               </Link>
                             </td>
-                            <td className="text-xs">{formatDate(item.accDate)}</td>
+                            <td className="text-xs text-muted">{formatDate(item.accDate)}</td>
                             <td>
                               <span className="font-medium">{item.projectCode}</span>
                             </td>
-                            <td className="text-xs">{item.picName}</td>
-                            <td className="col-num font-medium">
+                            <td className="text-xs text-secondary">{item.picName}</td>
+                            <td className="col-num font-semibold">
                               {formatRupiah(item.approvedAmount)}
                             </td>
                             <td>
-                              <span className={`status ${statusInfo.className}`} style={{ fontSize: "0.72rem", padding: "1px 6px" }}>
+                              <span className={`status ${statusInfo.className}`}>
+                                <span className="status-dot" />
                                 {statusInfo.label}
                               </span>
                             </td>
@@ -257,7 +259,7 @@ export default async function DashboardPage() {
           <div className="card">
             <div className="card-header">
               <h2>Realisasi Pencairan Terbaru</h2>
-              <Link href="/disbursements" className="text-xs text-primary font-medium">
+              <Link href="/disbursements" className="text-xs text-primary font-medium hover:underline">
                 Lihat Semua Pencairan →
               </Link>
             </div>
@@ -286,19 +288,20 @@ export default async function DashboardPage() {
                         const txInfo = txStatusLabel(d.status);
                         return (
                           <tr key={d.id}>
-                            <td className="col-mono font-medium">
-                              <Link href={`/disbursements/${d.id}`} className="text-primary hover:underline">
+                            <td className="col-mono">
+                              <Link href={`/disbursements/${d.id}`} className="text-primary hover:underline font-semibold">
                                 {d.disbursementNumber}
                               </Link>
                             </td>
-                            <td className="text-xs">{formatDate(d.disbursementDate)}</td>
+                            <td className="text-xs text-muted">{formatDate(d.disbursementDate)}</td>
                             <td className="text-xs">{d.accountName}</td>
-                            <td className="text-xs">{d.paymentMethod}</td>
-                            <td className="col-num font-semibold">
+                            <td className="text-xs text-secondary">{d.paymentMethod}</td>
+                            <td className="col-num font-semibold text-slate-900">
                               {formatRupiah(d.totalRealizedAmount)}
                             </td>
                             <td>
-                              <span className={`status ${txInfo.className}`} style={{ fontSize: "0.72rem", padding: "1px 6px" }}>
+                              <span className={`status ${txInfo.className}`}>
+                                <span className="status-dot" />
                                 {txInfo.label}
                               </span>
                             </td>
@@ -322,7 +325,7 @@ export default async function DashboardPage() {
                 Daftar data ACC aktif dengan sisa kewajiban pencairan tertinggi yang belum terealisasi penuh
               </div>
             </div>
-            <Link href="/reports/acc" className="text-xs text-primary font-medium">
+            <Link href="/reports/acc" className="text-xs text-primary font-medium hover:underline">
               Buka Rekap ACC →
             </Link>
           </div>
@@ -354,23 +357,26 @@ export default async function DashboardPage() {
                       const statusInfo = accStatusLabel(item.status);
                       return (
                         <tr key={item.id}>
-                          <td className="col-mono font-medium">
-                            <Link href={`/acc/${item.id}`} className="text-primary hover:underline">
+                          <td className="col-mono">
+                            <Link href={`/acc/${item.id}`} className="text-primary hover:underline font-semibold">
                               {item.noKas}
                             </Link>
                           </td>
-                          <td className="font-medium">{item.projectCode}</td>
-                          <td>{item.picName}</td>
-                          <td className="text-sm truncate" style={{ maxWidth: 260 }}>
+                          <td>
+                            <span className="font-semibold text-slate-900">{item.projectCode}</span>
+                          </td>
+                          <td className="text-xs">{item.picName}</td>
+                          <td className="text-sm truncate" style={{ maxWidth: 260 }} title={item.description}>
                             {item.description}
                           </td>
                           <td className="col-num">{formatRupiah(item.approvedAmount)}</td>
-                          <td className="col-num text-primary">{formatRupiah(item.realizedAmount)}</td>
-                          <td className="col-num warning font-semibold">
+                          <td className="col-num text-secondary">{formatRupiah(item.realizedAmount)}</td>
+                          <td className="col-num font-semibold" style={{ color: "var(--amber-700)" }}>
                             {formatRupiah(item.outstandingAmount)}
                           </td>
                           <td>
-                            <span className={`status ${statusInfo.className}`} style={{ fontSize: "0.72rem", padding: "1px 6px" }}>
+                            <span className={`status ${statusInfo.className}`}>
+                              <span className="status-dot" />
                               {statusInfo.label}
                             </span>
                           </td>
@@ -378,7 +384,6 @@ export default async function DashboardPage() {
                             <Link
                               href="/disbursements/new"
                               className="btn btn-secondary btn-sm"
-                              style={{ fontSize: "0.75rem", padding: "3px 8px" }}
                             >
                               Cairkan →
                             </Link>
@@ -396,4 +401,3 @@ export default async function DashboardPage() {
     </>
   );
 }
-

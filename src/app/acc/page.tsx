@@ -3,6 +3,7 @@ import { getAccItemList, getMasterProjects } from "../actions/acc.actions";
 import { formatRupiah, formatDate, accStatusLabel } from "@/lib/utils/format";
 import { AccStatus } from "@prisma/client";
 import AccFilters from "./AccFilters";
+import { PlusIcon, DownloadIcon } from "../components/Icons";
 
 export default async function AccListPage({
   searchParams,
@@ -35,6 +36,7 @@ export default async function AccListPage({
       ),
     0
   );
+  const totalOutstanding = Math.max(0, totalApproved - totalRealized);
 
   return (
     <>
@@ -42,164 +44,196 @@ export default async function AccListPage({
         <div>
           <h1>Data ACC Operasional</h1>
           <div className="page-header-subtitle">
-            {items.length} item dicatat — Total ACC: {formatRupiah(totalApproved)} | Realisasi:{" "}
-            {formatRupiah(totalRealized)}
+            Catat hasil ACC yang sudah diterima dari atasan. Proses pengajuan dan approval dilakukan di luar ProTrack.
           </div>
         </div>
         <div style={{ display: "flex", gap: "var(--space-2)" }}>
           <Link href="/acc/import" className="btn btn-secondary">
-            📥 Impor Excel
+            <DownloadIcon size={14} />
+            <span>Impor Excel</span>
           </Link>
           <Link href="/acc/new" className="btn btn-primary">
-            + Input ACC Baru
+            <PlusIcon size={14} />
+            <span>Input Data ACC</span>
           </Link>
         </div>
       </div>
 
-      {/* Operational UX Notice */}
-      <div className="card" style={{ margin: "0 var(--space-8)", marginBottom: "var(--space-4)", background: "var(--bg-subtle, #f8fafc)", border: "1px solid var(--border-color, #e2e8f0)" }}>
-        <div className="card-body" style={{ padding: "12px 16px" }}>
-          <div className="flex items-center gap-2">
-            <span style={{ fontSize: "1.1rem" }}>ℹ️</span>
+      <div className="page-body">
+        {/* 4 SUMMARY CARDS (MONETIRA METRIC CARDS) */}
+        <div className="stat-grid mb-6">
+          <div className="stat-card">
             <div>
-              <div className="font-semibold text-xs text-slate-800">
-                Catat hasil ACC yang sudah diterima dari atasan. Proses pengajuan dan approval dilakukan di luar ProTrack.
-              </div>
-              <div className="text-xs text-muted mt-0.5">
-                Prinsip Administrasi: Pengajuan awal ≠ Disetujui (Approved) ≠ Realisasi. Nominal ACC yang disetujui (Approved Amount) menjadi dasar administrasi pencairan dana.
-              </div>
+              <div className="stat-label">Total ACC</div>
+              <div className="stat-value primary">{formatRupiah(totalApproved)}</div>
+            </div>
+            <div className="stat-sub">Dasar administrasi seluruh data ACC</div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Jumlah Data</div>
+              <div className="stat-value">{items.length}</div>
+            </div>
+            <div className="stat-sub">Item transaksi tercatat</div>
+          </div>
+
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Realisasi</div>
+              <div className="stat-value">{formatRupiah(totalRealized)}</div>
+            </div>
+            <div className="stat-sub">
+              {totalApproved > 0
+                ? `${((totalRealized / totalApproved) * 100).toFixed(1)}% telah dicairkan`
+                : "Rp0"}
             </div>
           </div>
-        </div>
-      </div>
 
-      <AccFilters projects={projects} currentFilters={params} />
-
-      <div className="card" style={{ margin: "0 var(--space-8)", marginBottom: "var(--space-6)" }}>
-        <div className="card-body-flush">
-          {items.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-state-icon">📋</div>
-              <div className="empty-state-title">Belum ada data ACC</div>
-              <div className="empty-state-desc">
-                Mulai dengan mencatat data ACC yang sudah disetujui atasan di luar sistem.
+          <div className="stat-card">
+            <div>
+              <div className="stat-label">Outstanding</div>
+              <div className={`stat-value ${totalOutstanding > 0 ? "warning" : "positive"}`}>
+                {formatRupiah(totalOutstanding)}
               </div>
             </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>No Kas</th>
-                    <th>Tanggal ACC</th>
-                    <th>Proyek</th>
-                    <th>Kategori</th>
-                    <th>Uraian</th>
-                    <th>PIC</th>
-                    <th className="text-right">Nominal ACC</th>
-                    <th className="text-right">Realisasi</th>
-                    <th>Status</th>
-                    <th className="col-actions"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((item) => {
-                    const realized = item.disbursementItems.reduce(
-                      (s, d) => s + Number(d.realizedAmount),
-                      0
-                    );
-                    const statusInfo = accStatusLabel(item.status);
+            <div className="stat-sub">Sisa kewajiban yang belum dicairkan</div>
+          </div>
+        </div>
 
-                    return (
-                      <tr key={item.id}>
-                        <td className="col-mono">{item.noKas}</td>
-                        <td className="text-sm">
-                          {formatDate(item.batch.accDate)}
-                        </td>
-                        <td>
-                          <span className="font-medium">
-                            {item.project.code}
-                          </span>
-                          {item.subUnit && (
-                            <span className="text-muted text-xs">
-                              {" "}
-                              / {item.subUnit.code}
+        {/* Filters */}
+        <div className="mb-4">
+          <AccFilters projects={projects} currentFilters={params} />
+        </div>
+
+        {/* Data Table */}
+        <div className="card">
+          <div className="card-body-flush">
+            {items.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">📋</div>
+                <div className="empty-state-title">Belum ada data ACC</div>
+                <div className="empty-state-desc">
+                  Mulai dengan mencatat data ACC yang sudah disetujui atasan di luar sistem.
+                </div>
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>No Kas</th>
+                      <th>Tanggal ACC</th>
+                      <th>Proyek</th>
+                      <th>Kategori</th>
+                      <th>Uraian</th>
+                      <th>PIC</th>
+                      <th className="text-right">Nominal ACC</th>
+                      <th className="text-right">Realisasi</th>
+                      <th>Status</th>
+                      <th className="col-actions"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item) => {
+                      const realized = item.disbursementItems.reduce(
+                        (s, d) => s + Number(d.realizedAmount),
+                        0
+                      );
+                      const statusInfo = accStatusLabel(item.status);
+
+                      return (
+                        <tr key={item.id}>
+                          <td className="col-mono">
+                            <Link href={`/acc/${item.id}`} className="text-primary hover:underline font-semibold">
+                              {item.noKas}
+                            </Link>
+                          </td>
+                          <td className="text-sm text-muted">
+                            {formatDate(item.batch.accDate)}
+                          </td>
+                          <td>
+                            <span className="font-semibold text-slate-900">
+                              {item.project.code}
                             </span>
-                          )}
-                        </td>
-                        <td className="text-sm">
-                          {item.category.name}
-                          {item.subCategory && (
-                            <span className="text-muted text-xs">
-                              {" "}
-                              — {item.subCategory.name}
-                            </span>
-                          )}
-                        </td>
-                        <td
-                          className="truncate"
-                          style={{ maxWidth: 200 }}
-                          title={item.description}
-                        >
-                          {item.description}
-                        </td>
-                        <td>
-                          {item.assignmentStatus === "UNASSIGNED_MANDOR" ? (
-                            <div>
-                              <span
-                                className="text-[10px] px-1.5 py-0.5 rounded font-bold inline-block"
-                                style={{ background: "#ffedd5", color: "#c2410c", border: "1px solid #fed7aa" }}
-                                title="PIC Lapangan belum ditentukan berdasarkan evidence sumber"
-                              >
-                                UNASSIGNED MANDOR
+                            {item.subUnit && (
+                              <span className="text-muted text-xs">
+                                {" "}
+                                / {item.subUnit.code}
                               </span>
-                              <div className="text-[11px] text-muted mt-0.5">
-                                PIC Lapangan: <em>Belum Ditentukan</em>
-                              </div>
-                              {item.batch.administrativeSubmitter && (
-                                <div className="text-[10px] text-secondary">
-                                  Submitter: {item.batch.administrativeSubmitter}
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="font-medium text-sm">{item.pic.name}</div>
-                              {item.batch.administrativeSubmitter && (
-                                <div className="text-[10px] text-muted">
-                                  Sub: {item.batch.administrativeSubmitter}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                        <td className="col-num">
-                          {formatRupiah(Number(item.approvedAmount))}
-                        </td>
-                        <td className="col-num">
-                          {realized > 0 ? formatRupiah(realized) : "-"}
-                        </td>
-                        <td>
-                          <span className={`status ${statusInfo.className}`}>
-                            <span className="status-dot"></span>
-                            {statusInfo.label}
-                          </span>
-                        </td>
-                        <td className="col-actions">
-                          <Link
-                            href={`/acc/${item.id}`}
-                            className="btn btn-ghost btn-sm"
+                            )}
+                          </td>
+                          <td className="text-sm">
+                            <span className="text-slate-800">{item.category.name}</span>
+                            {item.subCategory && (
+                              <span className="text-muted text-xs">
+                                {" "}
+                                — {item.subCategory.name}
+                              </span>
+                            )}
+                          </td>
+                          <td
+                            className="truncate text-slate-700"
+                            style={{ maxWidth: 220 }}
+                            title={item.description}
                           >
-                            Detail →
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
+                            {item.description}
+                          </td>
+                          <td>
+                            {item.assignmentStatus === "UNASSIGNED_MANDOR" ? (
+                              <div>
+                                <span
+                                  className="text-[10px] px-1.5 py-0.5 rounded font-bold inline-block"
+                                  style={{ background: "#ffedd5", color: "#c2410c", border: "1px solid #fed7aa" }}
+                                  title="PIC Lapangan belum ditentukan berdasarkan evidence sumber"
+                                >
+                                  UNASSIGNED MANDOR
+                                </span>
+                                {item.batch.administrativeSubmitter && (
+                                  <div className="text-[10px] text-muted mt-0.5">
+                                    Sub: {item.batch.administrativeSubmitter}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="font-medium text-sm text-slate-900">{item.pic.name}</div>
+                                {item.batch.administrativeSubmitter && (
+                                  <div className="text-[10px] text-muted">
+                                    Sub: {item.batch.administrativeSubmitter}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                          <td className="col-num font-semibold">
+                            {formatRupiah(Number(item.approvedAmount))}
+                          </td>
+                          <td className="col-num text-secondary">
+                            {realized > 0 ? formatRupiah(realized) : "-"}
+                          </td>
+                          <td>
+                            <span className={`status ${statusInfo.className}`}>
+                              <span className="status-dot" />
+                              {statusInfo.label}
+                            </span>
+                          </td>
+                          <td className="col-actions">
+                            <Link
+                              href={`/acc/${item.id}`}
+                              className="btn btn-ghost btn-sm"
+                            >
+                              Detail →
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>

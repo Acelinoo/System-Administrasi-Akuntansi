@@ -1,4 +1,5 @@
 import Sidebar from "./components/Sidebar";
+import TopHeader from "./components/TopHeader";
 
 export default function AppLayout({
   children,
@@ -8,7 +9,10 @@ export default function AppLayout({
   return (
     <div className="app-layout">
       <Sidebar />
-      <main className="main-content">{children}</main>
+      <div className="app-main-wrapper">
+        <TopHeader />
+        <main className="main-content">{children}</main>
+      </div>
     </div>
   );
 }

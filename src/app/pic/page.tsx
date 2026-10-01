@@ -60,7 +60,7 @@ export default async function PicDistributionPage({
 
         {/* Per-PIC Cards Overview */}
         <div className="mb-6">
-          <h2 className="text-base font-semibold mb-3">Ringkasan per PIC</h2>
+          <h2 className="text-sm font-semibold mb-3 text-slate-800">Ringkasan per PIC Lapangan</h2>
           <div
             style={{
               display: "grid",
@@ -75,26 +75,26 @@ export default async function PicDistributionPage({
                   : 0;
 
               return (
-                <div key={pic.picId} className="card p-4">
+                <div key={pic.picId} className="card" style={{ padding: "16px" }}>
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <div className="font-semibold text-base">{pic.picName}</div>
+                      <div className="font-semibold text-slate-900 text-sm">{pic.picName}</div>
                       {pic.roleTitle && (
                         <div
-                          className="text-xs font-semibold px-1.5 py-0.5 rounded mt-0.5 inline-block"
+                          className="text-[10px] font-semibold px-1.5 py-0.5 rounded mt-0.5 inline-block"
                           style={{
                             background:
                               pic.roleTitle === "ADMINISTRATIVE_SUBMITTER"
-                                ? "rgba(147, 51, 234, 0.1)"
+                                ? "#f3e8ff"
                                 : pic.roleTitle === "MANDOR_BELUM_DITENTUKAN"
-                                ? "rgba(234, 88, 12, 0.1)"
-                                : "var(--color-bg-alt)",
+                                ? "#ffedd5"
+                                : "var(--slate-100)",
                             color:
                               pic.roleTitle === "ADMINISTRATIVE_SUBMITTER"
-                                ? "#9333ea"
+                                ? "#7e22ce"
                                 : pic.roleTitle === "MANDOR_BELUM_DITENTUKAN"
-                                ? "#ea580c"
-                                : "var(--color-primary)",
+                                ? "#c2410c"
+                                : "var(--blue-600)",
                           }}
                         >
                           {pic.roleTitle}
@@ -104,26 +104,26 @@ export default async function PicDistributionPage({
                     </div>
                     <span
                       className="status status-info"
-                      style={{ fontSize: "0.75rem", padding: "2px 8px" }}
+                      style={{ fontSize: "0.68rem" }}
                     >
                       {pct}% Realisasi
                     </span>
                   </div>
 
-                  <div className="text-xs space-y-1 mb-3 pt-2" style={{ borderTop: "1px solid var(--border-color)" }}>
+                  <div className="text-xs space-y-1 mb-3 pt-2" style={{ borderTop: "1px solid var(--color-border-subtle)" }}>
                     <div className="flex justify-between">
                       <span className="text-muted">Total ACC:</span>
-                      <span className="font-medium">{formatRupiah(pic.totalApproved)}</span>
+                      <span className="font-semibold text-slate-900">{formatRupiah(pic.totalApproved)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted">Realisasi:</span>
-                      <span className="font-medium text-primary">{formatRupiah(pic.totalRealized)}</span>
+                      <span className="font-medium text-slate-700">{formatRupiah(pic.totalRealized)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted">Outstanding:</span>
                       <span
                         className="font-semibold"
-                        style={{ color: pic.totalOutstanding > 0 ? "var(--color-warning)" : "var(--color-success)" }}
+                        style={{ color: pic.totalOutstanding > 0 ? "var(--amber-700)" : "var(--green-700)" }}
                       >
                         {formatRupiah(pic.totalOutstanding)}
                       </span>
@@ -133,8 +133,8 @@ export default async function PicDistributionPage({
                   {/* Progress bar */}
                   <div
                     style={{
-                      height: 6,
-                      background: "var(--bg-subtle)",
+                      height: 5,
+                      background: "var(--slate-100)",
                       borderRadius: 3,
                       overflow: "hidden",
                     }}
@@ -143,7 +143,7 @@ export default async function PicDistributionPage({
                       style={{
                         height: "100%",
                         width: `${pct}%`,
-                        background: "var(--color-primary)",
+                        background: "var(--blue-600)",
                       }}
                     />
                   </div>

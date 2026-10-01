@@ -1,49 +1,44 @@
 "use client";
 
 import { useState } from "react";
+import { DownloadIcon } from "../components/Icons";
 
 const exportCards = [
   {
     type: "acc",
-    title: "Rekapitulasi Data ACC",
-    icon: "📋",
+    title: "Rekap Data ACC",
+    code: "EXP-ACC",
     description: "Seluruh baris transaksi ACC yang telah disetujui, tanggal, proyek, PIC, dan status realisasi.",
-    defaultFilename: "ProTrack_Rekap_ACC",
   },
   {
     type: "realization",
-    title: "Realisasi Pencairan (Disbursement)",
-    icon: "💸",
+    title: "Realisasi Pencairan",
+    code: "EXP-REAL",
     description: "Rincian voucher pengeluaran, akun pembayar, nomor pencairan, dan nilai realisasi.",
-    defaultFilename: "ProTrack_Realisasi",
   },
   {
     type: "project",
-    title: "Alokasi Dana per Proyek",
-    icon: "🏗️",
+    title: "Alokasi per Proyek",
+    code: "EXP-PROJ",
     description: "Akumulasi nilai ACC per proyek dan sub-unit, realisasi pengeluaran, serta persentase progres.",
-    defaultFilename: "ProTrack_Per_Project",
   },
   {
     type: "pic",
-    title: "Distribusi Beban per PIC Lapangan",
-    icon: "👷",
+    title: "Beban per PIC",
+    code: "EXP-PIC",
     description: "Rincian alokasi dan penyerapan dana per penanggung jawab/mandor di lapangan.",
-    defaultFilename: "ProTrack_Per_PIC",
   },
   {
     type: "cash",
-    title: "Rekap Mutasi Kas & Saldo Bank",
-    icon: "🏦",
+    title: "Kas & Bank",
+    code: "EXP-CASH",
     description: "Arus kas masuk dan keluar per akun rekening, serta saldo likuiditas akhir.",
-    defaultFilename: "ProTrack_Kas_Bank",
   },
   {
     type: "journal",
-    title: "Buku Jurnal Akuntansi",
-    icon: "📒",
+    title: "Buku Jurnal",
+    code: "EXP-JRNL",
     description: "Daftar ayat jurnal double-entry otomatis (Debit/Kredit) dari seluruh transaksi terposting.",
-    defaultFilename: "ProTrack_Buku_Jurnal",
   },
 ];
 
@@ -68,9 +63,9 @@ export default function ExportPage() {
     <>
       <div className="page-header">
         <div>
-          <h1>Pusat Export Data & Laporan</h1>
+          <h1>Export Laporan</h1>
           <div className="page-header-subtitle">
-            Unduh rekapitulasi data ACC, realisasi pencairan, laporan proyek, dan pembukuan dalam format Excel (.xlsx) atau PDF (.pdf)
+            Unduh rekapitulasi administrasi dan keuangan ProTrack.
           </div>
         </div>
         <a
@@ -78,29 +73,30 @@ export default function ExportPage() {
           className="btn btn-secondary btn-sm"
           download
         >
-          📥 Unduh Template Import Excel
+          <DownloadIcon size={14} />
+          <span>Unduh Template Import Excel</span>
         </a>
       </div>
 
       <div className="page-body">
-        {/* Date Filter Card */}
+        {/* Date Filter Bar */}
         <div className="card mb-6">
           <div className="card-header">
-            <h2>Filter Periode Tanggal (Opsional)</h2>
+            <h2>Filter Periode Tanggal</h2>
             {(startDate || endDate) && (
               <button
                 type="button"
                 onClick={handleResetDates}
-                className="btn btn-ghost btn-sm text-xs text-secondary"
+                className="btn btn-ghost btn-sm text-xs"
               >
-                Reset Filter Tanggal
+                Reset Periode
               </button>
             )}
           </div>
           <div className="card-body">
-            <div className="form-row">
-              <div className="form-group" style={{ maxWidth: 280 }}>
-                <label className="form-label text-xs">Tanggal Mulai</label>
+            <div className="form-row" style={{ alignItems: "flex-end" }}>
+              <div className="form-group" style={{ marginBottom: 0, maxWidth: 220 }}>
+                <label className="form-label text-xs">Mulai Tanggal</label>
                 <input
                   type="date"
                   className="form-input"
@@ -108,8 +104,8 @@ export default function ExportPage() {
                   onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
-              <div className="form-group" style={{ maxWidth: 280 }}>
-                <label className="form-label text-xs">Tanggal Akhir</label>
+              <div className="form-group" style={{ marginBottom: 0, maxWidth: 220 }}>
+                <label className="form-label text-xs">Sampai Tanggal</label>
                 <input
                   type="date"
                   className="form-input"
@@ -117,45 +113,52 @@ export default function ExportPage() {
                   onChange={(e) => setEndDate(e.target.value)}
                 />
               </div>
-              <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: "var(--space-1)" }}>
+              <div>
                 <span className="text-xs text-muted">
                   {startDate || endDate
-                    ? `Export akan dibatasi antara ${startDate || "awal"} s/d ${endDate || "sekarang"}`
-                    : "Kosongkan tanggal untuk mengekspor seluruh periode data"}
+                    ? `Periode aktif: ${startDate || "Awal"} s/d ${endDate || "Sekarang"}`
+                    : "Kosongkan untuk mengekspor seluruh periode data historis"}
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Cards Grid */}
+        {/* 6 Report Types as Clean Compact List Cards */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-            gap: "var(--space-4)",
+            gap: 16,
           }}
         >
-          {exportCards.map((card) => (
+          {exportCards.map((card, idx) => (
             <div key={card.type} className="card" style={{ display: "flex", flexDirection: "column" }}>
               <div className="card-header">
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: "1.3rem" }}>{card.icon}</span>
-                  <h2 style={{ fontSize: "1rem" }}>{card.title}</h2>
+                  <span className="text-xs font-bold text-slate-400 font-mono">
+                    0{idx + 1}
+                  </span>
+                  <h2 style={{ fontSize: "0.92rem" }}>{card.title}</h2>
                 </div>
+                <span className="text-[10px] font-mono font-medium text-slate-400 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">
+                  {card.code}
+                </span>
               </div>
-              <div className="card-body" style={{ flex: 1 }}>
-                <p className="text-sm text-secondary" style={{ lineHeight: 1.5 }}>
+
+              <div className="card-body" style={{ flex: 1, padding: "14px 20px" }}>
+                <p className="text-xs text-secondary" style={{ lineHeight: 1.5 }}>
                   {card.description}
                 </p>
               </div>
+
               <div
                 style={{
-                  padding: "var(--space-3) var(--space-4)",
-                  background: "var(--bg-subtle)",
-                  borderTop: "1px solid var(--border-color)",
+                  padding: "10px 16px",
+                  background: "var(--slate-50)",
+                  borderTop: "1px solid var(--color-border-subtle)",
                   display: "flex",
-                  gap: "var(--space-2)",
+                  gap: 8,
                   justifyContent: "flex-end",
                 }}
               >
@@ -166,7 +169,7 @@ export default function ExportPage() {
                   title="Unduh format spreadsheet Microsoft Excel (.xlsx)"
                   style={{ textDecoration: "none" }}
                 >
-                  <span>📊</span>
+                  <DownloadIcon size={12} />
                   <span>Excel (.xlsx)</span>
                 </a>
                 <a
@@ -176,7 +179,7 @@ export default function ExportPage() {
                   title="Unduh format dokumen cetak PDF (.pdf)"
                   style={{ textDecoration: "none" }}
                 >
-                  <span>📄</span>
+                  <DownloadIcon size={12} />
                   <span>PDF (.pdf)</span>
                 </a>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
+import { SearchIcon } from "../components/Icons";
 
 interface AccFiltersProps {
   projects: { id: string; code: string; name: string }[];
@@ -22,45 +23,71 @@ export default function AccFilters({ projects, currentFilters }: AccFiltersProps
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  const handleReset = () => {
+    router.push(pathname);
+  };
+
+  const hasActiveFilters = !!(currentFilters.status || currentFilters.projectId || currentFilters.search);
+
   return (
-    <div className="filters-bar" style={{ margin: "0 var(--space-8)", marginTop: "var(--space-4)", borderRadius: "var(--radius-lg)" }}>
-      <input
-        type="text"
-        className="form-input"
-        placeholder="Cari No Kas / Uraian..."
-        defaultValue={currentFilters.search || ""}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            updateFilters("search", (e.target as HTMLInputElement).value);
-          }
-        }}
-        style={{ minWidth: 200 }}
-      />
+    <div className="filter-bar">
+      <div style={{ position: "relative", flex: 1, minWidth: 220 }}>
+        <div style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--slate-400)", display: "flex", alignItems: "center" }}>
+          <SearchIcon size={14} />
+        </div>
+        <input
+          type="text"
+          className="form-input"
+          placeholder="Cari No Kas / Uraian..."
+          defaultValue={currentFilters.search || ""}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              updateFilters("search", (e.target as HTMLInputElement).value);
+            }
+          }}
+          style={{ paddingLeft: 30 }}
+        />
+      </div>
 
-      <select
-        className="form-select"
-        value={currentFilters.status || ""}
-        onChange={(e) => updateFilters("status", e.target.value)}
-      >
-        <option value="">Semua Status</option>
-        <option value="APPROVED">Approved</option>
-        <option value="PARTIALLY_REALIZED">Sebagian Cair</option>
-        <option value="FULLY_REALIZED">Lunas</option>
-        <option value="CANCELLED">Batal</option>
-      </select>
+      <div className="filter-item">
+        <select
+          className="form-select"
+          value={currentFilters.status || ""}
+          onChange={(e) => updateFilters("status", e.target.value)}
+        >
+          <option value="">Semua Status</option>
+          <option value="APPROVED">Approved (Belum Cair)</option>
+          <option value="PARTIALLY_REALIZED">Sebagian Cair</option>
+          <option value="FULLY_REALIZED">Lunas</option>
+          <option value="CANCELLED">Batal</option>
+        </select>
+      </div>
 
-      <select
-        className="form-select"
-        value={currentFilters.projectId || ""}
-        onChange={(e) => updateFilters("projectId", e.target.value)}
-      >
-        <option value="">Semua Proyek</option>
-        {projects.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.code} — {p.name}
-          </option>
-        ))}
-      </select>
+      <div className="filter-item">
+        <select
+          className="form-select"
+          value={currentFilters.projectId || ""}
+          onChange={(e) => updateFilters("projectId", e.target.value)}
+        >
+          <option value="">Semua Proyek</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.code} — {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {hasActiveFilters && (
+        <button
+          type="button"
+          onClick={handleReset}
+          className="btn btn-ghost btn-sm text-xs"
+          style={{ color: "var(--slate-500)" }}
+        >
+          Reset Filter
+        </button>
+      )}
     </div>
   );
 }

@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const reportTabs = [
-  { href: "/reports/acc", label: "Rekap ACC", icon: "📋" },
-  { href: "/reports/realization", label: "Realisasi Pencairan", icon: "💸" },
-  { href: "/reports/projects", label: "Per Proyek", icon: "🏗️" },
-  { href: "/reports/pic", label: "Per PIC", icon: "👷" },
-  { href: "/reports/cash", label: "Kas & Bank", icon: "🏦" },
-  { href: "/reports/journals", label: "Buku Jurnal", icon: "📒" },
+  { href: "/reports/acc", label: "Rekap Data ACC" },
+  { href: "/reports/realization", label: "Realisasi Pencairan" },
+  { href: "/reports/projects", label: "Per Proyek" },
+  { href: "/reports/pic", label: "Per PIC Lapangan" },
+  { href: "/reports/cash", label: "Kas & Bank" },
+  { href: "/reports/journals", label: "Buku Jurnal" },
 ];
 
 export default function ReportsLayout({ children }: { children: React.ReactNode }) {
@@ -27,18 +27,35 @@ export default function ReportsLayout({ children }: { children: React.ReactNode 
       </div>
 
       <div className="page-body">
-        <div className="filter-bar mb-6" style={{ padding: "4px 8px", gap: 8 }}>
+        {/* Navigation Tabs Bar */}
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            background: "#ffffff",
+            padding: "6px 8px",
+            borderRadius: "8px",
+            border: "1px solid var(--color-border)",
+            marginBottom: 20,
+            overflowX: "auto",
+          }}
+        >
           {reportTabs.map((tab) => {
             const isActive = pathname.startsWith(tab.href);
             return (
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`btn btn-sm ${isActive ? "btn-primary" : "btn-secondary"}`}
-                style={{ textDecoration: "none" }}
+                className={`btn btn-sm ${isActive ? "btn-primary" : "btn-ghost"}`}
+                style={{
+                  textDecoration: "none",
+                  fontWeight: isActive ? 600 : 500,
+                  fontSize: "0.8rem",
+                  padding: "6px 14px",
+                  borderRadius: "6px",
+                }}
               >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
+                {tab.label}
               </Link>
             );
           })}
