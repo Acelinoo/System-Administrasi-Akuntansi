@@ -1,0 +1,455 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ----------------------------------------------------
+// ENUMS
+// ----------------------------------------------------
+
+enum UserRole {
+  STAFF
+  ADMIN
+}
+
+enum CashType {
+  KU // Kas Umum (operasional kantor, utilitas, ATK)
+  KT // Kas Terikat (proyek, material, upah lapangan, vendor)
+}
+
+enum AccountType {
+  CASH
+  BANK
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  GIRO
+}
+
+enum AccStatus {
+  APPROVED
+  PARTIALLY_REALIZED
+  FULLY_REALIZED
+  CANCELLED
+}
+
+enum TransactionStatus {
+  POSTED
+  VOID
+}
+
+enum JournalSourceType {
+  DISBURSEMENT
+  FUND_INFLOW
+  MANUAL
+}
+
+enum CoaType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+}
+
+enum DataScope {
+  REAL
+  TEST
+}
+
+enum PicAssignmentStatus {
+  ASSIGNED
+  UNASSIGNED_MANDOR
+}
+
+enum ProjectConfirmationStatus {
+  CONFIRMED
+  REQUIRES_BUSINESS_CONFIRMATION
+}
+
+// ----------------------------------------------------
+// 1. USERS & AUDIT
+// ----------------------------------------------------
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  username  String   @unique @db.VarChar(50)
+  fullName  String   @db.VarChar(100)
+  role      UserRole @default(STAFF)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+
+  submissionBatches SubmissionBatch[]
+  fundInflows       FundInflow[]
+  disbursements     Disbursement[]
+
+  @@map("users")
+}
+
+// ----------------------------------------------------
+// 2. ATOMIC SEQUENCE GENERATOR (KU & KT)
+// ----------------------------------------------------
+
+model CashSequence {
+  prefix     String @db.VarChar(5) // 'KU' or 'KT'
+  year       Int    // e.g. 2026
+  lastNumber Int    @default(0)
+
+  @@id([prefix, year])
+  @@map("cash_sequences")
+}
+
+// ----------------------------------------------------
+// 3. MASTER PROYEK (Parent + Sub Project)
+// ----------------------------------------------------
+
+model Project {
+  id                 String                    @id @default(uuid()) @db.Uuid
+  code               String                    @unique @db.VarChar(30) // e.g. 'ALCENT', 'SUMEDANG'
+  name               String                    @db.VarChar(150)
+  description        String?                   @db.Text
+  confirmationStatus ProjectConfirmationStatus @default(CONFIRMED)
+  possibleParentCode String?                   @db.VarChar(50)
+  isActive           Boolean                   @default(true)
+  createdAt          DateTime                  @default(now()) @db.Timestamptz()
+  updatedAt          DateTime                  @updatedAt @db.Timestamptz()
+
+  subUnits        ProjectSubUnit[]
+  accExpenseItems AccExpenseItem[]
+  journalLines    JournalLine[]
+
+  @@map("projects")
+}
+
+model ProjectSubUnit {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @db.Uuid
+  code      String   @db.VarChar(30) // e.g. 'SMP', 'SMA', 'SIPIL'
+  name      String   @db.VarChar(150)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  accExpenseItems AccExpenseItem[]
+
+  // Composite unique key enables composite foreign key to enforce parent-child integrity
+  @@unique([id, projectId])
+  @@unique([projectId, code])
+  @@index([projectId])
+  @@map("project_sub_units")
+}
+
+// ----------------------------------------------------
+// 4. MASTER KATEGORI OPERASIONAL
+// ----------------------------------------------------
+
+model ExpenseCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  code      String   @unique @db.VarChar(50) // e.g. 'UPAH', 'MATERIAL', 'KONTRABON'
+  name      String   @db.VarChar(150)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+
+  subCategories       ExpenseSubCategory[]
+  accExpenseItems     AccExpenseItem[]
+  categoryCoaMappings CategoryCoaMapping[]
+
+  @@map("expense_categories")
+}
+
+model ExpenseSubCategory {
+  id         String   @id @default(uuid()) @db.Uuid
+  categoryId String   @db.Uuid
+  code       String   @db.VarChar(50)
+  name       String   @db.VarChar(150)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now()) @db.Timestamptz()
+  updatedAt  DateTime @updatedAt @db.Timestamptz()
+
+  category            ExpenseCategory      @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  accExpenseItems     AccExpenseItem[]
+  categoryCoaMappings CategoryCoaMapping[]
+
+  @@unique([id, categoryId])
+  @@unique([categoryId, code])
+  @@index([categoryId])
+  @@map("expense_sub_categories")
+}
+
+// ----------------------------------------------------
+// 5. MASTER PIC LAPANGAN
+// ----------------------------------------------------
+
+model FieldPic {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique @db.VarChar(100) // e.g. 'PA HERI', 'PA DEDI', 'PA MAMAT', 'NISA'
+  roleTitle String?  @db.VarChar(100)
+  phone     String?  @db.VarChar(30)
+  notes     String?  @db.Text
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz()
+  updatedAt DateTime @updatedAt @db.Timestamptz()
+
+  accExpenseItems AccExpenseItem[]
+
+  @@map("field_pics")
+}
+
+// ----------------------------------------------------
+// 6. MASTER AKUN KAS & BANK
+// ----------------------------------------------------
+
+model CashAccount {
+  id             String      @id @default(uuid()) @db.Uuid
+  accountCode    String      @unique @db.VarChar(30) // e.g. 'KAS_NISA', 'MANDIRI_CBS'
+  accountName    String      @db.VarChar(100)
+  accountType    AccountType // CASH or BANK
+  bankName       String?     @db.VarChar(50)
+  accountNumber  String?     @db.VarChar(50)
+  accountHolder  String?     @db.VarChar(100)
+  openingBalance Decimal     @default(0.00) @db.Decimal(15, 2)
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now()) @db.Timestamptz()
+  updatedAt      DateTime    @updatedAt @db.Timestamptz()
+
+  fundInflows   FundInflow[]
+  disbursements Disbursement[]
+
+  @@map("cash_accounts")
+}
+
+// ----------------------------------------------------
+// 7. PENGAJUAN ACC (Submission Batch & Items)
+// ----------------------------------------------------
+
+model SubmissionBatch {
+  id                      String    @id @default(uuid()) @db.Uuid
+  batchCode               String    @unique @db.VarChar(50) // e.g. 'BATCH-2026-07-02' or No Kas
+  noKas                   String?   @unique @db.VarChar(30) // Unique No Kas voucher at Batch level
+  accDate                 DateTime  @db.Date
+  approvedByName          String    @default("Pa Giri") @db.VarChar(100)
+  administrativeSubmitter String    @default("NISA") @db.VarChar(100)
+  dataScope               DataScope @default(REAL)
+  notes                   String?   @db.Text
+  createdById             String?   @db.Uuid
+  createdAt               DateTime  @default(now()) @db.Timestamptz()
+  updatedAt               DateTime  @updatedAt @db.Timestamptz()
+
+  createdBy User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items     AccExpenseItem[]
+
+  @@index([accDate])
+  @@index([noKas])
+  @@index([dataScope])
+  @@map("submission_batches")
+}
+
+model AccExpenseItem {
+  id               String              @id @default(uuid()) @db.Uuid
+  batchId          String              @db.Uuid
+  itemNo           Int                 @default(1)
+  noKas            String              @db.VarChar(30) // Denormalized for reporting; unique per batch/itemNo
+  cashType         CashType            // KU or KT
+  projectId        String              @db.Uuid
+  subUnitId        String?             @db.Uuid
+  categoryId       String              @db.Uuid
+  subCategoryId    String?             @db.Uuid
+  picId            String              @db.Uuid
+  assignmentStatus PicAssignmentStatus @default(ASSIGNED)
+  dataScope        DataScope           @default(REAL)
+  description      String              @db.Text
+  requestedAmount  Decimal?            @db.Decimal(15, 2) // Optional draf
+  approvedAmount   Decimal             @db.Decimal(15, 2) // Must be > 0
+  status           AccStatus           @default(APPROVED)
+  notes            String?             @db.Text
+  createdAt        DateTime            @default(now()) @db.Timestamptz()
+  updatedAt        DateTime            @updatedAt @db.Timestamptz()
+
+  batch         SubmissionBatch     @relation(fields: [batchId], references: [id], onDelete: Restrict)
+  project       Project             @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  subUnit       ProjectSubUnit?     @relation(fields: [subUnitId, projectId], references: [id, projectId], onDelete: Restrict)
+  category      ExpenseCategory     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  subCategory   ExpenseSubCategory? @relation(fields: [subCategoryId, categoryId], references: [id, categoryId], onDelete: Restrict)
+  pic           FieldPic            @relation(fields: [picId], references: [id], onDelete: Restrict)
+  
+  disbursementItems DisbursementItem[]
+
+  @@unique([batchId, itemNo])
+  @@index([noKas])
+  @@index([batchId, status])
+  @@index([projectId, subUnitId])
+  @@index([picId])
+  @@index([categoryId])
+  @@index([dataScope])
+  @@index([assignmentStatus])
+  @@map("acc_expense_items")
+}
+
+// ----------------------------------------------------
+// 8. PENERIMAAN DANA (FUND INFLOW)
+// ----------------------------------------------------
+
+model FundInflow {
+  id                   String            @id @default(uuid()) @db.Uuid
+  inflowNumber         String            @unique @db.VarChar(50) // e.g. 'IN-2026-07-001'
+  inflowDate           DateTime          @db.Date
+  destinationAccountId String            @db.Uuid
+  amount               Decimal           @db.Decimal(15, 2)
+  sourceInfo           String            @db.VarChar(150)
+  referenceNo          String?           @db.VarChar(100)
+  dataScope            DataScope         @default(REAL)
+  status               TransactionStatus @default(POSTED)
+  voidedAt             DateTime?         @db.Timestamptz()
+  voidReason           String?           @db.Text
+  createdById          String?           @db.Uuid
+  createdAt            DateTime          @default(now()) @db.Timestamptz()
+  updatedAt            DateTime          @updatedAt @db.Timestamptz()
+
+  destinationAccount CashAccount @relation(fields: [destinationAccountId], references: [id], onDelete: Restrict)
+  createdBy          User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([inflowDate])
+  @@index([destinationAccountId])
+  @@index([dataScope])
+  @@map("fund_inflows")
+}
+
+// ----------------------------------------------------
+// 9. REALISASI / PENCAIRAN (DISBURSEMENT)
+// ----------------------------------------------------
+
+model Disbursement {
+  id                  String            @id @default(uuid()) @db.Uuid
+  disbursementNumber  String            @unique @db.VarChar(50) // e.g. 'DISB-2026-07-04-01'
+  disbursementDate    DateTime          @db.Date
+  cashAccountId       String            @db.Uuid
+  paymentMethod       PaymentMethod     // CASH, TRANSFER, GIRO
+  totalRealizedAmount Decimal           @db.Decimal(15, 2)
+  dataScope           DataScope         @default(REAL)
+  status              TransactionStatus @default(POSTED)
+  notes               String?           @db.Text
+  voidedAt            DateTime?         @db.Timestamptz()
+  voidReason          String?           @db.Text
+  createdById         String?           @db.Uuid
+  createdAt           DateTime          @default(now()) @db.Timestamptz()
+  updatedAt           DateTime          @updatedAt @db.Timestamptz()
+
+  cashAccount CashAccount        @relation(fields: [cashAccountId], references: [id], onDelete: Restrict)
+  createdBy   User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items       DisbursementItem[]
+
+  @@index([disbursementDate])
+  @@index([cashAccountId])
+  @@index([dataScope])
+  @@map("disbursements")
+}
+
+model DisbursementItem {
+  id             String   @id @default(uuid()) @db.Uuid
+  disbursementId String   @db.Uuid
+  accItemId      String   @db.Uuid
+  realizedAmount Decimal  @db.Decimal(15, 2)
+  createdAt      DateTime @default(now()) @db.Timestamptz()
+
+  disbursement Disbursement   @relation(fields: [disbursementId], references: [id], onDelete: Cascade)
+  accItem      AccExpenseItem @relation(fields: [accItemId], references: [id], onDelete: Restrict)
+
+  @@index([disbursementId])
+  @@index([accItemId])
+  @@map("disbursement_items")
+}
+
+// ----------------------------------------------------
+// 10. AKUNTANSI & JURNAL (COA & JOURNAL ENTRIES)
+// ----------------------------------------------------
+
+model CoaAccount {
+  id            String        @id @default(uuid()) @db.Uuid
+  accountCode   String        @unique @db.VarChar(30) // e.g. '1101', '5101'
+  accountName   String        @db.VarChar(150)
+  accountType   CoaType       // ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE
+  normalBalance NormalBalance // DEBIT or CREDIT
+  isActive      Boolean       @default(true)
+  createdAt     DateTime      @default(now()) @db.Timestamptz()
+  updatedAt     DateTime      @updatedAt @db.Timestamptz()
+
+  categoryCoaMappings CategoryCoaMapping[]
+  journalLines        JournalLine[]
+
+  @@map("coa_accounts")
+}
+
+model CategoryCoaMapping {
+  id            String   @id @default(uuid()) @db.Uuid
+  categoryId    String   @db.Uuid
+  subCategoryId String?  @db.Uuid
+  debitCoaId    String   @db.Uuid
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now()) @db.Timestamptz()
+  updatedAt     DateTime @updatedAt @db.Timestamptz()
+
+  category    ExpenseCategory     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  subCategory ExpenseSubCategory? @relation(fields: [subCategoryId, categoryId], references: [id, categoryId], onDelete: Restrict)
+  debitCoa    CoaAccount          @relation(fields: [debitCoaId], references: [id], onDelete: Restrict)
+
+  @@unique([categoryId, subCategoryId])
+  @@map("category_coa_mappings")
+}
+
+model JournalEntry {
+  id            String            @id @default(uuid()) @db.Uuid
+  journalNumber String            @unique @db.VarChar(50) // e.g. 'JRN-DISB-2026-07-04-01'
+  entryDate     DateTime          @db.Date
+  sourceType    JournalSourceType // DISBURSEMENT, FUND_INFLOW, MANUAL
+  sourceId      String            @db.VarChar(100) // Idempotency reference ID
+  description   String            @db.Text
+  dataScope     DataScope         @default(REAL)
+  status        TransactionStatus @default(POSTED)
+  voidedAt      DateTime?         @db.Timestamptz()
+  voidReason    String?           @db.Text
+  createdAt     DateTime          @default(now()) @db.Timestamptz()
+  updatedAt     DateTime          @updatedAt @db.Timestamptz()
+
+  lines JournalLine[]
+
+  // Ensures strict idempotency: only one active journal per source transaction
+  @@unique([sourceType, sourceId, status])
+  @@index([entryDate])
+  @@index([dataScope])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id        String   @id @default(uuid()) @db.Uuid
+  journalId String   @db.Uuid
+  coaId     String   @db.Uuid
+  projectId String?  @db.Uuid
+  debit     Decimal  @default(0.00) @db.Decimal(15, 2)
+  credit    Decimal  @default(0.00) @db.Decimal(15, 2)
+  memo      String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamptz()
+
+  journal JournalEntry @relation(fields: [journalId], references: [id], onDelete: Cascade)
+  coa     CoaAccount   @relation(fields: [coaId], references: [id], onDelete: Restrict)
+  project Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([journalId])
+  @@index([coaId])
+  @@index([projectId])
+  @@map("journal_lines")
+}

@@ -1,0 +1,326 @@
+[
+  {
+    "sheet": "Pengajuan RT BU Ani",
+    "row": 13,
+    "block": "Blok Utama",
+    "noKas": "KT.26.039",
+    "desc": "Upah Tukang RT Bu Ani",
+    "amount": 2978000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan RT BU Ani",
+    "row": 15,
+    "block": "Blok Utama",
+    "noKas": "KT.26.039",
+    "desc": "Upah Pa Dedi RT Bu Ani",
+    "amount": 900000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet8",
+    "row": 49,
+    "block": "Blok Utama",
+    "noKas": "KT.26.042",
+    "desc": "Upah Pa Heri (Sumedang)",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan RT bu Ani ke 4",
+    "row": 13,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Tukang RT Bu Ani",
+    "amount": 2250000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan RT bu Ani ke 4",
+    "row": 14,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Pa Heri RT Bu Ani",
+    "amount": 220000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan RT bu Ani ke 4",
+    "row": 15,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Pa Dedi RT Bu Ani",
+    "amount": 450000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan RT bu Ani ke 5",
+    "row": 13,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Tukang RT Bu Ani",
+    "amount": 3328000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan RT bu Ani ke 5",
+    "row": 14,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Pa Dedi RT Bu Ani",
+    "amount": 300000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan Ke 6",
+    "row": 13,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Tukang RT Bu Ani",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Pengajuan Ke 6",
+    "row": 14,
+    "block": "Blok Utama",
+    "noKas": "KT.26.081",
+    "desc": "Upah Pa Dedi RT Bu Ani",
+    "amount": 150000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet3",
+    "row": 39,
+    "block": "Blok Utama",
+    "noKas": "KT.26.128",
+    "desc": "Upah Pa Dedi Budi Indah",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet3",
+    "row": 48,
+    "block": "Blok Utama",
+    "noKas": "KN.26.006",
+    "desc": "BBM Antar Berkas Tgl 20/2 & Tgl 23/2",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet3",
+    "row": 40,
+    "block": "Blok Utama",
+    "noKas": "KT.26.178",
+    "desc": "Pemb Matrial (Samflex,Cornice,dll) Pro Darul Ulum",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet13",
+    "row": 76,
+    "block": "Blok Utama",
+    "noKas": "KT.26.217",
+    "desc": "Upah Tukang Pek Bocoran",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet13",
+    "row": 43,
+    "block": "Blok Utama",
+    "noKas": "KT.26.224",
+    "desc": "Upah Tukang RT BU Ani",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet16",
+    "row": 51,
+    "block": "Blok Utama",
+    "noKas": "KT.26.224",
+    "desc": "Air Minum RT Bu Ani",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet20",
+    "row": 60,
+    "block": "Blok Utama",
+    "noKas": "KT.26.257",
+    "desc": "Pek Perbakan Lis Plafond (Pa Mamat ) Pro SMP 13",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet30",
+    "row": 52,
+    "block": "Blok Utama",
+    "noKas": "KT.26.356",
+    "desc": "Upah Tukang Mang Iwan (Minggu Lalu)  RT Bu Ani",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet34",
+    "row": 57,
+    "block": "Blok Utama",
+    "noKas": "KT.26.410",
+    "desc": "Perbaikan Pintu Lipat",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet34",
+    "row": 58,
+    "block": "Blok Utama",
+    "noKas": "KT.26.411",
+    "desc": "Upah Tukang Pa Asep (Bersih-bersih Sisa Matrial) Darul Ulum",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet34",
+    "row": 59,
+    "block": "Blok Utama",
+    "noKas": "KT.26.411",
+    "desc": "Token Listrik Minggu Lalu",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet38",
+    "row": 57,
+    "block": "Blok Utama",
+    "noKas": "KT.26.453",
+    "desc": "Upah Tukang Pa Asep (Pasang Gordeng) Darul Ulum",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet38",
+    "row": 58,
+    "block": "Blok Utama",
+    "noKas": "KT.26.454",
+    "desc": "Upah Pa Dedi Cirebon",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet38",
+    "row": 59,
+    "block": "Blok Utama",
+    "noKas": "KT.26.458",
+    "desc": "Upah Pa Kiki Apartemen",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "Sheet38",
+    "row": 60,
+    "block": "Blok Utama",
+    "noKas": "KT.26.458",
+    "desc": "Upah pa iyay & pa ono Apartement",
+    "amount": 0,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "2 JULI",
+    "row": 94,
+    "block": "PER TANGGAL (Sub-blok)",
+    "noKas": "KT.26.492",
+    "desc": "KONTABON SEJAHTERA SMPMatrial Listrik)",
+    "amount": 84000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "16 JULI",
+    "row": 117,
+    "block": "PER TANGGAL (Sub-blok)",
+    "noKas": "KT.26.566",
+    "desc": "KONTRABON RESTULOGAM KAWALUYAAN 14/7",
+    "amount": 1285000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "16 JULI",
+    "row": 121,
+    "block": "PER TANGGAL (Sub-blok)",
+    "noKas": "KT.26.567",
+    "desc": "KONTRABON RESTULOGAM SMA 14/7",
+    "amount": 3657000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "31 JULI",
+    "row": 90,
+    "block": "PER TANGGAL (Sub-blok)",
+    "noKas": "KT.26.594",
+    "desc": "KONTRABON  RESTU LOGAM 25/7 Kawaluyaan",
+    "amount": 295000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "14 Agustus",
+    "row": 67,
+    "block": "Blok Utama",
+    "noKas": "KT.26.639",
+    "desc": "KONTRABON RESTULOGAM 8/8/26 Kawaluyaan",
+    "amount": 893000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "21 Agustus",
+    "row": 32,
+    "block": "Blok Utama",
+    "noKas": "KT.26.642",
+    "desc": "Upah Tukang SMA (Pa mamat)",
+    "amount": 225000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "21 Agustus",
+    "row": 63,
+    "block": "Blok Utama",
+    "noKas": "KT.26.643",
+    "desc": "Upah Tukang Kawaluyaan (Pa mamat)",
+    "amount": 7755000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "21 Agustus",
+    "row": 64,
+    "block": "Blok Utama",
+    "noKas": "KT.26.643",
+    "desc": "Air Minum Kawaluyaan",
+    "amount": 30000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "21 Agustus",
+    "row": 65,
+    "block": "Blok Utama",
+    "noKas": "KT.26.643",
+    "desc": "Upah Pa Dedi Kawaluyaan",
+    "amount": 300000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "27 Agustus",
+    "row": 49,
+    "block": "Blok Utama",
+    "noKas": "KT.26.656",
+    "desc": "Matrial Listrik & plumbing (Kabel Nym,Klem,Pipa,dll)",
+    "amount": 2249000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  },
+  {
+    "sheet": "27 Agustus",
+    "row": 50,
+    "block": "Blok Utama",
+    "noKas": "KT.26.656",
+    "desc": "Pemb Semen & Pasir",
+    "amount": 9220000,
+    "reason": "Multi-item baris terpisah dengan deskripsi sejenis; Phase 8B analyzer meng-collapse via Set(desc), Phase 8C mengimpor sebagai item mandiri"
+  }
+]

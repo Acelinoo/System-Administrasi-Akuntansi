@@ -1,0 +1,1593 @@
+{
+  "recapSheetCount": 44,
+  "colBHitsCount": 1202,
+  "otherColHitsCount": 1726,
+  "uniqueNoKasAllCols": 410,
+  "uniqueNoKasColB": 391,
+  "inOtherColsOnly": [
+    {
+      "noKas": "KT.26.002",
+      "occurrences": 1,
+      "locations": [
+        "Tgl 9 (R92C11/K)"
+      ],
+      "descriptions": [
+        "Pek Neon Sign (Pa Karsana) Antapani"
+      ],
+      "amounts": [
+        1750000
+      ]
+    },
+    {
+      "noKas": "KT.26.174",
+      "occurrences": 1,
+      "locations": [
+        "Sheet1 (R33C11/K)"
+      ],
+      "descriptions": [
+        "Upah Pa Dedi Budi Indah"
+      ],
+      "amounts": [
+        150000
+      ]
+    },
+    {
+      "noKas": "KT.26.183",
+      "occurrences": 1,
+      "locations": [
+        "Sheet1 (R79C11/K)"
+      ],
+      "descriptions": [
+        "Dp Pekerjaan Lemari Bawah Tangga (Pa Kiki) SD"
+      ],
+      "amounts": [
+        3000000
+      ]
+    },
+    {
+      "noKas": "KT.26.266",
+      "occurrences": 1,
+      "locations": [
+        "Sheet16 (R102C11/K)"
+      ],
+      "descriptions": [
+        "Pelunasan Pek Lemari Pro SMA (Pa Kiki)"
+      ],
+      "amounts": [
+        3000000
+      ]
+    },
+    {
+      "noKas": "KT.26.267",
+      "occurrences": 4,
+      "locations": [
+        "Sheet16 (R103C11/K)",
+        "Sheet16 (R104C11/K)",
+        "Sheet16 (R105C11/K)",
+        "Sheet16 (R106C11/K)"
+      ],
+      "descriptions": [
+        "Kasbon Ke 4 Pek Baja (Pa Ade) Pro Sumedang",
+        "Pelunasan Pek Perbaikan Strouss Pro Sumedang",
+        "Galian Pro Sumedang",
+        "Keamanan Pengawalan Pro Sumedang"
+      ],
+      "amounts": [
+        15000000,
+        900000,
+        370000,
+        400000
+      ]
+    },
+    {
+      "noKas": "KT.26.304",
+      "occurrences": 1,
+      "locations": [
+        "Sheet22 (R37C11/K)"
+      ],
+      "descriptions": [
+        "Pek Perbaikan Roda Gerbang (Pa Karsana) Pro SMP"
+      ],
+      "amounts": [
+        720000
+      ]
+    },
+    {
+      "noKas": "KT.26.342",
+      "occurrences": 1,
+      "locations": [
+        "Sheet26 (R102C11/K)"
+      ],
+      "descriptions": [
+        "Pek Perbaikan lantai kayu Multimedia Pro SMA (Pa Kiki)"
+      ],
+      "amounts": [
+        700000
+      ]
+    },
+    {
+      "noKas": "KT.26.679",
+      "occurrences": 1,
+      "locations": [
+        "27 Agustus (R101C20/T)"
+      ],
+      "descriptions": [
+        "BBM Etol Sumedang"
+      ],
+      "amounts": [
+        200000
+      ]
+    },
+    {
+      "noKas": "KT.26.719",
+      "occurrences": 2,
+      "locations": [
+        "17 SEPTEMBER (R30C3/C)",
+        "17 SEPTEMBER (R30C12/L)"
+      ],
+      "descriptions": [
+        "Upah Tukang TK"
+      ],
+      "amounts": [
+        225000,
+        225000
+      ]
+    },
+    {
+      "noKas": "KT.26.720",
+      "occurrences": 8,
+      "locations": [
+        "17 SEPTEMBER (R31C3/C)",
+        "17 SEPTEMBER (R31C12/L)",
+        "17 SEPTEMBER (R32C3/C)",
+        "17 SEPTEMBER (R32C12/L)",
+        "17 SEPTEMBER (R33C3/C)",
+        "17 SEPTEMBER (R33C12/L)",
+        "17 SEPTEMBER (R34C3/C)",
+        "17 SEPTEMBER (R34C12/L)"
+      ],
+      "descriptions": [
+        "Upah Tukang SMA",
+        "Upah Pa Heri SMA",
+        "Upah Tukang Speaker SMA (minggu lalu)",
+        "Upah Tukang Speaker SMA (minggu ini)"
+      ],
+      "amounts": [
+        360000,
+        360000,
+        220000,
+        220000,
+        500000,
+        500000,
+        700000,
+        700000
+      ]
+    },
+    {
+      "noKas": "KT.26.711",
+      "occurrences": 2,
+      "locations": [
+        "17 SEPTEMBER (R44C3/C)",
+        "17 SEPTEMBER (R44C12/L)"
+      ],
+      "descriptions": [
+        "Air Minum 3 minggu Sumedang"
+      ],
+      "amounts": [
+        483000,
+        483000
+      ]
+    },
+    {
+      "noKas": "KT.26.712",
+      "occurrences": 2,
+      "locations": [
+        "17 SEPTEMBER (R45C3/C)",
+        "17 SEPTEMBER (R45C12/L)"
+      ],
+      "descriptions": [
+        "SPJ tgl 16/9 Sumedang"
+      ],
+      "amounts": [
+        600000,
+        600000
+      ]
+    },
+    {
+      "noKas": "KT.26.718",
+      "occurrences": 8,
+      "locations": [
+        "17 SEPTEMBER (R62C3/C)",
+        "17 SEPTEMBER (R62C12/L)",
+        "17 SEPTEMBER (R63C3/C)",
+        "17 SEPTEMBER (R63C12/L)",
+        "17 SEPTEMBER (R64C3/C)",
+        "17 SEPTEMBER (R64C12/L)",
+        "17 SEPTEMBER (R65C3/C)",
+        "17 SEPTEMBER (R65C12/L)"
+      ],
+      "descriptions": [
+        "BBM bawa genteng",
+        "Matrial Listrik Kawaluyaan",
+        "Ongkir",
+        "Biaya Admin"
+      ],
+      "amounts": [
+        100000,
+        100000,
+        403000,
+        403000,
+        50000,
+        50000,
+        2500,
+        2500
+      ]
+    },
+    {
+      "noKas": "KT.26.710",
+      "occurrences": 4,
+      "locations": [
+        "17 SEPTEMBER (R66C3/C)",
+        "17 SEPTEMBER (R66C12/L)",
+        "17 SEPTEMBER (R67C3/C)",
+        "17 SEPTEMBER (R67C12/L)"
+      ],
+      "descriptions": [
+        "Pembelian Nok Atap genteng & Genteng Kawaluyaan (Talangan Nisa)",
+        "Pembelian Kramik Toilet Kawaluyaan"
+      ],
+      "amounts": [
+        4860000,
+        4860000,
+        320000,
+        320000
+      ]
+    },
+    {
+      "noKas": "KT.26.722",
+      "occurrences": 10,
+      "locations": [
+        "17 SEPTEMBER (R68C3/C)",
+        "17 SEPTEMBER (R68C12/L)",
+        "17 SEPTEMBER (R69C3/C)",
+        "17 SEPTEMBER (R69C12/L)",
+        "17 SEPTEMBER (R70C3/C)",
+        "17 SEPTEMBER (R70C12/L)",
+        "17 SEPTEMBER (R71C3/C)",
+        "17 SEPTEMBER (R71C12/L)",
+        "17 SEPTEMBER (R72C3/C)",
+        "17 SEPTEMBER (R72C12/L)"
+      ],
+      "descriptions": [
+        "Upah Tukang Kawaluyaan",
+        "Upah Pa Dedi Kawaluyaan",
+        "Air Minum Kawaluyaan",
+        "Barangkal kawaluyaan",
+        "Kasbon Pa soni Kawaluyaan"
+      ],
+      "amounts": [
+        6423000,
+        6423000,
+        750000,
+        750000,
+        30000,
+        30000,
+        500000,
+        500000,
+        600000,
+        600000
+      ]
+    },
+    {
+      "noKas": "KT.26.715",
+      "occurrences": 4,
+      "locations": [
+        "17 SEPTEMBER (R83C3/C)",
+        "17 SEPTEMBER (R83C12/L)",
+        "17 SEPTEMBER (R84C3/C)",
+        "17 SEPTEMBER (R84C12/L)"
+      ],
+      "descriptions": [
+        "KONTRABON RESTULOGAM 11/9 Kawaluyaan",
+        "Parkir Restulogam"
+      ],
+      "amounts": [
+        680000,
+        680000,
+        5000,
+        5000
+      ]
+    },
+    {
+      "noKas": "KT.26.723",
+      "occurrences": 2,
+      "locations": [
+        "17 SEPTEMBER (R92C3/C)",
+        "17 SEPTEMBER (R92C12/L)"
+      ],
+      "descriptions": [
+        "Upah Pa Dedi"
+      ],
+      "amounts": [
+        150000,
+        150000
+      ]
+    },
+    {
+      "noKas": "KT.26.724",
+      "occurrences": 6,
+      "locations": [
+        "17 SEPTEMBER (R93C3/C)",
+        "17 SEPTEMBER (R93C12/L)",
+        "17 SEPTEMBER (R94C3/C)",
+        "17 SEPTEMBER (R94C12/L)",
+        "17 SEPTEMBER (R95C3/C)",
+        "17 SEPTEMBER (R95C12/L)"
+      ],
+      "descriptions": [
+        "Gosend antar berkas 8/9 Yudikari (Talangan Nisa)",
+        "Gosend antar berkas 14/9 Yudikari (talangan Salwa )",
+        "Gosend antar berkas 15/9 Yudikari (Talangan Nisa)"
+      ],
+      "amounts": [
+        15500,
+        15500,
+        11000,
+        11000,
+        15000,
+        15000
+      ]
+    },
+    {
+      "noKas": "KT.26.725",
+      "occurrences": 2,
+      "locations": [
+        "17 SEPTEMBER (R96C3/C)",
+        "17 SEPTEMBER (R96C12/L)"
+      ],
+      "descriptions": [
+        "Pek kaca Jendela SMP (Pa Fadli)"
+      ],
+      "amounts": [
+        681520,
+        681520
+      ]
+    }
+  ],
+  "p8cCanonicalVouchersCount": 391,
+  "p8cCanonicalItemsCount": 1050,
+  "dbTotalBatches": 401,
+  "dbRealExcelBatches": 379,
+  "dbPreExistingBatches": 22,
+  "dbTotalItems": 1072,
+  "dbRealExcelItems": 1028,
+  "dbPreExistingItems": 44,
+  "sumRealApproved": 4303052418,
+  "sumPreApproved": 287761248,
+  "sumTotalApproved": 4590813666,
+  "disbursements": [
+    {
+      "id": "00dcbd17-3d06-4860-9f5d-db49a0038ba7",
+      "number": "DISB-2026-07-04-2918",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "557cf7dd-9982-456c-b7da-cd821de5b0df",
+      "number": "DISB-2026-07-06-3925",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "987c193b-d000-49bd-94bf-023dd6e7c205",
+      "number": "DISB-2026-07-04-6814",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "f7e8a939-e4d1-4c0c-ac95-fd31606b1cf9",
+      "number": "DISB-2026-07-06-8021",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "9bb4b0f3-0255-49ec-9efc-9cb85eb2b3cc",
+      "number": "DISB-2026-07-04-7595",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "3354b5e5-54c5-4c6e-b880-5400aeae193a",
+      "number": "DISB-2026-07-06-8781",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "3ec04af5-dc51-4367-a15a-7e7bddbc8165",
+      "number": "DISB-2026-07-04-7357",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "b3d6a13d-b50a-4fe0-a1a2-db97bb63fcc7",
+      "number": "DISB-2026-07-06-8208",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "f35f4c4e-5947-4890-b469-08884845f2f5",
+      "number": "DISB-2026-07-04-0433",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "c0989caf-1cd1-481b-9499-4be86a0ef723",
+      "number": "DISB-2026-07-06-1289",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "79e83d53-d821-4513-aa5b-8e178126970c",
+      "number": "DISB-2026-07-04-5082",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "4e0130cc-7bdb-4e86-84ea-b9488c3a965c",
+      "number": "DISB-2026-07-06-7245",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "fa5cbc98-5e93-4eb1-a979-4d76d5a3710e",
+      "number": "DISB-P7-1790790643020",
+      "date": "2026-10-02T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": "Pencairan Tahap 1 Borongan Proyek P7",
+      "itemCount": 1
+    },
+    {
+      "id": "16619f50-f7c8-4287-804e-ce1be411a3b6",
+      "number": "DISB-P7-1790790843758",
+      "date": "2026-10-02T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": "Pencairan Tahap 1 Borongan Proyek P7",
+      "itemCount": 1
+    },
+    {
+      "id": "33ac23fd-ed20-454d-9392-b7074832f445",
+      "number": "DISB-2026-07-04-1562",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "e3b19662-82ef-401e-b617-bf8b4e4266e3",
+      "number": "DISB-2026-07-06-4364",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "e64f8e26-4203-4441-ba57-3cddd2ed4ca2",
+      "number": "DISB-2026-07-04-3904",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "87caffb7-fb89-49a6-961a-c7f81d650261",
+      "number": "DISB-2026-07-06-4968",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "aaf53776-0e65-469e-bea9-1b8acce9d8b0",
+      "number": "DISB-2026-07-04-8481",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "702500f5-add6-470a-a3ea-a6966174e0eb",
+      "number": "DISB-2026-07-06-0529",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "16014d26-841a-42b1-89e6-a0ce2569f80e",
+      "number": "DISB-2026-07-04-5501",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "948b8bd3-e102-4322-8a54-3d7176c111a6",
+      "number": "DISB-2026-07-06-6381",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "aea862cf-63df-4137-98c5-013cbcd47451",
+      "number": "DISB-2026-10-01-1405",
+      "date": "2026-10-01T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": "Pencairan sebagian Test 3",
+      "itemCount": 1
+    },
+    {
+      "id": "cdf89620-1a7c-4aab-a397-840d586ef593",
+      "number": "DISB-2026-07-04-9943",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "f5418137-6cdb-4bad-8141-94b243ab90da",
+      "number": "DISB-2026-07-06-0778",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "951712d1-9d72-489c-bc4c-81a9e0d85c61",
+      "number": "DISB-2026-07-04-0343",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "36e30a21-e2fa-4547-8666-5c10104cdbba",
+      "number": "DISB-2026-07-06-1200",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "4ed90b0d-2edf-421c-96b1-03597fa82c5a",
+      "number": "DISB-2026-07-04-2283",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "1f35bc49-e84e-43b6-8e1a-2bb108959dda",
+      "number": "DISB-2026-07-06-3135",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "08a47c84-bee5-4d85-9a4b-0339355d4cda",
+      "number": "DISB-2026-07-04-6806",
+      "date": "2026-07-04T00:00:00.000Z",
+      "method": "CASH",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "POSTED",
+      "notes": null,
+      "itemCount": 1
+    },
+    {
+      "id": "549eaac9-3711-4e0e-a4d1-1b474b5bdd14",
+      "number": "DISB-2026-07-06-7696",
+      "date": "2026-07-06T00:00:00.000Z",
+      "method": "TRANSFER",
+      "account": "KAS_NISA",
+      "amount": null,
+      "status": "VOID",
+      "notes": null,
+      "itemCount": 1
+    }
+  ],
+  "inflows": [
+    {
+      "id": "1ded6221-aabb-410c-bd5e-d9ed6534df25",
+      "number": "IN-2026-07-1539",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "49c2f51e-c73a-42f2-9598-86b7f83c129f",
+      "number": "IN-2026-07-5113",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "d4007b54-888d-4d86-85ec-0cb5cc4af1f6",
+      "number": "IN-2026-07-6153",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "82e941e3-1f31-45fb-9cbd-233dc9f0316d",
+      "number": "IN-2026-07-5784",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "15ce7465-1817-4aec-b53e-864920cd998b",
+      "number": "IN-2026-07-9403",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "3de9c3f5-66f9-4ab8-814b-8b640c7d840a",
+      "number": "IN-2026-07-2256",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "29f20166-a32b-42f5-aa2e-338cd7bd46cc",
+      "number": "IN-P7-1790790571825",
+      "date": "2026-10-01T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 60000000,
+      "status": "POSTED",
+      "source": "Dropping Dana Proyek P7"
+    },
+    {
+      "id": "2dec6094-dceb-4b4a-9ae4-780db6cfe48a",
+      "number": "IN-P7-1790790643020",
+      "date": "2026-10-01T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 60000000,
+      "status": "POSTED",
+      "source": "Dropping Dana Proyek P7"
+    },
+    {
+      "id": "5e78b5a0-d603-48fa-81a7-e07ee5a4d88e",
+      "number": "IN-P7-1790790843758",
+      "date": "2026-10-01T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 60000000,
+      "status": "POSTED",
+      "source": "Dropping Dana Proyek P7"
+    },
+    {
+      "id": "5822b5cd-45d4-469c-a5aa-a4ba6d80d67b",
+      "number": "IN-2026-07-5513",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "31ebb401-9fb7-4a28-a231-3f4296db4170",
+      "number": "IN-2026-07-2589",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "7932a892-ac71-41e5-8725-46f354885965",
+      "number": "IN-2026-07-6150",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "ab4b2a13-a471-4df4-8ac3-5159238b4137",
+      "number": "IN-2026-07-3904",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "de965846-3eaa-4061-b69a-f4235eaf8b5b",
+      "number": "IN-2026-07-8347",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "5b923ab1-f68d-4103-ad58-2ccc7284c978",
+      "number": "IN-2026-07-9182",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "da77d1e0-4910-41f2-acb6-8306aab27cdf",
+      "number": "IN-2026-07-1146",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    },
+    {
+      "id": "ef17a880-0756-4131-90bd-ffa5dcf2a125",
+      "number": "IN-2026-07-4969",
+      "date": "2026-07-04T00:00:00.000Z",
+      "account": "KAS_NISA",
+      "amount": 10000000,
+      "status": "POSTED",
+      "source": "TF Dari MCBS Ke BCA Nisa"
+    }
+  ],
+  "journals": [
+    {
+      "id": "3ecbdefc-df5e-430e-83f9-08b580e94ba4",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "1ded6221-aabb-410c-bd5e-d9ed6534df25",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "20fbe5eb-7562-423c-b401-c9295aeda6bd",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "00dcbd17-3d06-4860-9f5d-db49a0038ba7",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "a0cdb6db-811a-401a-a886-32b4afca742c",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "557cf7dd-9982-456c-b7da-cd821de5b0df",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "fcdaa6a0-e013-447b-9d21-3a0db2dc914a",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "49c2f51e-c73a-42f2-9598-86b7f83c129f",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "06b00cb2-fc63-4b98-949c-278354c33dfc",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "987c193b-d000-49bd-94bf-023dd6e7c205",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "1daa64de-7284-4295-a4ff-89c3ecc897cf",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "f7e8a939-e4d1-4c0c-ac95-fd31606b1cf9",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "2145e974-c878-4701-8276-6dc099d99283",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "d4007b54-888d-4d86-85ec-0cb5cc4af1f6",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "d36bee24-a784-40c7-a0b3-2592e820646d",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "9bb4b0f3-0255-49ec-9efc-9cb85eb2b3cc",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "cbb1376b-0a17-4ddf-ba0a-e948136902c0",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "3354b5e5-54c5-4c6e-b880-5400aeae193a",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "11169ff9-316b-43d7-8123-b3abc2de023a",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "82e941e3-1f31-45fb-9cbd-233dc9f0316d",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "d0b442a5-77d6-4c74-b289-550fe09d94ea",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "3ec04af5-dc51-4367-a15a-7e7bddbc8165",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "a17879b3-f8fd-4a1e-baac-911089cd29d6",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "b3d6a13d-b50a-4fe0-a1a2-db97bb63fcc7",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "0e4bdbed-2b7e-4028-9f0d-4e0f6c12cb77",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "15ce7465-1817-4aec-b53e-864920cd998b",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "4d745f07-f5d6-45f9-bd5a-a2604665daed",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "f35f4c4e-5947-4890-b469-08884845f2f5",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "da45fd24-8cfc-4326-bcee-a79a1fcc1336",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "c0989caf-1cd1-481b-9499-4be86a0ef723",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "bc384da6-5c78-4c77-961d-47f44a3088d4",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "3de9c3f5-66f9-4ab8-814b-8b640c7d840a",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "2152e446-3a66-4148-bed4-51b83a88018c",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "79e83d53-d821-4513-aa5b-8e178126970c",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "fc17cf43-3946-4027-bfcd-1600291d5adb",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "4e0130cc-7bdb-4e86-84ea-b9488c3a965c",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "fadabe2a-0965-414f-acdc-ae2bfbf69e47",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "29f20166-a32b-42f5-aa2e-338cd7bd46cc",
+      "status": "POSTED",
+      "totalDebit": 60000000,
+      "totalCredit": 60000000,
+      "lineCount": 2
+    },
+    {
+      "id": "f7eb63e0-1440-4350-be4b-def443a1689d",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "2dec6094-dceb-4b4a-9ae4-780db6cfe48a",
+      "status": "POSTED",
+      "totalDebit": 60000000,
+      "totalCredit": 60000000,
+      "lineCount": 2
+    },
+    {
+      "id": "c843b71b-67f1-45e1-b75c-a52e77ce8460",
+      "date": "2026-10-02T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "fa5cbc98-5e93-4eb1-a979-4d76d5a3710e",
+      "status": "POSTED",
+      "totalDebit": 25292500,
+      "totalCredit": 25292500,
+      "lineCount": 2
+    },
+    {
+      "id": "876aca1b-9250-4f6f-8349-023119530dc0",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "5e78b5a0-d603-48fa-81a7-e07ee5a4d88e",
+      "status": "POSTED",
+      "totalDebit": 60000000,
+      "totalCredit": 60000000,
+      "lineCount": 2
+    },
+    {
+      "id": "70c946bb-707b-4baa-b1e5-74e1d47e811f",
+      "date": "2026-10-02T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "16619f50-f7c8-4287-804e-ce1be411a3b6",
+      "status": "POSTED",
+      "totalDebit": 25292500,
+      "totalCredit": 25292500,
+      "lineCount": 2
+    },
+    {
+      "id": "d1ec1660-7db4-472f-b02f-43af99083fa9",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "5822b5cd-45d4-469c-a5aa-a4ba6d80d67b",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "e707c906-81d7-4303-8e4d-63ea99aa13a6",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "33ac23fd-ed20-454d-9392-b7074832f445",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "821efcb1-27fe-4008-8f57-66270e769108",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "e3b19662-82ef-401e-b617-bf8b4e4266e3",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "bacb5fcb-797a-4b74-9c85-537660a1c7d5",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "31ebb401-9fb7-4a28-a231-3f4296db4170",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "3b6e170b-2aa0-44ca-a709-e6f401ea27c1",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "e64f8e26-4203-4441-ba57-3cddd2ed4ca2",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "72072f76-464e-4ff0-b4e7-6954b335439b",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "87caffb7-fb89-49a6-961a-c7f81d650261",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "c46e55f5-d0e9-4be3-8d4d-6edf1037c46d",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "7932a892-ac71-41e5-8725-46f354885965",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "4cb5fcb0-8fcc-4f0b-8dca-00fdf23e9089",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "aaf53776-0e65-469e-bea9-1b8acce9d8b0",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "e0f8ee70-ccce-4b92-8eb2-6720a2148e93",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "702500f5-add6-470a-a3ea-a6966174e0eb",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "19938efa-4c89-4ab3-816a-05329b369a57",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "ab4b2a13-a471-4df4-8ac3-5159238b4137",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "b9a225fd-0bd3-41cd-b06c-9ac1ce723aee",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "16014d26-841a-42b1-89e6-a0ce2569f80e",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "df2e4337-caac-4d06-92da-3819a266b5a5",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "948b8bd3-e102-4322-8a54-3d7176c111a6",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "89391951-3d8a-4b96-a37f-d7ede5d0ebbc",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "aea862cf-63df-4137-98c5-013cbcd47451",
+      "status": "POSTED",
+      "totalDebit": 200000,
+      "totalCredit": 200000,
+      "lineCount": 2
+    },
+    {
+      "id": "c0d39021-2388-41b2-b9e5-8850bc681a2c",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "c972e37c-c362-4309-a964-4048d30f5098",
+      "status": "POSTED",
+      "totalDebit": 200000,
+      "totalCredit": 200000,
+      "lineCount": 2
+    },
+    {
+      "id": "e7818ee7-fcd7-4053-8382-46eaa9493d65",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "9f3ea02f-4407-489a-9abb-e817fd144bee",
+      "status": "POSTED",
+      "totalDebit": 200000,
+      "totalCredit": 200000,
+      "lineCount": 2
+    },
+    {
+      "id": "bac365df-d763-4c4d-92d1-e848abd92d39",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "a45e6f60-8871-4acc-82f0-94165353bcc7",
+      "status": "POSTED",
+      "totalDebit": 200000,
+      "totalCredit": 200000,
+      "lineCount": 2
+    },
+    {
+      "id": "8359fc6f-f1a1-4e92-839f-5034b4265993",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "de965846-3eaa-4061-b69a-f4235eaf8b5b",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "f018bd82-858d-488a-9a0c-1ca4c62b908d",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "cdf89620-1a7c-4aab-a397-840d586ef593",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "fa82d83e-c9ed-4559-b35a-eec25674f4b8",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "f5418137-6cdb-4bad-8141-94b243ab90da",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "33b6a29b-d5f0-4530-828b-40bdd7dd2a16",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "5b923ab1-f68d-4103-ad58-2ccc7284c978",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "3de8a02b-f9f4-4dd8-b50d-a92bdc27341e",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "951712d1-9d72-489c-bc4c-81a9e0d85c61",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "9036f850-bd35-4278-9494-da84a1577b43",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "36e30a21-e2fa-4547-8666-5c10104cdbba",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "4a426aff-341b-4b43-9326-49e37776e8ed",
+      "date": "2026-10-01T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "9f3063b1-f4d4-49ab-a606-ef243762e7db",
+      "status": "POSTED",
+      "totalDebit": 200000,
+      "totalCredit": 200000,
+      "lineCount": 2
+    },
+    {
+      "id": "2a5386d6-abdf-48f4-94e6-e19119c03413",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "da77d1e0-4910-41f2-acb6-8306aab27cdf",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "c1b6e121-2144-48fe-b229-5bcb38f486f4",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "4ed90b0d-2edf-421c-96b1-03597fa82c5a",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "a0f95287-b755-4356-8979-27dd21b59641",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "1f35bc49-e84e-43b6-8e1a-2bb108959dda",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    },
+    {
+      "id": "05d1e482-8992-406e-b85a-38aece837740",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "FUND_INFLOW",
+      "sourceId": "ef17a880-0756-4131-90bd-ffa5dcf2a125",
+      "status": "POSTED",
+      "totalDebit": 10000000,
+      "totalCredit": 10000000,
+      "lineCount": 2
+    },
+    {
+      "id": "5cb04e65-74d6-4ec0-a727-d9e7642544b1",
+      "date": "2026-07-04T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "08a47c84-bee5-4d85-9a4b-0339355d4cda",
+      "status": "POSTED",
+      "totalDebit": 2000000,
+      "totalCredit": 2000000,
+      "lineCount": 2
+    },
+    {
+      "id": "4d655118-f412-414c-ad7a-2ccc968e608d",
+      "date": "2026-07-06T00:00:00.000Z",
+      "sourceType": "DISBURSEMENT",
+      "sourceId": "549eaac9-3711-4e0e-a4d1-1b474b5bdd14",
+      "status": "VOID",
+      "totalDebit": 3000000,
+      "totalCredit": 3000000,
+      "lineCount": 2
+    }
+  ],
+  "preExistingBatchesSummary": [
+    {
+      "id": "945cc895-3735-4c7f-8c58-30396452672d",
+      "batchCode": "BATCH-TEST-1790436389691",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "76ca8cf3-c0ed-41bf-aef6-18b847cb5b0f",
+      "batchCode": "BATCH-TEST-1790502022568",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "82dcabad-3f08-4c71-a7a2-92dbd333c1ce",
+      "batchCode": "BATCH-TEST-1790502804895",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "591efd08-fc78-4068-9589-c3549248e3f9",
+      "batchCode": "BATCH-TEST-1790505824363",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "9e68b954-aa7e-43ba-812f-394dc255a040",
+      "batchCode": "BATCH-TEST-1790506037736",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "7f8b73fd-ea37-41ca-aaef-4524d3900966",
+      "batchCode": "BATCH-TEST-1790789599541",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "962f95b0-ae03-4a94-9a2f-39a59f97b867",
+      "batchCode": "BATCH-P7-1790790424760",
+      "noKas": null,
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Phase 7 E2E Consistency Test Batch",
+      "itemsCount": 1,
+      "totalApproved": 45292500
+    },
+    {
+      "id": "9ce1bfba-448b-4066-bb26-5e840cc561c4",
+      "batchCode": "BATCH-P7-1790790571825",
+      "noKas": null,
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Phase 7 E2E Consistency Test Batch",
+      "itemsCount": 1,
+      "totalApproved": 45292500
+    },
+    {
+      "id": "e74f090b-5bfb-443a-af57-2b90a4e7de61",
+      "batchCode": "BATCH-P7-1790790643020",
+      "noKas": null,
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Phase 7 E2E Consistency Test Batch",
+      "itemsCount": 1,
+      "totalApproved": 45292500
+    },
+    {
+      "id": "2ae0f438-2f40-435e-802d-91b5be4839be",
+      "batchCode": "BATCH-P7-1790790843758",
+      "noKas": null,
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Phase 7 E2E Consistency Test Batch",
+      "itemsCount": 1,
+      "totalApproved": 45292500
+    },
+    {
+      "id": "05cef167-b6a0-4738-9b9c-6f2d675296ff",
+      "batchCode": "BATCH-TEST-1790790959226",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "916d7c85-9c20-4076-af54-f956826f5619",
+      "batchCode": "BATCH-TEST-1790791951247",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "e98fece0-16b7-4a38-933b-f4e089e37a85",
+      "batchCode": "BATCH-TEST-1790810055052",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "39a0ce43-f868-4553-ac4a-d2b95cb6db87",
+      "batchCode": "BATCH-TEST-1790810922630",
+      "noKas": null,
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "3f1dfe4c-c5ef-4aa1-a5b3-0a34b3dab1e8",
+      "batchCode": "BATCH-P8B-T1-1790812829681",
+      "noKas": "KU.26.824",
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Test 1: Multiple items under one No Kas voucher",
+      "itemsCount": 3,
+      "totalApproved": 2147812
+    },
+    {
+      "id": "3f23bb9e-a5f4-4a64-a204-a6691b837199",
+      "batchCode": "BATCH-P8B-T1-1790812850269",
+      "noKas": "KU.26.985",
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Test 1: Multiple items under one No Kas voucher",
+      "itemsCount": 3,
+      "totalApproved": 2147812
+    },
+    {
+      "id": "7ab3a275-439d-4197-b530-2ff4111ba5f4",
+      "batchCode": "BATCH-P8B-T1-1790812871476",
+      "noKas": "KU.26.885",
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Test 1: Multiple items under one No Kas voucher",
+      "itemsCount": 3,
+      "totalApproved": 2147812
+    },
+    {
+      "id": "3fb640f1-9962-4cd4-ae63-c350b93c6891",
+      "batchCode": "BATCH-P8B-T1-1790812891008",
+      "noKas": "KU.26.944",
+      "accDate": "2026-10-01T00:00:00.000Z",
+      "notes": "Test 1: Multiple items under one No Kas voucher",
+      "itemsCount": 3,
+      "totalApproved": 2147812
+    },
+    {
+      "id": "115c0e27-a368-4be8-8259-f1b8c683b9fb",
+      "batchCode": "BATCH-TEST-1790813077222",
+      "noKas": "KT.26.030",
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "8c84fecb-a53d-42dc-af22-4811b3e12b76",
+      "batchCode": "BATCH-TEST-1790813118072",
+      "noKas": "KT.26.031",
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "f3cac0dc-85d3-4da7-8b7b-5a9a49409d5b",
+      "batchCode": "BATCH-TEST-1790813290014",
+      "noKas": "KT.26.033",
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    },
+    {
+      "id": "0913e152-0d26-4e28-8171-0d4e429b85db",
+      "batchCode": "BATCH-TEST-1790814923778",
+      "noKas": "KT.26.035",
+      "accDate": "2026-07-02T00:00:00.000Z",
+      "notes": "Test batch 2 Juli",
+      "itemsCount": 2,
+      "totalApproved": 7000000
+    }
+  ],
+  "statusCounts": {
+    "PARTIALLY_REALIZED": 19,
+    "APPROVED": 1049,
+    "FULLY_REALIZED": 4
+  }
+}

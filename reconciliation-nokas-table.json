@@ -1,0 +1,206 @@
+[
+  {
+    "sourceNoKas": "KT.26.002",
+    "normalizedNoKas": "KT.26.002",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Tgl 9 (R92C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.174",
+    "normalizedNoKas": "KT.26.174",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Sheet1 (R33C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.183",
+    "normalizedNoKas": "KT.26.183",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Sheet1 (R79C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.266",
+    "normalizedNoKas": "KT.26.266",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Sheet16 (R102C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.267",
+    "normalizedNoKas": "KT.26.267",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Sheet16 (R103C11/K), Sheet16 (R104C11/K), Sheet16 (R105C11/K), Sheet16 (R106C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.304",
+    "normalizedNoKas": "KT.26.304",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Sheet22 (R37C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.342",
+    "normalizedNoKas": "KT.26.342",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (Sheet26 (R102C11/K)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.679",
+    "normalizedNoKas": "KT.26.679",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (27 Agustus (R101C20/T)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.719",
+    "normalizedNoKas": "KT.26.719",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R30C3/C), 17 SEPTEMBER (R30C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.720",
+    "normalizedNoKas": "KT.26.720",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R31C3/C), 17 SEPTEMBER (R31C12/L), 17 SEPTEMBER (R32C3/C), 17 SEPTEMBER (R32C12/L), 17 SEPTEMBER (R33C3/C), 17 SEPTEMBER (R33C12/L), 17 SEPTEMBER (R34C3/C), 17 SEPTEMBER (R34C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.711",
+    "normalizedNoKas": "KT.26.711",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R44C3/C), 17 SEPTEMBER (R44C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.712",
+    "normalizedNoKas": "KT.26.712",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R45C3/C), 17 SEPTEMBER (R45C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.718",
+    "normalizedNoKas": "KT.26.718",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R62C3/C), 17 SEPTEMBER (R62C12/L), 17 SEPTEMBER (R63C3/C), 17 SEPTEMBER (R63C12/L), 17 SEPTEMBER (R64C3/C), 17 SEPTEMBER (R64C12/L), 17 SEPTEMBER (R65C3/C), 17 SEPTEMBER (R65C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.710",
+    "normalizedNoKas": "KT.26.710",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R66C3/C), 17 SEPTEMBER (R66C12/L), 17 SEPTEMBER (R67C3/C), 17 SEPTEMBER (R67C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.722",
+    "normalizedNoKas": "KT.26.722",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R68C3/C), 17 SEPTEMBER (R68C12/L), 17 SEPTEMBER (R69C3/C), 17 SEPTEMBER (R69C12/L), 17 SEPTEMBER (R70C3/C), 17 SEPTEMBER (R70C12/L), 17 SEPTEMBER (R71C3/C), 17 SEPTEMBER (R71C12/L), 17 SEPTEMBER (R72C3/C), 17 SEPTEMBER (R72C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.715",
+    "normalizedNoKas": "KT.26.715",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R83C3/C), 17 SEPTEMBER (R83C12/L), 17 SEPTEMBER (R84C3/C), 17 SEPTEMBER (R84C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.723",
+    "normalizedNoKas": "KT.26.723",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R92C3/C), 17 SEPTEMBER (R92C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.724",
+    "normalizedNoKas": "KT.26.724",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R93C3/C), 17 SEPTEMBER (R93C12/L), 17 SEPTEMBER (R94C3/C), 17 SEPTEMBER (R94C12/L), 17 SEPTEMBER (R95C3/C), 17 SEPTEMBER (R95C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.725",
+    "normalizedNoKas": "KT.26.725",
+    "status": "EXCLUDED_FROM_SUBMISSION (RIGHT_SIDE_PAYMENT_REF)",
+    "alasan": "Muncul hanya pada kolom pencairan/kas posisi kanan (17 SEPTEMBER (R96C3/C), 17 SEPTEMBER (R96C12/L)), bukan pada Kolom B (tabel pengajuan ACC). Dipisahkan untuk mencegah duplikasi batch."
+  },
+  {
+    "sourceNoKas": "KT.26.001",
+    "normalizedNoKas": "KT.26.001",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.003",
+    "normalizedNoKas": "KT.26.003",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.005",
+    "normalizedNoKas": "KT.26.005",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.007",
+    "normalizedNoKas": "KT.26.007",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.009",
+    "normalizedNoKas": "KT.26.009",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.011",
+    "normalizedNoKas": "KT.26.011",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.015",
+    "normalizedNoKas": "KT.26.015",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.016",
+    "normalizedNoKas": "KT.26.016",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.018",
+    "normalizedNoKas": "KT.26.018",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.021",
+    "normalizedNoKas": "KT.26.021",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.024",
+    "normalizedNoKas": "KT.26.024",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.027",
+    "normalizedNoKas": "KT.26.027",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.030",
+    "normalizedNoKas": "KT.26.030",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.031",
+    "normalizedNoKas": "KT.26.031",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  },
+  {
+    "sourceNoKas": "KT.26.033",
+    "normalizedNoKas": "KT.26.033",
+    "status": "ALREADY_EXISTING_DB_COLLISION",
+    "alasan": "Voucher valid dari Excel yang sudah terinput di database melalui pengujian Phase 8B / sample import; dipertahankan tanpa duplikasi."
+  }
+]

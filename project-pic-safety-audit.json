@@ -1,0 +1,327 @@
+{
+  "projectAudit": [
+    {
+      "code": "ALCENT",
+      "name": "Proyek Al-Cent (Al-Azhar Center)",
+      "totalItems": 333,
+      "totalApproved": 538450948,
+      "totalRealized": 120785000,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 17,
+        "SMP": 120,
+        "SMA": 128,
+        "SD_TK": 68
+      },
+      "mappingRule": "Keyword ALCENT, AL-CENT, atau SMP/SMA/SD/TK umum",
+      "status": "CONFIRMED_BY_SOURCE",
+      "sampleDescriptions": [
+        "BPJS Kesehatan Karyawan",
+        "BPJS Ketenagakerjaan",
+        "Listrik Kantor",
+        "Upah Tukang Cat SMP",
+        "Pembelian Cat Dinding SMP"
+      ]
+    },
+    {
+      "code": "SUMEDANG",
+      "name": "Proyek Sumedang",
+      "totalItems": 272,
+      "totalApproved": 2238667639,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 270,
+        "TK": 2
+      },
+      "mappingRule": "Keyword SUMEDANG (+ sub-units SMA, SMP, SD, TK, SIPIL, BAJA)",
+      "status": "CONFIRMED_BY_SOURCE",
+      "sampleDescriptions": [
+        "Upah Pa Heri (Sumedang)",
+        "Upah Pa Heri Pro Sumedang",
+        "Upah Pa Dedi Pro Sumedang",
+        "Cash Bon Pa Agus Pro Sumedang",
+        "Upah Tukang (Pa Ali,Pa Iwan,Pa Aki,Bah oday) Pro Sumedang"
+      ]
+    },
+    {
+      "code": "KAWALUYAAN",
+      "name": "Proyek Kawaluyaan",
+      "totalItems": 80,
+      "totalApproved": 190005400,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 80
+      },
+      "mappingRule": "Keyword KAWALUYAAN",
+      "status": "CONFIRMED_BY_SOURCE",
+      "sampleDescriptions": [
+        "BBM (Untuk bawa barang pindahaan) Kawaluyaan",
+        "Air Minum Kawaluyaan",
+        "Upah Tukang Kawaluyaan",
+        "Upah Tukang Pa Mamat Kawaluyaan",
+        "Upah Pa Dedi Kawaluyaan"
+      ]
+    },
+    {
+      "code": "RT_BU_ANI",
+      "name": "Rumah Tinggal Bu Ani",
+      "totalItems": 31,
+      "totalApproved": 32070000,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 31
+      },
+      "mappingRule": "Keyword RT BU ANI / BU ANI",
+      "status": "CONFIRMED_BY_SOURCE",
+      "sampleDescriptions": [
+        "Upah Tukang RT Bu Ani",
+        "Upah Pa Heri RT Bu Ani",
+        "Upah Pa Dedi RT Bu Ani",
+        "Pemb Matrial RT Bu Ani",
+        "Upah Tukang RT Bu Ani Minggu Lalu"
+      ]
+    },
+    {
+      "code": "TANGGERANG",
+      "name": "Proyek Tanggerang",
+      "totalItems": 12,
+      "totalApproved": 5619000,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 12
+      },
+      "mappingRule": "Keyword TANGGERANG / TANGERANG",
+      "status": "CONFIRMED_BY_SOURCE",
+      "sampleDescriptions": [
+        "SPJ Ke 20 Tgl 23/1 Pro Tanggerang",
+        "Pemb Matrial Pro Tanggerang",
+        "Upah Pa Heri Pro Tanggerang",
+        "Upah Pa Dedi Pro Tanggerang",
+        "Upah Tukang Pro Tanggerang"
+      ]
+    },
+    {
+      "code": "INTERNAL",
+      "name": "Operasional Internal Kantor",
+      "totalItems": 311,
+      "totalApproved": 1575800679,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 311
+      },
+      "mappingRule": "Fallback operasional rutin kantor, BPJS, listrik, motor Jupiter, dll.",
+      "status": "CONFIRMED_BY_SOURCE",
+      "sampleDescriptions": [
+        "Listrik",
+        "Telphone & Internet",
+        "Air Minum (1 Gln)",
+        "Kerohiman (Pa Ocid)",
+        "Upah Pa Dedi Ke Jakarta"
+      ]
+    },
+    {
+      "code": "DARUL_ULUM",
+      "name": "Proyek Darul Ulum",
+      "totalItems": 11,
+      "totalApproved": 6080000,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 11
+      },
+      "mappingRule": "Keyword DARUL ULUM",
+      "status": "REQUIRES BUSINESS CONFIRMATION",
+      "sampleDescriptions": [
+        "Pemb Matrial (Samflex,Cornice,dll) Pro Darul Ulum",
+        "Upah Tukang Pa Mamat (Pek Tutup Lubang Tikus Area Dak & Toren pake ram nyamuk) Darul ulum",
+        "Pemb Matrial Darul Ulum",
+        "Upah Tukang Pa Mamat (Pek Pembersihan Hama Tikus area dalam & Pengecetan Pelapon) Darul ulum",
+        "Upah Tukang Pa Mamat (Pek Pengecetan Area Dalam) Darul ulum"
+      ]
+    },
+    {
+      "code": "BUDI_INDAH",
+      "name": "Proyek Budi Indah",
+      "totalItems": 4,
+      "totalApproved": 530000,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 4
+      },
+      "mappingRule": "Keyword BUDI INDAH / BD INDAH",
+      "status": "REQUIRES BUSINESS CONFIRMATION",
+      "sampleDescriptions": [
+        "KONTRABON RESTULOGAM 27/12 Bd Indah",
+        "Upah pa Igo Pek Bocoran Budi Indah",
+        "Upah Pa Dedi Budi Indah"
+      ]
+    },
+    {
+      "code": "APARTEMEN",
+      "name": "Proyek Apartemen",
+      "totalItems": 6,
+      "totalApproved": 1372500,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 6
+      },
+      "mappingRule": "Keyword APARTEMEN",
+      "status": "REQUIRES BUSINESS CONFIRMATION",
+      "sampleDescriptions": [
+        "BBM Bawa Barang Apartemen",
+        "Kontrabon Sejahtera Tgl 30/5 Apartemen",
+        "Upah Pa Kiki Apartemen",
+        "Upah pa iyay & pa ono Apartement"
+      ]
+    },
+    {
+      "code": "ANTAPANI",
+      "name": "Proyek Antapani",
+      "totalItems": 5,
+      "totalApproved": 1059000,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 5
+      },
+      "mappingRule": "Keyword ANTAPANI",
+      "status": "REQUIRES BUSINESS CONFIRMATION",
+      "sampleDescriptions": [
+        "Upah Pa Heri Pro Antapani",
+        "Upah Lemburan Pa Dedi Angkut Sofa Pro Antapani",
+        "Upah Lemburan Angkut Sofa Pro Antapani",
+        "Upah Pa iyan& Pa Igo Pro Antapani (Pek Buat saluaran & Ngeplur Bekas Bocoran)",
+        "Perbaikan AKARA Pa Soni Spa Antapani"
+      ]
+    },
+    {
+      "code": "CIREBON",
+      "name": "Proyek Cirebon",
+      "totalItems": 2,
+      "totalApproved": 150000,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 2
+      },
+      "mappingRule": "Keyword CIREBON",
+      "status": "REQUIRES BUSINESS CONFIRMATION",
+      "sampleDescriptions": [
+        "Upah Pa Dedi Cirebon"
+      ]
+    },
+    {
+      "code": "JL_GITAR",
+      "name": "Proyek Jl. Gitar",
+      "totalItems": 5,
+      "totalApproved": 1008500,
+      "totalRealized": 0,
+      "subUnitBreakdown": {
+        "NO_SUBUNIT": 5
+      },
+      "mappingRule": "Keyword JL. GITAR / GITAR",
+      "status": "REQUIRES BUSINESS CONFIRMATION",
+      "sampleDescriptions": [
+        "Pemb Pressure Control Pro Jl Gitar",
+        "Sewa Scaffolding Tgl 7 Des 25 - 5 Jan 26 Jl Gitar",
+        "Sewa Scaffolding (Perpanjangan) Jl Gitar",
+        "Sewa Scaffolding Pro Jl Gitar",
+        "Perpanjangan Sewa Scafolding PT. Pratama Cilegon Jl. Gitar"
+      ]
+    }
+  ],
+  "picAudit": [
+    {
+      "name": "PA HERI",
+      "roleTitle": "Koordinator Lapangan / Mandor",
+      "totalItems": 111,
+      "totalApproved": 386809628,
+      "sampleDesc": [
+        "BPJS Kesehatan Karyawan",
+        "BPJS Ketenagakerjaan",
+        "Listrik Kantor",
+        "Upah Tukang Cat SMP",
+        "Pembelian Cat Dinding SMP"
+      ]
+    },
+    {
+      "name": "PA DEDI",
+      "roleTitle": "Logistik & Operasional Lapangan",
+      "totalItems": 98,
+      "totalApproved": 39188750,
+      "sampleDesc": [
+        "Upah Pa Dedi (1 Hari) Pro SMP",
+        "Upah Pa Dedi Ke Jakarta",
+        "Upah Pa Dedi (5 Hari) Pro SMA",
+        "Upah Pa Dedi RT Bu Ani",
+        "Aqua Gelas untuk rapat Tgl 17/1 (Talangan Pa Dedi)"
+      ]
+    },
+    {
+      "name": "PA MAMAT",
+      "roleTitle": "Mandor Sipil & Interior",
+      "totalItems": 97,
+      "totalApproved": 146394500,
+      "sampleDesc": [
+        "Upah Tukang Pek Talang Air Area Aula,Pemasangan Rambang,dll (Pa Mamat) Pro SMP",
+        "Pemb Matrial Alcent (Pa Mamat)",
+        "Upah Tukang (Pa mamat) Pek Pasang Karpet,Aksesoris,dll Pro SMP",
+        "Upah Tukang Pa Mamat (Pek Dren AC 201 LT 2 )Pro SMA",
+        "Upah Tukang (Pa Mamat) Pek Dren AC R. Yayasan,Pluran & Bocoran Pro SMA"
+      ]
+    },
+    {
+      "name": "NISA",
+      "roleTitle": "Staf Administrasi & Keuangan",
+      "totalItems": 724,
+      "totalApproved": 2850637788,
+      "sampleDesc": [
+        "Listrik",
+        "Telphone & Internet",
+        "Air Minum (1 Gln)",
+        "Pelunasan Pek Plang No Smoking (Pa Yoda) Pro SMA",
+        "KONTRABON RESTULOGAM 27/12 SMA"
+      ]
+    },
+    {
+      "name": "PA UDEN",
+      "roleTitle": "Koordinator Lapangan",
+      "totalItems": 3,
+      "totalApproved": 113000,
+      "sampleDesc": [
+        "Air Minum 1 Gln (Talangan Pa Uden)",
+        "BBM Buang Barangkal Pro SD (Talangan Pa Uden)",
+        "Pemb Tisu (Talangan Pa Uden)"
+      ]
+    },
+    {
+      "name": "PA ENGKUS",
+      "roleTitle": "Koordinator Lapangan",
+      "totalItems": 0,
+      "totalApproved": 0,
+      "sampleDesc": []
+    },
+    {
+      "name": "PA AGUS",
+      "roleTitle": "Mandor Borongan Sipil",
+      "totalItems": 39,
+      "totalApproved": 1167670000,
+      "sampleDesc": [
+        "Pemb Upah (Pa Agus)",
+        "Cash Bon Pa Agus Pro Sumedang",
+        "Upah Borongan (Pa Agus) Pro Sumedang",
+        "Upah Pa Agus (Borongan) Pro Sumedang",
+        "Cash Bon Pa Agus Pek Sipil Pro Sumedang"
+      ]
+    }
+  ],
+  "nisaDetails": {
+    "total": 724,
+    "explicitMention": 1,
+    "fallback": 723
+  },
+  "safety": {
+    "duplicateNoKasCount": 0,
+    "duplicateBatchItemNoCount": 0,
+    "orphanItemsCount": 0,
+    "orphanDisbItemsCount": 0,
+    "orphanDisbItemParentsCount": 0,
+    "orphanJournalLinesCount": 0
+  }
+}
