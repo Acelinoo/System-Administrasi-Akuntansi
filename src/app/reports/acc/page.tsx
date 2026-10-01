@@ -62,9 +62,9 @@ export default async function AccReportPage({
     <>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Rekapitulasi Pengajuan ACC</h2>
+          <h2 className="text-base font-semibold">Laporan Rekapitulasi Data ACC</h2>
           <div className="text-xs text-muted">
-            Monitoring data pengajuan yang telah disetujui atasan, realisasi pencairan, dan sisa outstanding
+            Monitoring data hasil ACC atasan, realisasi pencairan, dan sisa outstanding
           </div>
         </div>
         <ExportButtons reportType="acc" />
@@ -74,7 +74,7 @@ export default async function AccReportPage({
 
       <div className="stat-grid mb-6">
         <div className="stat-card">
-          <div className="stat-label">Total Pengajuan (ACC)</div>
+          <div className="stat-label">Total Data ACC</div>
           <div className="stat-value">{formatRupiah(data.totals.totalApproved)}</div>
           <div className="stat-sub">{data.totals.count} item transaksi</div>
         </div>

@@ -51,7 +51,7 @@ export default async function DisbursementListPage() {
                 <div className="empty-state-icon">💸</div>
                 <div className="empty-state-title">Belum ada pencairan</div>
                 <div className="empty-state-desc">
-                  Setelah ada pengajuan ACC yang di-approve, Anda dapat mencatatkan pencairan/realisasinya.
+                  Setelah data ACC dicatatkan, Anda dapat mencatatkan pencairan/realisasinya.
                 </div>
               </div>
             ) : (

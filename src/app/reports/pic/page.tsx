@@ -40,7 +40,7 @@ export default async function PicReportPage({
         <div>
           <h2 className="text-base font-semibold">Laporan Monitoring PIC Lapangan</h2>
           <div className="text-xs text-muted">
-            Rekapitulasi pengajuan dana, realisasi pencairan, dan sisa outstanding per person-in-charge
+            Rekapitulasi alokasi dana ACC, realisasi pencairan, dan sisa outstanding per person-in-charge
           </div>
         </div>
         <ExportButtons reportType="pic" />

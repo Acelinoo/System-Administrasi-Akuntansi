@@ -17,7 +17,7 @@ export default async function PicDistributionPage({
         <div>
           <h1>Distribusi PIC Lapangan</h1>
           <div className="page-header-subtitle">
-            Monitoring dana pengajuan ACC, realisasi pencairan, dan sisa outstanding per penanggung jawab
+            Monitoring alokasi dana ACC, realisasi pencairan, dan sisa outstanding per penanggung jawab
           </div>
         </div>
       </div>
@@ -29,7 +29,7 @@ export default async function PicDistributionPage({
         {/* Aggregate Stats */}
         <div className="stat-grid mb-6">
           <div className="stat-card">
-            <div className="stat-label">Total Pengajuan ACC</div>
+            <div className="stat-label">Total Dana ACC</div>
             <div className="stat-value">{formatRupiah(data.totals.totalApproved)}</div>
             <div className="stat-sub">{data.totals.totalItems} transaksi ACC</div>
           </div>
@@ -100,7 +100,7 @@ export default async function PicDistributionPage({
                           {pic.roleTitle}
                         </div>
                       )}
-                      <div className="text-xs text-muted mt-1">{pic.itemCount} item diajukan</div>
+                      <div className="text-xs text-muted mt-1">{pic.itemCount} item ACC</div>
                     </div>
                     <span
                       className="status status-info"

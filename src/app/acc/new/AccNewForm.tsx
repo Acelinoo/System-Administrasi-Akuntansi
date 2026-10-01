@@ -152,7 +152,7 @@ export default function AccNewForm({
       {/* Batch Header */}
       <div className="card mb-6">
         <div className="card-header">
-          <h2>Header Batch ACC</h2>
+          <h2>Data Batch ACC</h2>
         </div>
         <div className="card-body">
           <div className="form-row">
@@ -181,7 +181,7 @@ export default function AccNewForm({
             </div>
 
             <div className="form-group">
-              <label className="form-label">Disetujui Oleh *</label>
+              <label className="form-label">Atasan Peng-ACC *</label>
               <input
                 type="text"
                 className="form-input"
@@ -189,6 +189,7 @@ export default function AccNewForm({
                 onChange={(e) => setApprovedByName(e.target.value)}
                 required
               />
+              <div className="form-hint">Atasan pemberi ACC di luar sistem (misal: Pa Giri)</div>
             </div>
           </div>
 
@@ -392,7 +393,7 @@ export default function AccNewForm({
             className="btn btn-primary"
             disabled={submitting}
           >
-            {submitting ? "Menyimpan..." : "Simpan Batch ACC"}
+            {submitting ? "Menyimpan..." : "Simpan Data ACC"}
           </button>
         </div>
       </div>

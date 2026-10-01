@@ -3,7 +3,7 @@ import ImportWizard from "./ImportWizard";
 
 export const metadata = {
   title: "Impor Data Excel — ProTrack",
-  description: "Impor data pengajuan ACC proyek dari file spreadsheet Excel terkontrol.",
+  description: "Impor data ACC proyek dari file spreadsheet Excel terkontrol.",
 };
 
 export default function AccImportPage() {

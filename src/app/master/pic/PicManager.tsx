@@ -46,7 +46,7 @@ export default function PicManager({ pics }: { pics: PicItem[] }) {
         <div>
           <h2 className="text-base font-semibold">Daftar PIC Lapangan</h2>
           <div className="text-xs text-muted">
-            Person in Charge yang bertanggung jawab atas pengajuan dan realisasi uang di lapangan
+            Person in Charge yang bertanggung jawab atas penggunaan dan realisasi uang di lapangan
           </div>
         </div>
         <button

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "ProTrack — Administrasi Keuangan Proyek",
   description:
-    "Sistem pencatatan administrasi keuangan proyek internal. Rekap pengajuan ACC, pencairan dana, dan jurnal akuntansi.",
+    "Sistem pencatatan administrasi keuangan proyek internal. Pencatatan data hasil ACC atasan, realisasi dana, dan jurnal akuntansi otomatis.",
 };
 
 export default function RootLayout({

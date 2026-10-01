@@ -12,9 +12,9 @@ export default async function AccNewPage() {
     <>
       <div className="page-header">
         <div>
-          <h1>Input Pengajuan ACC Baru</h1>
+          <h1>Input Data ACC Baru</h1>
           <div className="page-header-subtitle">
-            Masukkan data pengajuan yang sudah di-ACC oleh atasan
+            Catat hasil ACC yang sudah diterima dari atasan. Proses pengajuan dan approval dilakukan di luar ProTrack.
           </div>
         </div>
       </div>

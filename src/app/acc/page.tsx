@@ -40,9 +40,9 @@ export default async function AccListPage({
     <>
       <div className="page-header">
         <div>
-          <h1>Daftar Pengajuan ACC</h1>
+          <h1>Data ACC Operasional</h1>
           <div className="page-header-subtitle">
-            {items.length} item — Total ACC: {formatRupiah(totalApproved)} | Realisasi:{" "}
+            {items.length} item dicatat — Total ACC: {formatRupiah(totalApproved)} | Realisasi:{" "}
             {formatRupiah(totalRealized)}
           </div>
         </div>
@@ -56,6 +56,23 @@ export default async function AccListPage({
         </div>
       </div>
 
+      {/* Operational UX Notice */}
+      <div className="card" style={{ margin: "0 var(--space-8)", marginBottom: "var(--space-4)", background: "var(--bg-subtle, #f8fafc)", border: "1px solid var(--border-color, #e2e8f0)" }}>
+        <div className="card-body" style={{ padding: "12px 16px" }}>
+          <div className="flex items-center gap-2">
+            <span style={{ fontSize: "1.1rem" }}>ℹ️</span>
+            <div>
+              <div className="font-semibold text-xs text-slate-800">
+                Catat hasil ACC yang sudah diterima dari atasan. Proses pengajuan dan approval dilakukan di luar ProTrack.
+              </div>
+              <div className="text-xs text-muted mt-0.5">
+                Prinsip Administrasi: Pengajuan awal ≠ Disetujui (Approved) ≠ Realisasi. Nominal ACC yang disetujui (Approved Amount) menjadi dasar administrasi pencairan dana.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <AccFilters projects={projects} currentFilters={params} />
 
       <div className="card" style={{ margin: "0 var(--space-8)", marginBottom: "var(--space-6)" }}>
@@ -63,9 +80,9 @@ export default async function AccListPage({
           {items.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">📋</div>
-              <div className="empty-state-title">Belum ada data pengajuan</div>
+              <div className="empty-state-title">Belum ada data ACC</div>
               <div className="empty-state-desc">
-                Mulai dengan memasukkan data ACC yang sudah disetujui atasan.
+                Mulai dengan mencatat data ACC yang sudah disetujui atasan di luar sistem.
               </div>
             </div>
           ) : (

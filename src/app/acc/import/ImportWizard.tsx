@@ -139,13 +139,13 @@ export default function ImportWizard() {
         <div>
           <div className="flex items-center gap-2 text-sm text-slate-500 mb-1">
             <Link href="/acc" className="hover:underline">
-              Pengajuan ACC
+              Data ACC
             </Link>
             <span>/</span>
             <span className="text-slate-800 font-medium">Impor Data Excel</span>
           </div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Impor Data Pengajuan ACC
+            Impor Data ACC Excel
           </h1>
           <p className="text-sm text-slate-500">
             Validasi ketat baris-per-baris, verifikasi keunikan No Kas, integritas proyek, dan isolasi transaksi.
@@ -195,7 +195,7 @@ export default function ImportWizard() {
           <div>
             <h2 className="text-xl font-bold text-slate-900">Impor Data Berhasil</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Data transaksi pengajuan ACC telah berhasil divalidasi dan disimpan ke database dalam satu batch transaksi.
+              Data hasil ACC telah berhasil divalidasi dan disimpan ke database dalam satu batch transaksi.
             </p>
           </div>
 
@@ -418,7 +418,7 @@ export default function ImportWizard() {
           {/* Batch Information Form */}
           <div className="bg-white border border-slate-200 rounded-lg p-5 space-y-4 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-900 border-b border-slate-100 pb-2">
-              Informasi Batch Pengajuan ACC
+              Informasi Batch Data ACC
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
@@ -468,7 +468,7 @@ export default function ImportWizard() {
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Catatan batch pengajuan"
+                  placeholder="Catatan batch data ACC"
                   className="w-full text-sm border border-slate-300 rounded px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-slate-900"
                 />
               </div>

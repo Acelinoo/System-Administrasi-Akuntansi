@@ -62,7 +62,7 @@ export default async function AccDetailPage({
         <div className="grid-2 mb-6">
           <div className="card">
             <div className="card-header">
-              <h2>Informasi Pengajuan</h2>
+              <h2>Informasi Data ACC</h2>
             </div>
             <div className="card-body">
               <table style={{ width: "100%", fontSize: "0.85rem" }}>
@@ -84,15 +84,19 @@ export default async function AccDetailPage({
                     <td>{formatDate(item.batch.accDate)}</td>
                   </tr>
                   <tr>
-                    <td className="text-secondary" style={{ padding: "6px 0" }}>Disetujui Oleh</td>
+                    <td className="text-secondary" style={{ padding: "6px 0" }}>Atasan Peng-ACC</td>
                     <td>{item.batch.approvedByName}</td>
                   </tr>
                   {item.requestedAmount && (
                     <tr>
-                      <td className="text-secondary" style={{ padding: "6px 0" }}>Nominal Diajukan</td>
-                      <td>{formatRupiah(Number(item.requestedAmount))}</td>
+                      <td className="text-secondary" style={{ padding: "6px 0" }}>Nominal Pengajuan Awal (Ref)</td>
+                      <td className="text-muted">{formatRupiah(Number(item.requestedAmount))}</td>
                     </tr>
                   )}
+                  <tr>
+                    <td className="text-secondary" style={{ padding: "6px 0" }}>Nominal ACC (Dasar Administrasi)</td>
+                    <td className="font-semibold text-primary">{formatRupiah(Number(item.approvedAmount))}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>

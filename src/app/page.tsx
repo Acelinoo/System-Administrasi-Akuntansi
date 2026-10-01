@@ -38,7 +38,7 @@ export default async function DashboardPage() {
         {/* 1. FINANCIAL SUMMARY METRICS (STEP 3 REQUIRED) */}
         <div className="stat-grid mb-6">
           <div className="stat-card">
-            <div className="stat-label">Total Pengajuan (ACC)</div>
+            <div className="stat-label">Total Data ACC</div>
             <div className="stat-value font-semibold">
               {formatRupiah(stats.totalAccAmount)}
             </div>
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
         <div className="grid-2 mb-6">
           <div className="card">
             <div className="card-header">
-              <h2>Status Pengajuan ACC</h2>
+              <h2>Status Alokasi ACC</h2>
               <span className="text-sm text-secondary">
                 {stats.totalAccItems} item total
               </span>
@@ -195,7 +195,7 @@ export default async function DashboardPage() {
           {/* ACC TERBARU */}
           <div className="card">
             <div className="card-header">
-              <h2>Pengajuan ACC Terbaru</h2>
+              <h2>Data ACC Terbaru</h2>
               <Link href="/acc" className="text-xs text-primary font-medium">
                 Lihat Semua ACC →
               </Link>
@@ -204,8 +204,8 @@ export default async function DashboardPage() {
               {stats.recentAccItems.length === 0 ? (
                 <div className="empty-state">
                   <div className="empty-state-icon">📋</div>
-                  <div className="empty-state-title">Belum ada data pengajuan ACC</div>
-                  <div className="empty-state-desc">Data pengajuan yang diinput akan muncul di sini.</div>
+                  <div className="empty-state-title">Belum ada data ACC</div>
+                  <div className="empty-state-desc">Data ACC yang dicatat akan muncul di sini.</div>
                 </div>
               ) : (
                 <div style={{ overflowX: "auto" }}>
@@ -319,7 +319,7 @@ export default async function DashboardPage() {
             <div>
               <h2>Monitoring Outstanding Terbesar</h2>
               <div className="text-xs text-muted">
-                Daftar pengajuan ACC aktif dengan sisa kewajiban pencairan tertinggi yang belum terealisasi penuh
+                Daftar data ACC aktif dengan sisa kewajiban pencairan tertinggi yang belum terealisasi penuh
               </div>
             </div>
             <Link href="/reports/acc" className="text-xs text-primary font-medium">
@@ -331,7 +331,7 @@ export default async function DashboardPage() {
               <div className="empty-state">
                 <div className="empty-state-icon">✨</div>
                 <div className="empty-state-title">Tidak ada outstanding tertunda</div>
-                <div className="empty-state-desc">Seluruh pengajuan ACC yang disetujui telah dicairkan penuh.</div>
+                <div className="empty-state-desc">Seluruh data ACC yang disetujui telah dicairkan penuh.</div>
               </div>
             ) : (
               <div style={{ overflowX: "auto" }}>

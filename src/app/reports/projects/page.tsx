@@ -40,7 +40,7 @@ export default async function ProjectReportPage({
 
       <div className="stat-grid mb-6">
         <div className="stat-card">
-          <div className="stat-label">Total Pengajuan Seluruh Proyek</div>
+          <div className="stat-label">Total Alokasi ACC Seluruh Proyek</div>
           <div className="stat-value">{formatRupiah(data.totals.totalApproved)}</div>
           <div className="stat-sub">{data.totals.projectCount} proyek aktif</div>
         </div>

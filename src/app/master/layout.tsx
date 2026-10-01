@@ -8,7 +8,6 @@ const tabs = [
   { href: "/master/categories", label: "Kategori Biaya", icon: "🏷️" },
   { href: "/master/pic", label: "PIC Lapangan", icon: "👷" },
   { href: "/master/accounts", label: "Kas & Bank", icon: "🏦" },
-  { href: "/master/coa", label: "Chart of Accounts (COA)", icon: "📒" },
 ];
 
 export default function MasterLayout({ children }: { children: React.ReactNode }) {
@@ -20,7 +19,7 @@ export default function MasterLayout({ children }: { children: React.ReactNode }
         <div>
           <h1>Master Data Referensi</h1>
           <div className="page-header-subtitle">
-            Kelola master data proyek, kategori biaya, penanggung jawab, rekening kas, dan COA akuntansi
+            Kelola master data proyek, kategori biaya, penanggung jawab, dan rekening kas operasional
           </div>
         </div>
       </div>
