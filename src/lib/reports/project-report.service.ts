@@ -26,6 +26,7 @@ export interface ProjectReportSummary {
 
 export interface ProjectReportResult {
   projects: ProjectReportSummary[];
+  allProjects: Array<{ id: string; code: string; name: string }>;
   totals: {
     totalApproved: number;
     totalRealized: number;
@@ -67,23 +68,44 @@ export async function getProjectReport(filters?: {
     where.batch = { accDate: dateFilter };
   }
 
-  // Fetch all projects or selected project
-  const projectList = await prisma.project.findMany({
-    where: filters?.projectId && filters.projectId !== "ALL" ? { id: filters.projectId } : {},
-    orderBy: { code: "asc" },
-  });
-
-  // Fetch items
-  const items = await prisma.accExpenseItem.findMany({
-    where,
-    include: {
-      category: true,
-      disbursementItems: {
-        where: { disbursement: { status: TransactionStatus.POSTED } },
-        select: { realizedAmount: true },
+  // 1. Run independent project list and items queries in parallel
+  const [projectList, allActiveProjects, items] = await Promise.all([
+    // Projects to show in report (filtered if specific project selected)
+    prisma.project.findMany({
+      where: filters?.projectId && filters.projectId !== "ALL" ? { id: filters.projectId } : { isActive: true },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        confirmationStatus: true,
+        possibleParentCode: true,
       },
-    },
-  });
+      orderBy: { code: "asc" },
+    }),
+    // All active projects for filter dropdown
+    prisma.project.findMany({
+      where: { isActive: true },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
+    }),
+    // Optimized items fetch: select only needed fields (skip heavy text & relations)
+    prisma.accExpenseItem.findMany({
+      where,
+      select: {
+        id: true,
+        projectId: true,
+        categoryId: true,
+        approvedAmount: true,
+        category: {
+          select: { id: true, code: true, name: true },
+        },
+        disbursementItems: {
+          where: { disbursement: { status: TransactionStatus.POSTED } },
+          select: { realizedAmount: true },
+        },
+      },
+    }),
+  ]);
 
   const projects: ProjectReportSummary[] = projectList.map((proj) => {
     const projItems = items.filter((i) => i.projectId === proj.id);
@@ -155,6 +177,7 @@ export async function getProjectReport(filters?: {
 
   return {
     projects,
+    allProjects: allActiveProjects,
     totals: {
       totalApproved,
       totalRealized,

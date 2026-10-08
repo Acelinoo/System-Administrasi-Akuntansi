@@ -1,8 +1,10 @@
+import React from "react";
 import { getProjectReport } from "@/lib/reports/project-report.service";
-import { prisma } from "@/lib/db/prisma";
 import { formatRupiah } from "@/lib/utils/format";
 import ExportButtons from "../ExportButtons";
 import ReportFilterBar from "../ReportFilterBar";
+import { ProjectIcon } from "../../components/Icons";
+import { PageMotion, StaggerCards } from "../../components/GsapMotion";
 
 export default async function ProjectReportPage({
   searchParams,
@@ -14,21 +16,18 @@ export default async function ProjectReportPage({
   }>;
 }) {
   const params = await searchParams;
-  const [data, projects] = await Promise.all([
-    getProjectReport(params),
-    prisma.project.findMany({ where: { isActive: true }, select: { id: true, code: true, name: true } }),
-  ]);
+  const data = await getProjectReport(params);
 
   const filterConfig = {
     showDates: true,
-    projects: projects.map((p) => ({ id: p.id, name: `${p.code} - ${p.name}` })),
+    projects: data.allProjects.map((p) => ({ id: p.id, name: `${p.code} - ${p.name}` })),
   };
 
   return (
-    <>
+    <PageMotion>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Rekapitulasi Alokasi Dana per Proyek</h2>
+          <h2 className="text-base font-semibold">Monitoring & Rekapitulasi Alokasi Dana per Proyek</h2>
           <div className="text-xs text-muted">
             Ringkasan alokasi ACC, realisasi pencairan, dan sisa outstanding per proyek beserta breakdown kategori
           </div>
@@ -38,42 +37,50 @@ export default async function ProjectReportPage({
 
       <ReportFilterBar config={filterConfig} />
 
-      <div className="stat-grid mb-6">
+      <StaggerCards className="stat-grid mb-6">
         <div className="stat-card">
-          <div className="stat-label">Total Alokasi ACC Seluruh Proyek</div>
-          <div className="stat-value">{formatRupiah(data.totals.totalApproved)}</div>
-          <div className="stat-sub">{data.totals.projectCount} proyek aktif</div>
+          <div>
+            <div className="stat-label">Total Alokasi ACC</div>
+            <div className="stat-value primary">{formatRupiah(data.totals.totalApproved)}</div>
+          </div>
+          <div className="stat-sub">Nilai sah disetujui manajemen</div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Total Terealisasi</div>
-          <div className="stat-value text-primary font-semibold">
-            {formatRupiah(data.totals.totalRealized)}
+          <div>
+            <div className="stat-label">Total Realisasi</div>
+            <div className="stat-value">{formatRupiah(data.totals.totalRealized)}</div>
           </div>
           <div className="stat-sub">
             {data.totals.totalApproved > 0
               ? `${((data.totals.totalRealized / data.totals.totalApproved) * 100).toFixed(1)}% dicairkan`
-              : "0%"}
+              : "0% dicairkan"}
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-label">Total Sisa Outstanding</div>
-          <div
-            className="stat-value font-semibold"
-            style={{
-              color: data.totals.totalOutstanding > 0 ? "var(--color-warning)" : "var(--color-success)",
-            }}
-          >
-            {formatRupiah(data.totals.totalOutstanding)}
+          <div>
+            <div className="stat-label">Sisa Outstanding</div>
+            <div className={`stat-value ${data.totals.totalOutstanding > 0 ? "warning" : "positive"}`}>
+              {formatRupiah(data.totals.totalOutstanding)}
+            </div>
           </div>
           <div className="stat-sub">Kewajiban pengeluaran tersisa</div>
         </div>
-      </div>
+        <div className="stat-card">
+          <div>
+            <div className="stat-label">Jumlah Proyek</div>
+            <div className="stat-value">{data.totals.projectCount}</div>
+          </div>
+          <div className="stat-sub">Proyek aktif dengan alokasi</div>
+        </div>
+      </StaggerCards>
 
       <div className="card">
         <div className="card-body-flush">
           {data.projects.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">🏗️</div>
+              <div className="empty-state-icon">
+                <ProjectIcon size={32} className="text-slate-400" />
+              </div>
               <div className="empty-state-title">Tidak ada data untuk filter yang dipilih.</div>
               <div className="empty-state-desc">
                 Silakan sesuaikan tanggal atau pilihan filter di atas.
@@ -176,8 +183,6 @@ export default async function ProjectReportPage({
           )}
         </div>
       </div>
-    </>
+    </PageMotion>
   );
 }
-
-import React from "react";

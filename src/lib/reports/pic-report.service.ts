@@ -79,24 +79,33 @@ export async function getPicReport(filters?: {
     where.batch = { accDate: dateFilter };
   }
 
-  const picList = await prisma.fieldPic.findMany({
-    where: filters?.picId && filters.picId !== "ALL" ? { id: filters.picId } : { isActive: true },
-    orderBy: { name: "asc" },
-  });
-
-  const rawItems = await prisma.accExpenseItem.findMany({
-    where,
-    orderBy: [{ batch: { accDate: "desc" } }, { noKas: "asc" }],
-    include: {
-      batch: { select: { accDate: true } },
-      project: { select: { code: true } },
-      category: { select: { name: true } },
-      disbursementItems: {
-        where: { disbursement: { status: TransactionStatus.POSTED } },
-        select: { realizedAmount: true },
+  const [picList, rawItems] = await Promise.all([
+    prisma.fieldPic.findMany({
+      where: filters?.picId && filters.picId !== "ALL" ? { id: filters.picId } : { isActive: true },
+      select: { id: true, name: true, roleTitle: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.accExpenseItem.findMany({
+      where,
+      orderBy: [{ batch: { accDate: "desc" } }, { noKas: "asc" }],
+      select: {
+        id: true,
+        picId: true,
+        noKas: true,
+        description: true,
+        approvedAmount: true,
+        status: true,
+        assignmentStatus: true,
+        batch: { select: { accDate: true } },
+        project: { select: { code: true } },
+        category: { select: { name: true } },
+        disbursementItems: {
+          where: { disbursement: { status: TransactionStatus.POSTED } },
+          select: { realizedAmount: true },
+        },
       },
-    },
-  });
+    }),
+  ]);
 
   const pics: PicReportGroup[] = picList.map((pic) => {
     const picItems = rawItems.filter((i) => i.picId === pic.id);

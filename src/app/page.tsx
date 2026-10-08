@@ -3,6 +3,7 @@ import { getDashboardStats } from "./actions/acc.actions";
 import { getCashBalances } from "./actions/disbursement.actions";
 import { formatRupiah, formatDate, accStatusLabel, txStatusLabel } from "@/lib/utils/format";
 import { PlusIcon, DisbursementIcon } from "./components/Icons";
+import { PageMotion, StaggerCards } from "./components/GsapMotion";
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
@@ -14,7 +15,7 @@ export default async function DashboardPage() {
       : "0.0";
 
   return (
-    <>
+    <PageMotion>
       <div className="page-header">
         <div>
           <h1>Dashboard</h1>
@@ -36,7 +37,7 @@ export default async function DashboardPage() {
 
       <div className="page-body">
         {/* 1. FINANCIAL SUMMARY METRICS (MONETIRA 4-CARD HERO HIERARCHY) */}
-        <div className="stat-grid mb-6">
+        <StaggerCards className="stat-grid mb-6">
           <div className="stat-card">
             <div>
               <div className="stat-label">Total Data ACC</div>
@@ -70,7 +71,7 @@ export default async function DashboardPage() {
             </div>
             <div className="stat-sub">Kewajiban ACC belum dicairkan</div>
           </div>
-        </div>
+        </StaggerCards>
 
         {/* 2. OVERVIEW ROW: STATUS ALOKASI ACC + SALDO KAS & BANK */}
         <div className="grid-2 mb-6">
@@ -398,6 +399,6 @@ export default async function DashboardPage() {
           </div>
         </div>
       </div>
-    </>
+    </PageMotion>
   );
 }
