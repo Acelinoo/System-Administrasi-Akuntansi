@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { getDisbursementList } from "../actions/disbursement.actions";
-import { getDashboardStats } from "../actions/acc.actions";
+import { getDisbursementList, getDisbursementPageSummary } from "../actions/disbursement.actions";
 import { formatRupiah, formatDate, txStatusLabel } from "@/lib/utils/format";
 import { PlusIcon } from "../components/Icons";
 
 export default async function DisbursementListPage() {
   const [disbursements, stats] = await Promise.all([
     getDisbursementList(),
-    getDashboardStats(),
+    getDisbursementPageSummary(),
   ]);
 
   const postedDisbursements = disbursements.filter((d) => d.status === "POSTED");

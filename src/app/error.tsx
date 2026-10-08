@@ -48,7 +48,7 @@ export default function ErrorBoundary({
         <div
           className="card mb-6"
           style={{
-            maxWidth: 600,
+            maxWidth: 620,
             background: "var(--color-bg-subtle)",
             padding: "var(--space-3) var(--space-4)",
             textAlign: "left",
@@ -59,7 +59,30 @@ export default function ErrorBoundary({
             borderRadius: "var(--radius-md)",
           }}
         >
-          {error.message}
+          <div style={{ fontWeight: 600, marginBottom: 4 }}>
+            {error.message.includes("#441")
+              ? "React Error #441 — Server Component Render Failure"
+              : "Detail Kesalahan:"}
+          </div>
+          <div style={{ wordBreak: "break-word" }}>{error.message}</div>
+          {error.digest && (
+            <div style={{ marginTop: 8, fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+              Server Digest ID: <code>{error.digest}</code>
+            </div>
+          )}
+          {error.message.includes("#441") && (
+            <div
+              style={{
+                marginTop: 10,
+                paddingTop: 8,
+                borderTop: "1px dashed var(--color-border)",
+                fontSize: "0.75rem",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              💡 <strong>Diagnostik:</strong> Error #441 terjadi saat Server Component gagal merender di server. Penyebab paling umum adalah koneksi database terputus atau <code>DATABASE_URL</code> belum terkonfigurasi di environment Vercel.
+            </div>
+          )}
         </div>
       )}
 

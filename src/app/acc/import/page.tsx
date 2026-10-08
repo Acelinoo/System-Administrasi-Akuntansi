@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function AccImportPage() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="page-body" style={{ maxWidth: "1280px", margin: "0 auto", paddingTop: "var(--space-6)" }}>
       <ImportWizard />
     </div>
   );

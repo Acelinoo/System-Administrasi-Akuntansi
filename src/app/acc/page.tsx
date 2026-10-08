@@ -1,42 +1,37 @@
 import Link from "next/link";
-import { getAccItemList, getMasterProjects } from "../actions/acc.actions";
+import { getAccItemList, getAccSummaryStats, getMasterProjects } from "../actions/acc.actions";
 import { formatRupiah, formatDate, accStatusLabel } from "@/lib/utils/format";
 import { AccStatus } from "@prisma/client";
 import AccFilters from "./AccFilters";
+import Pagination from "../components/Pagination";
 import { PlusIcon, DownloadIcon } from "../components/Icons";
 
 export default async function AccListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; projectId?: string; search?: string }>;
+  searchParams: Promise<{ status?: string; projectId?: string; search?: string; page?: string }>;
 }) {
   const params = await searchParams;
+  const page = params.page ? Math.max(1, parseInt(params.page, 10) || 1) : 1;
+  const pageSize = 50;
+
   const filters = {
     status: params.status as AccStatus | undefined,
     projectId: params.projectId || undefined,
     search: params.search || undefined,
   };
 
-  const [items, projects] = await Promise.all([
-    getAccItemList(filters),
+  const [items, stats, projects] = await Promise.all([
+    getAccItemList({ ...filters, page, pageSize }),
+    getAccSummaryStats(filters),
     getMasterProjects(),
   ]);
 
-  // Calculate totals
-  const totalApproved = items.reduce(
-    (sum, item) => sum + Number(item.approvedAmount),
-    0
-  );
-  const totalRealized = items.reduce(
-    (sum, item) =>
-      sum +
-      item.disbursementItems.reduce(
-        (s, d) => s + Number(d.realizedAmount),
-        0
-      ),
-    0
-  );
-  const totalOutstanding = Math.max(0, totalApproved - totalRealized);
+  const totalApproved = stats.totalApproved;
+  const totalRealized = stats.totalRealized;
+  const totalOutstanding = stats.totalOutstanding;
+  const totalCount = stats.count;
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <>
@@ -73,7 +68,7 @@ export default async function AccListPage({
           <div className="stat-card">
             <div>
               <div className="stat-label">Jumlah Data</div>
-              <div className="stat-value">{items.length}</div>
+              <div className="stat-value">{totalCount}</div>
             </div>
             <div className="stat-sub">Item transaksi tercatat</div>
           </div>
@@ -234,6 +229,18 @@ export default async function AccListPage({
               </div>
             )}
           </div>
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            pageSize={pageSize}
+            basePath="/acc"
+            searchParams={{
+              status: params.status,
+              projectId: params.projectId,
+              search: params.search,
+            }}
+          />
         </div>
       </div>
     </>

@@ -6,6 +6,32 @@ import { getAllCashBalances } from "@/lib/finance/balance.service";
 import { AccStatus, TransactionStatus, DataScope } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+export async function getDisbursementPageSummary(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  const scopeFilter = dataScope === "ALL" ? {} : { dataScope };
+  const [accAgg, postedDisbursementsAgg, totalAccItems] = await Promise.all([
+    prisma.accExpenseItem.aggregate({
+      where: scopeFilter,
+      _sum: { approvedAmount: true },
+    }),
+    prisma.disbursement.aggregate({
+      where: { ...scopeFilter, status: TransactionStatus.POSTED },
+      _sum: { totalRealizedAmount: true },
+    }),
+    prisma.accExpenseItem.count({ where: scopeFilter }),
+  ]);
+
+  const totalAccAmount = Number(accAgg._sum.approvedAmount ?? 0);
+  const totalRealizedAmount = Number(postedDisbursementsAgg._sum.totalRealizedAmount ?? 0);
+  const totalOutstandingAmount = Math.max(0, totalAccAmount - totalRealizedAmount);
+
+  return {
+    totalAccAmount,
+    totalRealizedAmount,
+    totalOutstandingAmount,
+    totalAccItems,
+  };
+}
+
 export async function getDisbursementList(dataScope: DataScope | "ALL" = DataScope.REAL) {
   const where = dataScope === "ALL" ? {} : { dataScope };
   return prisma.disbursement.findMany({

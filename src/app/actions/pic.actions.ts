@@ -36,26 +36,17 @@ export async function getPicDistributionData(searchParams?: {
   projectId?: string;
   status?: string;
   dataScope?: string;
+  page?: string | number;
+  pageSize?: number;
 }) {
   const picId = searchParams?.picId;
   const projectId = searchParams?.projectId;
   const status = searchParams?.status;
   const scope = (searchParams?.dataScope as DataScope) || DataScope.REAL;
+  const page = searchParams?.page ? Math.max(1, Number(searchParams.page) || 1) : 1;
+  const pageSize = searchParams?.pageSize ? Math.max(1, Number(searchParams.pageSize)) : 50;
 
-  // 1. Fetch all PICs
-  const pics = await prisma.fieldPic.findMany({
-    where: { isActive: true },
-    orderBy: { name: "asc" },
-  });
-
-  // 2. Fetch projects for filter
-  const projects = await prisma.project.findMany({
-    where: { isActive: true },
-    orderBy: { code: "asc" },
-    select: { id: true, code: true, name: true },
-  });
-
-  // 3. Fetch ACC items with filters
+  // Build filter clause
   const whereClause: Record<string, unknown> = {};
   if (scope !== ("ALL" as unknown as DataScope)) {
     whereClause.dataScope = scope;
@@ -70,21 +61,42 @@ export async function getPicDistributionData(searchParams?: {
     whereClause.status = status as AccStatus;
   }
 
-  const items = await prisma.accExpenseItem.findMany({
-    where: whereClause,
-    orderBy: { createdAt: "desc" },
-    include: {
-      pic: { select: { id: true, name: true, roleTitle: true } },
-      project: { select: { id: true, code: true, name: true } },
-      category: { select: { id: true, code: true, name: true } },
-      disbursementItems: {
-        where: { disbursement: { status: TransactionStatus.POSTED } },
-        select: { realizedAmount: true },
+  // 1. Fetch PICs, projects, and ACC items in parallel with explicit selects
+  const [pics, projects, items] = await Promise.all([
+    prisma.fieldPic.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true, roleTitle: true },
+    }),
+    prisma.project.findMany({
+      where: { isActive: true },
+      orderBy: { code: "asc" },
+      select: { id: true, code: true, name: true },
+    }),
+    prisma.accExpenseItem.findMany({
+      where: whereClause,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        noKas: true,
+        description: true,
+        status: true,
+        createdAt: true,
+        picId: true,
+        approvedAmount: true,
+        assignmentStatus: true,
+        pic: { select: { id: true, name: true, roleTitle: true } },
+        project: { select: { id: true, code: true, name: true } },
+        category: { select: { id: true, code: true, name: true } },
+        disbursementItems: {
+          where: { disbursement: { status: TransactionStatus.POSTED } },
+          select: { realizedAmount: true },
+        },
       },
-    },
-  });
+    }),
+  ]);
 
-  // 4. Calculate per-item realized & outstanding
+  // 2. Calculate per-item realized & outstanding
   const itemsWithCalc: PicCalculatedItem[] = items.map((item) => {
     const approved = Number(item.approvedAmount);
     const realized = item.disbursementItems.reduce(
@@ -112,7 +124,7 @@ export async function getPicDistributionData(searchParams?: {
     };
   });
 
-  // 5. Aggregate summary per PIC
+  // 3. Aggregate summary per PIC
   const picSummaries: PicSummaryItem[] = pics
     .map((p) => {
       const picItems = itemsWithCalc.filter((i) => i.picId === p.id);
@@ -137,16 +149,26 @@ export async function getPicDistributionData(searchParams?: {
   const totalRealized = itemsWithCalc.reduce((s, i) => s + i.realizedAmount, 0);
   const totalOutstanding = itemsWithCalc.reduce((s, i) => s + i.outstandingAmount, 0);
 
+  const totalItems = itemsWithCalc.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const paginatedItems = itemsWithCalc.slice((page - 1) * pageSize, page * pageSize);
+
   return {
     pics,
     projects,
     picSummaries,
-    items: itemsWithCalc,
+    items: paginatedItems,
+    pagination: {
+      page,
+      pageSize,
+      totalItems,
+      totalPages,
+    },
     totals: {
       totalApproved,
       totalRealized,
       totalOutstanding,
-      totalItems: itemsWithCalc.length,
+      totalItems,
     },
   };
 }

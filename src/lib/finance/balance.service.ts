@@ -6,6 +6,8 @@ export interface CashAccountBalanceResult {
   accountCode: string;
   accountName: string;
   accountType: string;
+  bankName?: string | null;
+  accountNumber?: string | null;
   openingBalance: number;
   totalInflow: number;
   totalDisbursement: number;
@@ -89,20 +91,81 @@ export async function getAllCashBalances(
   totalLiquidity: number;
 }> {
   const db = tx ?? prisma;
+  const scopeFilter = dataScope === "ALL" ? {} : { dataScope };
 
-  const activeAccounts = await db.cashAccount.findMany({
-    where: { isActive: true },
-    orderBy: { accountCode: "asc" },
-  });
+  // Fetch active accounts and batch-aggregate inflows & disbursements in parallel
+  const [activeAccounts, inflowGroups, disbGroups] = await Promise.all([
+    db.cashAccount.findMany({
+      where: { isActive: true },
+      orderBy: { accountCode: "asc" },
+      select: {
+        id: true,
+        accountCode: true,
+        accountName: true,
+        accountType: true,
+        bankName: true,
+        accountNumber: true,
+        openingBalance: true,
+      },
+    }),
+    db.fundInflow.groupBy({
+      by: ["destinationAccountId"],
+      where: {
+        status: TransactionStatus.POSTED,
+        ...scopeFilter,
+      },
+      _sum: {
+        amount: true,
+      },
+    }),
+    db.disbursement.groupBy({
+      by: ["cashAccountId"],
+      where: {
+        status: TransactionStatus.POSTED,
+        ...scopeFilter,
+      },
+      _sum: {
+        totalRealizedAmount: true,
+      },
+    }),
+  ]);
 
-  const accounts: CashAccountBalanceResult[] = [];
-  let totalLiquidity = 0;
-
-  for (const acc of activeAccounts) {
-    const bal = await getCashAccountBalance(acc.id, db, dataScope);
-    accounts.push(bal);
-    totalLiquidity += bal.currentBalance;
+  const inflowMap = new Map<string, number>();
+  for (const item of inflowGroups) {
+    if (item.destinationAccountId) {
+      inflowMap.set(item.destinationAccountId, Number(item._sum.amount ?? 0));
+    }
   }
+
+  const disbMap = new Map<string, number>();
+  for (const item of disbGroups) {
+    if (item.cashAccountId) {
+      disbMap.set(item.cashAccountId, Number(item._sum.totalRealizedAmount ?? 0));
+    }
+  }
+
+  let totalLiquidity = 0;
+  const accounts: CashAccountBalanceResult[] = activeAccounts.map((acc) => {
+    const opening = Number(acc.openingBalance);
+    const totalInflow = inflowMap.get(acc.id) ?? 0;
+    const totalDisbursement = disbMap.get(acc.id) ?? 0;
+    const currentBalance = opening + totalInflow - totalDisbursement;
+    totalLiquidity += currentBalance;
+
+    return {
+      accountId: acc.id,
+      accountCode: acc.accountCode,
+      accountName: acc.accountName,
+      accountType: acc.accountType,
+      bankName: acc.bankName,
+      accountNumber: acc.accountNumber,
+      openingBalance: opening,
+      totalInflow,
+      totalDisbursement,
+      currentBalance,
+      dataScope: String(dataScope),
+    };
+  });
 
   return {
     accounts,

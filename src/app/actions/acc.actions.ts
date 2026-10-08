@@ -15,10 +15,7 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
   const [
     totalBatches,
     totalAccItems,
-    approvedItems,
-    partialItems,
-    realizedItems,
-    cancelledItems,
+    statusCounts,
     accApprovedAgg,
     postedInflows,
     postedDisbursements,
@@ -28,10 +25,11 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
   ] = await Promise.all([
     prisma.submissionBatch.count({ where: scopeFilter }),
     prisma.accExpenseItem.count({ where: scopeFilter }),
-    prisma.accExpenseItem.count({ where: { ...scopeFilter, status: AccStatus.APPROVED } }),
-    prisma.accExpenseItem.count({ where: { ...scopeFilter, status: AccStatus.PARTIALLY_REALIZED } }),
-    prisma.accExpenseItem.count({ where: { ...scopeFilter, status: AccStatus.FULLY_REALIZED } }),
-    prisma.accExpenseItem.count({ where: { ...scopeFilter, status: AccStatus.CANCELLED } }),
+    prisma.accExpenseItem.groupBy({
+      by: ["status"],
+      where: scopeFilter,
+      _count: { _all: true },
+    }),
     prisma.accExpenseItem.aggregate({
       where: scopeFilter,
       _sum: { approvedAmount: true },
@@ -48,7 +46,13 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
       where: scopeFilter,
       take: 5,
       orderBy: { createdAt: "desc" },
-      include: {
+      select: {
+        id: true,
+        noKas: true,
+        description: true,
+        approvedAmount: true,
+        status: true,
+        assignmentStatus: true,
         batch: { select: { accDate: true, batchCode: true, administrativeSubmitter: true } },
         project: { select: { code: true, name: true } },
         pic: { select: { name: true } },
@@ -62,7 +66,13 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
       where: scopeFilter,
       take: 5,
       orderBy: [{ disbursementDate: "desc" }, { createdAt: "desc" }],
-      include: {
+      select: {
+        id: true,
+        disbursementNumber: true,
+        disbursementDate: true,
+        paymentMethod: true,
+        totalRealizedAmount: true,
+        status: true,
         cashAccount: { select: { accountName: true, accountCode: true } },
         _count: { select: { items: true } },
       },
@@ -71,7 +81,12 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
       where: { ...scopeFilter, status: { in: [AccStatus.APPROVED, AccStatus.PARTIALLY_REALIZED] } },
       orderBy: { approvedAmount: "desc" },
       take: 20,
-      include: {
+      select: {
+        id: true,
+        noKas: true,
+        description: true,
+        approvedAmount: true,
+        status: true,
         project: { select: { code: true, name: true } },
         pic: { select: { name: true } },
         disbursementItems: {
@@ -81,6 +96,12 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
       },
     }),
   ]);
+
+  const statusMap = new Map(statusCounts.map((s) => [s.status, s._count._all]));
+  const approvedItems = statusMap.get(AccStatus.APPROVED) ?? 0;
+  const partialItems = statusMap.get(AccStatus.PARTIALLY_REALIZED) ?? 0;
+  const realizedItems = statusMap.get(AccStatus.FULLY_REALIZED) ?? 0;
+  const cancelledItems = statusMap.get(AccStatus.CANCELLED) ?? 0;
 
   const totalAccAmount = Number(accApprovedAgg._sum.approvedAmount ?? 0);
   const totalInflow = Number(postedInflows._sum.amount ?? 0);
@@ -182,7 +203,7 @@ export async function getAccBatchList(dataScope: DataScope | "ALL" = DataScope.R
   });
 }
 
-export async function getAccItemList(filters?: {
+export async function getAccSummaryStats(filters?: {
   status?: AccStatus;
   projectId?: string;
   search?: string;
@@ -204,10 +225,75 @@ export async function getAccItemList(filters?: {
     ];
   }
 
+  const [agg, count, realizedAgg] = await Promise.all([
+    prisma.accExpenseItem.aggregate({
+      where,
+      _sum: { approvedAmount: true },
+    }),
+    prisma.accExpenseItem.count({ where }),
+    prisma.disbursementItem.aggregate({
+      where: {
+        accItem: where,
+        disbursement: { status: TransactionStatus.POSTED },
+      },
+      _sum: { realizedAmount: true },
+    }),
+  ]);
+
+  const totalApproved = Number(agg._sum.approvedAmount ?? 0);
+  const totalRealized = Number(realizedAgg._sum.realizedAmount ?? 0);
+  const totalOutstanding = Math.max(0, totalApproved - totalRealized);
+
+  return {
+    totalApproved,
+    totalRealized,
+    totalOutstanding,
+    count,
+  };
+}
+
+export async function getAccItemList(filters?: {
+  status?: AccStatus;
+  projectId?: string;
+  search?: string;
+  dataScope?: DataScope | "ALL";
+  page?: number;
+  pageSize?: number;
+}) {
+  const targetScope = filters?.dataScope ?? DataScope.REAL;
+  const where: Record<string, unknown> = targetScope === "ALL" ? {} : { dataScope: targetScope };
+
+  if (filters?.status) {
+    where.status = filters.status;
+  }
+  if (filters?.projectId) {
+    where.projectId = filters.projectId;
+  }
+  if (filters?.search) {
+    where.OR = [
+      { noKas: { contains: filters.search, mode: "insensitive" } },
+      { description: { contains: filters.search, mode: "insensitive" } },
+    ];
+  }
+
+  const page = filters?.page && filters.page > 0 ? filters.page : 1;
+  const pageSize = filters?.pageSize && filters.pageSize > 0 ? filters.pageSize : 50;
+  const skip = (page - 1) * pageSize;
+  const take = pageSize;
+
   return prisma.accExpenseItem.findMany({
     where,
     orderBy: { createdAt: "desc" },
-    include: {
+    skip,
+    take,
+    select: {
+      id: true,
+      noKas: true,
+      description: true,
+      approvedAmount: true,
+      status: true,
+      assignmentStatus: true,
+      createdAt: true,
       batch: { select: { batchCode: true, accDate: true, administrativeSubmitter: true } },
       project: { select: { code: true, name: true } },
       subUnit: { select: { code: true, name: true } },

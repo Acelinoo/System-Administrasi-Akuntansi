@@ -17,16 +17,12 @@ export default async function PicReportPage({
   }>;
 }) {
   const params = await searchParams;
-  const [data, pics, projects] = await Promise.all([
-    getPicReport(params),
-    prisma.fieldPic.findMany({ where: { isActive: true }, select: { id: true, name: true } }),
-    prisma.project.findMany({ where: { isActive: true }, select: { id: true, code: true, name: true } }),
-  ]);
+  const data = await getPicReport(params);
 
   const filterConfig = {
     showDates: true,
-    pics: pics.map((p) => ({ id: p.id, name: p.name })),
-    projects: projects.map((p) => ({ id: p.id, name: `${p.code} - ${p.name}` })),
+    pics: data.allPics.map((p) => ({ id: p.id, name: p.name })),
+    projects: data.allProjects.map((p) => ({ id: p.id, name: `${p.code} - ${p.name}` })),
     statuses: [
       { value: "APPROVED", label: "APPROVED" },
       { value: "PARTIALLY_REALIZED", label: "PARTIALLY REALIZED" },

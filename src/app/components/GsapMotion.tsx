@@ -23,17 +23,21 @@ export function PageMotion({ children, className = "", style }: MotionProps) {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
-    gsap.fromTo(
-      containerRef.current,
-      { opacity: 0, y: 6 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.3,
-        ease: "power2.out",
-        clearProps: "all",
-      }
-    );
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        containerRef.current,
+        { opacity: 0, y: 6 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out",
+          clearProps: "all",
+        }
+      );
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
@@ -56,18 +60,24 @@ export function StaggerCards({ children, className = "", style }: MotionProps) {
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return;
 
-    gsap.fromTo(
-      containerRef.current.children,
-      { opacity: 0, y: 8 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.3,
-        stagger: 0.05,
-        ease: "power2.out",
-        clearProps: "all",
+    const ctx = gsap.context(() => {
+      if (containerRef.current) {
+        gsap.fromTo(
+          containerRef.current.children,
+          { opacity: 0, y: 8 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.3,
+            stagger: 0.05,
+            ease: "power2.out",
+            clearProps: "all",
+          }
+        );
       }
-    );
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (

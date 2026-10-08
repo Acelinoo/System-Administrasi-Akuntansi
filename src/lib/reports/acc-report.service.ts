@@ -10,6 +10,8 @@ export interface AccReportFilter {
   picId?: string;
   status?: string;
   dataScope?: string;
+  page?: string | number;
+  pageSize?: number;
 }
 
 export interface AccReportItem {
@@ -39,6 +41,12 @@ export interface AccReportResult {
     totalRealized: number;
     totalOutstanding: number;
     count: number;
+  };
+  pagination?: {
+    page: number;
+    pageSize: number;
+    totalPages: number;
+    totalItems: number;
   };
   filterMeta: {
     periodText: string;
@@ -89,7 +97,13 @@ export async function getAccReport(filters?: AccReportFilter): Promise<AccReport
   const rawItems = await prisma.accExpenseItem.findMany({
     where,
     orderBy: [{ batch: { accDate: "desc" } }, { noKas: "asc" }],
-    include: {
+    select: {
+      id: true,
+      noKas: true,
+      description: true,
+      approvedAmount: true,
+      status: true,
+      assignmentStatus: true,
       batch: { select: { batchCode: true, accDate: true, administrativeSubmitter: true } },
       project: { select: { code: true, name: true } },
       subUnit: { select: { code: true, name: true } },
@@ -102,7 +116,7 @@ export async function getAccReport(filters?: AccReportFilter): Promise<AccReport
     },
   });
 
-  const items: AccReportItem[] = rawItems.map((item) => {
+  const allItems: AccReportItem[] = rawItems.map((item) => {
     const approved = Number(item.approvedAmount);
     const realized = item.disbursementItems.reduce(
       (s, d) => s + Number(d.realizedAmount),
@@ -131,9 +145,26 @@ export async function getAccReport(filters?: AccReportFilter): Promise<AccReport
     };
   });
 
-  const totalApproved = items.reduce((s, i) => s + i.approvedAmount, 0);
-  const totalRealized = items.reduce((s, i) => s + i.realizedAmount, 0);
-  const totalOutstanding = items.reduce((s, i) => s + i.outstandingAmount, 0);
+  const totalApproved = allItems.reduce((s, i) => s + i.approvedAmount, 0);
+  const totalRealized = allItems.reduce((s, i) => s + i.realizedAmount, 0);
+  const totalOutstanding = allItems.reduce((s, i) => s + i.outstandingAmount, 0);
+
+  let itemsToReturn = allItems;
+  let paginationData: AccReportResult["pagination"] = undefined;
+
+  if (filters?.page !== undefined) {
+    const page = Math.max(1, Number(filters.page) || 1);
+    const pageSize = filters?.pageSize ? Math.max(1, Number(filters.pageSize)) : 50;
+    const totalItems = allItems.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    itemsToReturn = allItems.slice((page - 1) * pageSize, page * pageSize);
+    paginationData = {
+      page,
+      pageSize,
+      totalPages,
+      totalItems,
+    };
+  }
 
   // Metadata labels for export header
   let periodText = "Semua Periode";
@@ -146,12 +177,13 @@ export async function getAccReport(filters?: AccReportFilter): Promise<AccReport
   }
 
   return {
-    items,
+    items: itemsToReturn,
+    pagination: paginationData,
     totals: {
       totalApproved,
       totalRealized,
       totalOutstanding,
-      count: items.length,
+      count: allItems.length,
     },
     filterMeta: {
       periodText,

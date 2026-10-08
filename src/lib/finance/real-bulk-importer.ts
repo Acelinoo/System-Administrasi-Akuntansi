@@ -98,9 +98,13 @@ function parseIndonesianDate(text: string, fallbackDate: Date = new Date("2026-0
   return fallbackDate;
 }
 
-export async function parseAndMapRealWorkbook(filePath: string) {
+export async function parseAndMapRealWorkbook(input: string | Buffer) {
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.readFile(filePath);
+  if (typeof input === "string") {
+    await wb.xlsx.readFile(input);
+  } else {
+    await wb.xlsx.load(input as unknown as ArrayBuffer);
+  }
 
   // Load active master data from DB
   const projects = await prisma.project.findMany({

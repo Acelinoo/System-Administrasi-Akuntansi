@@ -1,13 +1,19 @@
 import { getInflowList } from "../actions/inflow.actions";
 import { getMasterCashAccounts } from "../actions/acc.actions";
+import { prisma } from "@/lib/db/prisma";
 import { formatRupiah, formatDate, txStatusLabel } from "@/lib/utils/format";
 import InflowFormDialog from "./InflowFormDialog";
 import VoidInflowButton from "./VoidInflowButton";
 
 export default async function InflowListPage() {
-  const [inflows, accounts] = await Promise.all([
+  const [inflows, accounts, projects] = await Promise.all([
     getInflowList(),
     getMasterCashAccounts(),
+    prisma.project.findMany({
+      where: { isActive: true },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
+    }),
   ]);
 
   const postedInflows = inflows.filter((i) => i.status === "POSTED");
@@ -28,7 +34,10 @@ export default async function InflowListPage() {
             Catat dropping dana atau penerimaan kas operasional dari atasan / manajemen
           </div>
         </div>
-        <InflowFormDialog accounts={JSON.parse(JSON.stringify(accounts))} />
+        <InflowFormDialog
+          accounts={JSON.parse(JSON.stringify(accounts))}
+          projects={JSON.parse(JSON.stringify(projects))}
+        />
       </div>
 
       <div className="page-body">
@@ -90,6 +99,7 @@ export default async function InflowListPage() {
                       <th>No. Inflow</th>
                       <th>Tanggal</th>
                       <th>Akun Tujuan</th>
+                      <th>Proyek</th>
                       <th>Sumber Dana</th>
                       <th>Referensi</th>
                       <th className="text-right">Nominal Masuk</th>
@@ -111,6 +121,18 @@ export default async function InflowListPage() {
                             <span className="text-xs text-muted ml-1.5">
                               ({inflow.destinationAccount.accountType})
                             </span>
+                          </td>
+                          <td>
+                            {inflow.project ? (
+                              <span
+                                className="status status-neutral"
+                                style={{ fontSize: "0.72rem", padding: "1px 6px" }}
+                              >
+                                {inflow.project.code}
+                              </span>
+                            ) : (
+                              <span className="text-xs text-muted">Umum</span>
+                            )}
                           </td>
                           <td className="text-sm text-slate-800">{inflow.sourceInfo}</td>
                           <td className="text-sm text-muted">

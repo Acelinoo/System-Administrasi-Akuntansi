@@ -28,6 +28,8 @@ export interface PicReportGroup {
 
 export interface PicReportResult {
   pics: PicReportGroup[];
+  allPics: Array<{ id: string; name: string }>;
+  allProjects: Array<{ id: string; code: string; name: string }>;
   totals: {
     totalApproved: number;
     totalRealized: number;
@@ -79,11 +81,16 @@ export async function getPicReport(filters?: {
     where.batch = { accDate: dateFilter };
   }
 
-  const [picList, rawItems] = await Promise.all([
+  const [allPics, allProjects, rawItems] = await Promise.all([
     prisma.fieldPic.findMany({
-      where: filters?.picId && filters.picId !== "ALL" ? { id: filters.picId } : { isActive: true },
+      where: { isActive: true },
       select: { id: true, name: true, roleTitle: true },
       orderBy: { name: "asc" },
+    }),
+    prisma.project.findMany({
+      where: { isActive: true },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
     }),
     prisma.accExpenseItem.findMany({
       where,
@@ -106,6 +113,10 @@ export async function getPicReport(filters?: {
       },
     }),
   ]);
+
+  const picList = filters?.picId && filters.picId !== "ALL"
+    ? allPics.filter((p) => p.id === filters.picId)
+    : allPics;
 
   const pics: PicReportGroup[] = picList.map((pic) => {
     const picItems = rawItems.filter((i) => i.picId === pic.id);
@@ -164,6 +175,8 @@ export async function getPicReport(filters?: {
 
   return {
     pics,
+    allPics,
+    allProjects,
     totals: {
       totalApproved,
       totalRealized,

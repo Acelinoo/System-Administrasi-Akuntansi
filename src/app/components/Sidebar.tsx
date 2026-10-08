@@ -91,6 +91,7 @@ export default function Sidebar() {
       collapsible: true,
       items: [
         { href: "/master/projects", label: "Proyek", icon: <ProjectIcon size={17} /> },
+        { href: "/master/vendors", label: "Vendor", icon: <PicIcon size={17} /> },
         { href: "/master/categories", label: "Kategori", icon: <CategoryIcon size={17} /> },
         { href: "/master/pic", label: "PIC", icon: <PicIcon size={17} /> },
         { href: "/master/accounts", label: "Kas & Bank", icon: <BankIcon size={17} /> },

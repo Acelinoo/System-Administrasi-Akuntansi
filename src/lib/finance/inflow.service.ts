@@ -19,6 +19,16 @@ export async function createFundInflow(
       throw new Error(`Akun kas/bank tujuan tidak ditemukan atau tidak aktif.`);
     }
 
+    // 1b. Verify Project if provided
+    if (validated.projectId) {
+      const project = await tx.project.findUnique({
+        where: { id: validated.projectId },
+      });
+      if (!project) {
+        throw new Error(`Proyek dengan ID ${validated.projectId} tidak ditemukan.`);
+      }
+    }
+
     // Determine targetScope
     const isRunningTests =
       typeof process !== "undefined" &&
@@ -48,6 +58,7 @@ export async function createFundInflow(
         inflowNumber,
         inflowDate: validated.inflowDate,
         destinationAccountId: validated.destinationAccountId,
+        projectId: validated.projectId ?? null,
         amount: validated.amount,
         sourceInfo: validated.sourceInfo,
         referenceNo: validated.referenceNo ?? null,

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { href: "/master/projects", label: "Proyek & Sub-Unit" },
+  { href: "/master/vendors", label: "Vendor & Subkon" },
   { href: "/master/categories", label: "Kategori Biaya" },
   { href: "/master/pic", label: "PIC Lapangan" },
   { href: "/master/accounts", label: "Kas & Bank" },

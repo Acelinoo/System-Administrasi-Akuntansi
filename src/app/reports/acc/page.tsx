@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { formatRupiah, formatDate, accStatusLabel } from "@/lib/utils/format";
 import ExportButtons from "../ExportButtons";
 import ReportFilterBar from "../ReportFilterBar";
+import Pagination from "../../components/Pagination";
 
 export default async function AccReportPage({
   searchParams,
@@ -15,11 +16,13 @@ export default async function AccReportPage({
     categoryId?: string;
     picId?: string;
     status?: string;
+    page?: string;
   }>;
 }) {
   const params = await searchParams;
+  const page = params.page ? Math.max(1, parseInt(params.page, 10) || 1) : 1;
   const [data, projects, categories, pics] = await Promise.all([
-    getAccReport(params),
+    getAccReport({ ...params, page, pageSize: 50 }),
     prisma.project.findMany({
       where: { isActive: true },
       select: {
@@ -173,7 +176,7 @@ export default async function AccReportPage({
                 <tfoot>
                   <tr style={{ background: "var(--bg-subtle)", fontWeight: "bold" }}>
                     <td colSpan={7} className="text-right">
-                      TOTAL ({data.items.length} Item):
+                      TOTAL ({data.totals.count} Item):
                     </td>
                     <td className="col-num">{formatRupiah(data.totals.totalApproved)}</td>
                     <td className="col-num text-primary">
@@ -189,6 +192,24 @@ export default async function AccReportPage({
             </div>
           )}
         </div>
+        {data.pagination && (
+          <Pagination
+            currentPage={data.pagination.page}
+            totalPages={data.pagination.totalPages}
+            totalItems={data.pagination.totalItems}
+            pageSize={data.pagination.pageSize}
+            basePath="/reports/acc"
+            searchParams={{
+              startDate: params.startDate,
+              endDate: params.endDate,
+              projectId: params.projectId,
+              subUnitId: params.subUnitId,
+              categoryId: params.categoryId,
+              picId: params.picId,
+              status: params.status,
+            }}
+          />
+        )}
       </div>
     </>
   );

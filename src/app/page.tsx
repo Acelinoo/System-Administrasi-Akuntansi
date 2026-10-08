@@ -6,8 +6,10 @@ import { PlusIcon, DisbursementIcon } from "./components/Icons";
 import { PageMotion, StaggerCards } from "./components/GsapMotion";
 
 export default async function DashboardPage() {
-  const stats = await getDashboardStats();
-  const balances = await getCashBalances();
+  const [stats, balances] = await Promise.all([
+    getDashboardStats(),
+    getCashBalances(),
+  ]);
 
   const pctRealized =
     stats.totalAccAmount > 0

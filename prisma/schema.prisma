@@ -79,6 +79,12 @@ enum ProjectConfirmationStatus {
   REQUIRES_BUSINESS_CONFIRMATION
 }
 
+enum VendorType {
+  SUPPLIER
+  SUBCONTRACTOR
+  SERVICE
+}
+
 // ----------------------------------------------------
 // 1. USERS & AUDIT
 // ----------------------------------------------------
@@ -121,6 +127,10 @@ model Project {
   code               String                    @unique @db.VarChar(30) // e.g. 'ALCENT', 'SUMEDANG'
   name               String                    @db.VarChar(150)
   description        String?                   @db.Text
+  clientName         String?                   @db.VarChar(150)
+  contractValue      Decimal?                  @db.Decimal(15, 2)
+  targetStartDate    DateTime?                 @db.Date
+  targetEndDate      DateTime?                 @db.Date
   confirmationStatus ProjectConfirmationStatus @default(CONFIRMED)
   possibleParentCode String?                   @db.VarChar(50)
   isActive           Boolean                   @default(true)
@@ -129,6 +139,7 @@ model Project {
 
   subUnits        ProjectSubUnit[]
   accExpenseItems AccExpenseItem[]
+  fundInflows     FundInflow[]
   journalLines    JournalLine[]
 
   @@map("projects")
@@ -208,6 +219,25 @@ model FieldPic {
   accExpenseItems AccExpenseItem[]
 
   @@map("field_pics")
+}
+
+// ----------------------------------------------------
+// 5B. MASTER VENDOR / SUPPLIER / SUBCON
+// ----------------------------------------------------
+
+model Vendor {
+  id        String     @id @default(uuid()) @db.Uuid
+  code      String?    @unique @db.VarChar(30)
+  name      String     @db.VarChar(150)
+  type      VendorType @default(SUPPLIER)
+  phone     String?    @db.VarChar(30)
+  address   String?    @db.Text
+  notes     String?    @db.Text
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now()) @db.Timestamptz()
+  updatedAt DateTime   @updatedAt @db.Timestamptz()
+
+  @@map("vendors")
 }
 
 // ----------------------------------------------------
@@ -309,6 +339,7 @@ model FundInflow {
   inflowNumber         String            @unique @db.VarChar(50) // e.g. 'IN-2026-07-001'
   inflowDate           DateTime          @db.Date
   destinationAccountId String            @db.Uuid
+  projectId            String?           @db.Uuid
   amount               Decimal           @db.Decimal(15, 2)
   sourceInfo           String            @db.VarChar(150)
   referenceNo          String?           @db.VarChar(100)
@@ -321,10 +352,12 @@ model FundInflow {
   updatedAt            DateTime          @updatedAt @db.Timestamptz()
 
   destinationAccount CashAccount @relation(fields: [destinationAccountId], references: [id], onDelete: Restrict)
+  project            Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdBy          User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([inflowDate])
   @@index([destinationAccountId])
+  @@index([projectId])
   @@index([dataScope])
   @@map("fund_inflows")
 }

@@ -14,6 +14,9 @@ export async function getInflowList(dataScope: DataScope | "ALL" = DataScope.REA
       destinationAccount: {
         select: { accountCode: true, accountName: true, accountType: true },
       },
+      project: {
+        select: { id: true, code: true, name: true },
+      },
     },
   });
 }
@@ -21,6 +24,7 @@ export async function getInflowList(dataScope: DataScope | "ALL" = DataScope.REA
 export async function createInflowAction(formData: FormData) {
   const inflowDate = formData.get("inflowDate") as string;
   const destinationAccountId = formData.get("destinationAccountId") as string;
+  const projectIdRaw = (formData.get("projectId") as string)?.trim();
   const amount = parseFloat(formData.get("amount") as string);
   const sourceInfo = formData.get("sourceInfo") as string;
   const referenceNo = formData.get("referenceNo") as string | null;
@@ -29,6 +33,7 @@ export async function createInflowAction(formData: FormData) {
     const result = await createFundInflow({
       inflowDate: new Date(inflowDate),
       destinationAccountId,
+      projectId: projectIdRaw ? projectIdRaw : undefined,
       amount,
       sourceInfo,
       referenceNo: referenceNo || null,

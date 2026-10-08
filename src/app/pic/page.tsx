@@ -2,11 +2,12 @@ import Link from "next/link";
 import { getPicDistributionData } from "../actions/pic.actions";
 import { formatRupiah, accStatusLabel } from "@/lib/utils/format";
 import PicFilters from "./PicFilters";
+import Pagination from "../components/Pagination";
 
 export default async function PicDistributionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ picId?: string; projectId?: string; status?: string }>;
+  searchParams: Promise<{ picId?: string; projectId?: string; status?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const data = await getPicDistributionData(params);
@@ -157,7 +158,7 @@ export default async function PicDistributionPage({
         <div className="card">
           <div className="card-header">
             <h2>Rincian Item per PIC</h2>
-            <span className="text-sm text-secondary">{data.items.length} item ditemukan</span>
+            <span className="text-sm text-secondary">{data.totals.totalItems} item ditemukan</span>
           </div>
           <div className="card-body-flush">
             {data.items.length === 0 ? (
@@ -242,6 +243,18 @@ export default async function PicDistributionPage({
               </table>
             )}
           </div>
+          <Pagination
+            currentPage={data.pagination.page}
+            totalPages={data.pagination.totalPages}
+            totalItems={data.pagination.totalItems}
+            pageSize={data.pagination.pageSize}
+            basePath="/pic"
+            searchParams={{
+              picId: params.picId,
+              projectId: params.projectId,
+              status: params.status,
+            }}
+          />
         </div>
       </div>
     </>

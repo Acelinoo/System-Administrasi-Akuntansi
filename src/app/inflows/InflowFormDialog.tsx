@@ -11,7 +11,19 @@ interface Account {
   accountType: string;
 }
 
-export default function InflowFormDialog({ accounts }: { accounts: Account[] }) {
+interface ProjectOption {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export default function InflowFormDialog({
+  accounts,
+  projects = [],
+}: {
+  accounts: Account[];
+  projects?: ProjectOption[];
+}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -114,6 +126,21 @@ export default function InflowFormDialog({ accounts }: { accounts: Account[] }) 
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Alokasi Proyek (Opsional)</label>
+                  <select name="projectId" className="form-select">
+                    <option value="">-- Umum / Tanpa Kaitan Proyek --</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.code} - {p.name}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-muted mt-1 block">
+                    Pilih proyek jika dana ini merupakan dropping/termin khusus proyek tertentu.
+                  </span>
                 </div>
 
                 <div className="form-group">

@@ -1,4 +1,3 @@
-import { prisma } from "../db/prisma";
 import { getAllCashBalances } from "../finance/balance.service";
 import { DataScope } from "@prisma/client";
 
@@ -32,26 +31,18 @@ export async function getCashReport(filters?: { dataScope?: string }): Promise<C
   const scope = filters?.dataScope ? (filters.dataScope as DataScope | "ALL") : DataScope.REAL;
   const balances = await getAllCashBalances(undefined, scope);
 
-  // Enhance with bank details from db
-  const accountsDb = await prisma.cashAccount.findMany({
-    orderBy: { accountCode: "asc" },
-  });
-
-  const accounts: CashAccountReportItem[] = balances.accounts.map((b) => {
-    const dbAcc = accountsDb.find((a) => a.id === b.accountId);
-    return {
-      id: b.accountId,
-      accountCode: b.accountCode,
-      accountName: b.accountName,
-      accountType: b.accountType,
-      bankName: dbAcc?.bankName || null,
-      accountNumber: dbAcc?.accountNumber || null,
-      openingBalance: b.openingBalance,
-      totalInflow: b.totalInflow,
-      totalDisbursement: b.totalDisbursement,
-      currentBalance: b.currentBalance,
-    };
-  });
+  const accounts: CashAccountReportItem[] = balances.accounts.map((b) => ({
+    id: b.accountId,
+    accountCode: b.accountCode,
+    accountName: b.accountName,
+    accountType: b.accountType,
+    bankName: b.bankName || null,
+    accountNumber: b.accountNumber || null,
+    openingBalance: b.openingBalance,
+    totalInflow: b.totalInflow,
+    totalDisbursement: b.totalDisbursement,
+    currentBalance: b.currentBalance,
+  }));
 
   const totalOpening = accounts.reduce((s, a) => s + a.openingBalance, 0);
   const totalInflow = accounts.reduce((s, a) => s + a.totalInflow, 0);
