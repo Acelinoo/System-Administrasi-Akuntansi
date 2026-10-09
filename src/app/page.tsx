@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { getDashboardStats } from "./actions/acc.actions";
 import { getCashBalances } from "./actions/disbursement.actions";
+import { getProjectReport } from "@/lib/reports/project-report.service";
 import { formatRupiah, formatDate, accStatusLabel, txStatusLabel } from "@/lib/utils/format";
 import { PlusIcon, DisbursementIcon } from "./components/Icons";
 import { PageMotion, StaggerCards } from "./components/GsapMotion";
 
 export default async function DashboardPage() {
-  const [stats, balances] = await Promise.all([
+  const [stats, balances, projectReport] = await Promise.all([
     getDashboardStats(),
     getCashBalances(),
+    getProjectReport({ dataScope: "REAL" }),
   ]);
 
   const pctRealized =
@@ -191,6 +193,99 @@ export default async function DashboardPage() {
                 </table>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* 2.5 PROJECT SUMMARY & COST CONTROL OVERVIEW */}
+        <div className="card mb-6">
+          <div className="card-header flex justify-between items-center">
+            <div>
+              <h2>Ringkasan Proyek & Pengendalian Biaya</h2>
+              <div className="text-xs text-muted">
+                Monitoring nilai kontrak, penerimaan termin, realisasi biaya keluar, serta komparasi progres penerimaan vs fisik lapangan
+              </div>
+            </div>
+            <Link href="/reports/projects" className="text-xs text-primary font-medium hover:underline">
+              Lihat Seluruh Proyek →
+            </Link>
+          </div>
+          <div className="card-body-flush">
+            {projectReport.projects.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-title">Belum ada proyek aktif dengan alokasi biaya.</div>
+              </div>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Kode Proyek</th>
+                      <th>Nama Proyek</th>
+                      <th className="text-right">Nilai Kontrak</th>
+                      <th className="text-right">Penerimaan</th>
+                      <th className="text-right">Biaya Keluar</th>
+                      <th className="text-right">Saldo Bersih</th>
+                      <th className="text-center">Progres Penerimaan</th>
+                      <th className="text-center">Progres Fisik</th>
+                      <th className="text-center">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projectReport.projects.slice(0, 6).map((p) => (
+                      <tr key={p.projectId}>
+                        <td className="col-mono font-bold">
+                          <Link href={`/projects/${p.projectId}`} className="text-primary hover:underline">
+                            {p.projectCode}
+                          </Link>
+                        </td>
+                        <td className="font-medium text-slate-800">{p.projectName}</td>
+                        <td className="col-num font-semibold">
+                          {p.contractValue !== null ? formatRupiah(p.contractValue) : "-"}
+                        </td>
+                        <td className="col-num positive font-semibold">
+                          {formatRupiah(p.totalInflow)}
+                        </td>
+                        <td className="col-num text-primary font-semibold">
+                          {formatRupiah(p.realizedAmount)}
+                        </td>
+                        <td className="col-num font-semibold" style={{ color: p.netBalance >= 0 ? "var(--color-success)" : "var(--color-warning)" }}>
+                          {formatRupiah(p.netBalance)}
+                        </td>
+                        <td className="text-center">
+                          {p.receiptProgressPct !== null ? (
+                            <span className="status status-info" style={{ fontSize: "0.75rem", padding: "2px 8px" }}>
+                              {p.receiptProgressPct.toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted">-</span>
+                          )}
+                        </td>
+                        <td className="text-center">
+                          {p.physicalProgressPct !== null ? (
+                            <span className="status status-success font-bold" style={{ fontSize: "0.75rem", padding: "2px 8px" }}>
+                              {p.physicalProgressPct.toFixed(1)}%
+                            </span>
+                          ) : (
+                            <span className="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">
+                              Belum ada
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-center">
+                          <Link
+                            href={`/projects/${p.projectId}`}
+                            className="btn btn-secondary btn-sm"
+                            style={{ fontSize: "0.72rem", padding: "2px 8px" }}
+                          >
+                            Detail 360° →
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
 

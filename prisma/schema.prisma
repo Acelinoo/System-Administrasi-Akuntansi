@@ -85,6 +85,12 @@ enum VendorType {
   SERVICE
 }
 
+enum TerminStatus {
+  PLANNED
+  INVOICED
+  RECEIVED
+}
+
 // ----------------------------------------------------
 // 1. USERS & AUDIT
 // ----------------------------------------------------
@@ -133,6 +139,7 @@ model Project {
   targetEndDate      DateTime?                 @db.Date
   confirmationStatus ProjectConfirmationStatus @default(CONFIRMED)
   possibleParentCode String?                   @db.VarChar(50)
+  projectType        String?                   @default("KONTRAKTOR") @db.VarChar(50)
   isActive           Boolean                   @default(true)
   createdAt          DateTime                  @default(now()) @db.Timestamptz()
   updatedAt          DateTime                  @updatedAt @db.Timestamptz()
@@ -141,6 +148,10 @@ model Project {
   accExpenseItems AccExpenseItem[]
   fundInflows     FundInflow[]
   journalLines    JournalLine[]
+  budgets         ProjectBudget[]
+  termins         ProjectTermin[]
+  progressLogs    ProjectProgressLog[]
+  vendorContracts VendorContract[]
 
   @@map("projects")
 }
@@ -237,6 +248,9 @@ model Vendor {
   createdAt DateTime   @default(now()) @db.Timestamptz()
   updatedAt DateTime   @updatedAt @db.Timestamptz()
 
+  contracts          VendorContract[]
+  expenseItemDetails ExpenseItemDetail[]
+
   @@map("vendors")
 }
 
@@ -317,7 +331,8 @@ model AccExpenseItem {
   subCategory   ExpenseSubCategory? @relation(fields: [subCategoryId, categoryId], references: [id, categoryId], onDelete: Restrict)
   pic           FieldPic            @relation(fields: [picId], references: [id], onDelete: Restrict)
   
-  disbursementItems DisbursementItem[]
+  disbursementItems  DisbursementItem[]
+  expenseItemDetails ExpenseItemDetail[]
 
   @@unique([batchId, itemNo])
   @@index([noKas])
@@ -354,6 +369,7 @@ model FundInflow {
   destinationAccount CashAccount @relation(fields: [destinationAccountId], references: [id], onDelete: Restrict)
   project            Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
   createdBy          User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  termins            ProjectTermin[]
 
   @@index([inflowDate])
   @@index([destinationAccountId])
@@ -401,6 +417,7 @@ model DisbursementItem {
 
   disbursement Disbursement   @relation(fields: [disbursementId], references: [id], onDelete: Cascade)
   accItem      AccExpenseItem @relation(fields: [accItemId], references: [id], onDelete: Restrict)
+  expenseItemDetails ExpenseItemDetail[]
 
   @@index([disbursementId])
   @@index([accItemId])
@@ -486,3 +503,149 @@ model JournalLine {
   @@index([projectId])
   @@map("journal_lines")
 }
+
+// ----------------------------------------------------
+// 11. ANGGARAN PROYEK (RAP / RAB)
+// ----------------------------------------------------
+
+model ProjectBudget {
+  id          String      @id @default(uuid()) @db.Uuid
+  projectId   String      @db.Uuid
+  title       String      @db.VarChar(150)
+  totalBudget Decimal     @default(0.00) @db.Decimal(15, 2)
+  notes       String?     @db.Text
+  dataScope   DataScope   @default(REAL)
+  createdAt   DateTime    @default(now()) @db.Timestamptz()
+  updatedAt   DateTime    @updatedAt @db.Timestamptz()
+
+  project Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items   BudgetItem[]
+
+  @@index([projectId])
+  @@map("project_budgets")
+}
+
+model BudgetItem {
+  id          String   @id @default(uuid()) @db.Uuid
+  budgetId    String   @db.Uuid
+  itemCode    String?  @db.VarChar(50)
+  description String   @db.VarChar(255)
+  category    String?  @db.VarChar(100)
+  volume      Decimal  @default(1.00) @db.Decimal(12, 2)
+  unit        String   @default("ls") @db.VarChar(30)
+  unitPrice   Decimal  @default(0.00) @db.Decimal(15, 2)
+  totalAmount Decimal  @default(0.00) @db.Decimal(15, 2)
+  createdAt   DateTime @default(now()) @db.Timestamptz()
+  updatedAt   DateTime @updatedAt @db.Timestamptz()
+
+  budget ProjectBudget @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+
+  @@index([budgetId])
+  @@map("budget_items")
+}
+
+// ----------------------------------------------------
+// 12. TERMIN & PENAGIHAN KLIEN
+// ----------------------------------------------------
+
+model ProjectTermin {
+  id             String       @id @default(uuid()) @db.Uuid
+  projectId      String       @db.Uuid
+  terminNumber   Int          @default(1)
+  name           String       @db.VarChar(100)
+  plannedAmount  Decimal      @db.Decimal(15, 2)
+  invoiceNumber  String?      @db.VarChar(100)
+  invoiceDate    DateTime?    @db.Date
+  status         TerminStatus @default(PLANNED)
+  fundInflowId   String?      @db.Uuid
+  receivedAmount Decimal?     @db.Decimal(15, 2)
+  receivedDate   DateTime?    @db.Date
+  notes          String?      @db.Text
+  createdAt      DateTime     @default(now()) @db.Timestamptz()
+  updatedAt      DateTime     @updatedAt @db.Timestamptz()
+
+  project    Project     @relation(fields: [projectId], references: [id], onDelete: Restrict)
+  fundInflow FundInflow? @relation(fields: [fundInflowId], references: [id], onDelete: SetNull)
+
+  @@index([projectId])
+  @@index([fundInflowId])
+  @@map("project_termins")
+}
+
+// ----------------------------------------------------
+// 13. PROGRES FISIK LAPANGAN (SIPIL)
+// ----------------------------------------------------
+
+model ProjectProgressLog {
+  id                  String   @id @default(uuid()) @db.Uuid
+  projectId           String   @db.Uuid
+  logDate             DateTime @db.Date
+  physicalProgressPct Decimal  @db.Decimal(5, 2)
+  volumeDescription   String?  @db.Text
+  sourceInfo          String?  @db.VarChar(150)
+  notes               String?  @db.Text
+  createdAt           DateTime @default(now()) @db.Timestamptz()
+  updatedAt           DateTime @updatedAt @db.Timestamptz()
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([logDate])
+  @@map("project_progress_logs")
+}
+
+// ----------------------------------------------------
+// 14. RINCIAN PENGELUARAN / MATERIAL DETAIL
+// ----------------------------------------------------
+
+model ExpenseItemDetail {
+  id                 String   @id @default(uuid()) @db.Uuid
+  accItemId          String?  @db.Uuid
+  disbursementItemId String?  @db.Uuid
+  itemName           String   @db.VarChar(200)
+  quantity           Decimal  @default(1.00) @db.Decimal(12, 2)
+  unit               String   @default("bh") @db.VarChar(50)
+  unitPrice          Decimal  @default(0.00) @db.Decimal(15, 2)
+  totalPrice         Decimal  @default(0.00) @db.Decimal(15, 2)
+  vendorId           String?  @db.Uuid
+  referenceNo        String?  @db.VarChar(100)
+  notes              String?  @db.Text
+  createdAt          DateTime @default(now()) @db.Timestamptz()
+  updatedAt          DateTime @updatedAt @db.Timestamptz()
+
+  accItem          AccExpenseItem?   @relation(fields: [accItemId], references: [id], onDelete: Cascade)
+  disbursementItem DisbursementItem? @relation(fields: [disbursementItemId], references: [id], onDelete: SetNull)
+  vendor           Vendor?           @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+
+  @@index([accItemId])
+  @@index([disbursementItemId])
+  @@index([vendorId])
+  @@map("expense_item_details")
+}
+
+// ----------------------------------------------------
+// 15. KONTRAK VENDOR / SUBKONTRAKTOR
+// ----------------------------------------------------
+
+model VendorContract {
+  id             String    @id @default(uuid()) @db.Uuid
+  vendorId       String    @db.Uuid
+  projectId      String?   @db.Uuid
+  contractNumber String    @db.VarChar(100)
+  title          String    @db.VarChar(200)
+  contractValue  Decimal   @db.Decimal(15, 2)
+  startDate      DateTime? @db.Date
+  endDate        DateTime? @db.Date
+  status         String    @default("ACTIVE") @db.VarChar(30)
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now()) @db.Timestamptz()
+  updatedAt      DateTime  @updatedAt @db.Timestamptz()
+
+  vendor  Vendor   @relation(fields: [vendorId], references: [id], onDelete: Restrict)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([vendorId])
+  @@index([projectId])
+  @@map("vendor_contracts")
+}
+

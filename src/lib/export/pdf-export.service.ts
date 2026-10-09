@@ -229,79 +229,85 @@ export async function buildRealizationPdf(data: RealizationReportResult): Promis
 }
 
 // ----------------------------------------------------
-// 3. PER PROJECT PDF (Portrait)
+// 3. PER PROJECT PDF (Landscape)
 // ----------------------------------------------------
 export async function buildProjectPdf(data: ProjectReportResult): Promise<Uint8Array> {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   addHeader(
     doc,
     "Laporan Rekapitulasi Alokasi Dana per Proyek",
     `Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText}`,
-    "portrait"
+    "landscape"
   );
 
   const tableBody: (string | { content: string; colSpan?: number; styles?: any })[][] = [];
 
   data.projects.forEach((proj) => {
-    const pct = proj.approvedAmount > 0 ? (proj.realizedAmount / proj.approvedAmount) * 100 : 0;
     // Parent project row
     tableBody.push([
       {
         content: `PROYEK: ${proj.projectCode} — ${proj.projectName} (${proj.itemCount} item)`,
         styles: { fontStyle: "bold", fillColor: [241, 245, 249] },
       },
-      { content: formatRupiah(proj.approvedAmount), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
+      { content: proj.contractValue != null ? formatRupiah(proj.contractValue) : "-", styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
+      { content: formatRupiah(proj.totalInflow), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
       { content: formatRupiah(proj.realizedAmount), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
-      { content: formatRupiah(proj.outstandingAmount), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
-      { content: `${pct.toFixed(1)}%`, styles: { fontStyle: "bold", halign: "center", fillColor: [241, 245, 249] } },
+      { content: formatRupiah(proj.netBalance), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
+      { content: proj.remainingContract != null ? formatRupiah(proj.remainingContract) : "-", styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
+      { content: proj.receiptProgressPct != null ? `${proj.receiptProgressPct.toFixed(1)}%` : "-", styles: { fontStyle: "bold", halign: "center", fillColor: [241, 245, 249] } },
+      { content: proj.physicalProgressPct != null ? `${proj.physicalProgressPct.toFixed(1)}%` : "Belum tersedia", styles: { fontStyle: "bold", halign: "center", fillColor: [241, 245, 249] } },
     ]);
 
     // Categories breakdown
     proj.categories.forEach((cat) => {
-      const catPct = cat.approvedAmount > 0 ? (cat.realizedAmount / cat.approvedAmount) * 100 : 0;
       tableBody.push([
         `   ↳ ${cat.categoryCode} - ${cat.categoryName}`,
-        formatRupiah(cat.approvedAmount),
+        "-",
+        "-",
         formatRupiah(cat.realizedAmount),
-        formatRupiah(cat.outstandingAmount),
-        `${catPct.toFixed(1)}%`,
+        "-",
+        "-",
+        "-",
+        "-",
       ]);
     });
   });
 
-  const totalPct = data.totals.totalApproved > 0
-    ? (data.totals.totalRealized / data.totals.totalApproved) * 100
-    : 0;
-
   const foot = [
     [
       `TOTAL KESELURUHAN (${data.totals.projectCount} Proyek)`,
-      formatRupiah(data.totals.totalApproved),
+      formatRupiah(data.totals.totalContractValue),
+      formatRupiah(data.totals.totalInflow),
       formatRupiah(data.totals.totalRealized),
-      formatRupiah(data.totals.totalOutstanding),
-      `${totalPct.toFixed(1)}%`,
+      formatRupiah(data.totals.totalNetBalance),
+      "-",
+      "-",
+      "-",
     ],
   ];
 
   runAutoTable(doc, {
-    head: [["Proyek & Kategori Biaya", "Disetujui (ACC)", "Terealisasi", "Sisa Outstanding", "Progres"]],
+    head: [["Proyek & Kategori Biaya", "Nilai Kontrak", "Penerimaan", "Biaya Keluar", "Saldo Bersih", "Sisa Kontrak", "Prog. Kas", "Prog. Fisik"]],
     body: tableBody,
     foot,
     startY: 34,
     theme: "grid",
-    styles: { fontSize: 8.5, cellPadding: 2, textColor: [30, 41, 59] },
+    styles: { fontSize: 8, cellPadding: 1.8, textColor: [30, 41, 59] },
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
     footStyles: { fillColor: [226, 232, 240], textColor: [15, 23, 42], fontStyle: "bold" },
     columnStyles: {
       0: { cellWidth: "auto" },
-      1: { halign: "right", cellWidth: 32 },
-      2: { halign: "right", cellWidth: 32 },
-      3: { halign: "right", cellWidth: 32 },
-      4: { halign: "center", cellWidth: 20 },
+      1: { halign: "right", cellWidth: 28 },
+      2: { halign: "right", cellWidth: 28 },
+      3: { halign: "right", cellWidth: 28 },
+      4: { halign: "right", cellWidth: 28 },
+      5: { halign: "right", cellWidth: 28 },
+      6: { halign: "center", cellWidth: 20 },
+      7: { halign: "center", cellWidth: 24 },
     },
   });
 
-  addFooter(doc, "portrait");
+  addFooter(doc, "landscape");
   return new Uint8Array(doc.output("arraybuffer"));
 }
 
@@ -449,12 +455,13 @@ export async function buildJournalPdf(data: JournalReportResult): Promise<Uint8A
   );
 
   const head = [
-    ["Tanggal", "No. Jurnal", "Sumber", "Keterangan", "Kode Akun", "Nama Akun (COA)", "Debit (Rp)", "Kredit (Rp)", "Status"],
+    ["Tanggal", "No. Jurnal", "Proyek", "Sumber", "Keterangan", "Kode Akun", "Nama Akun", "Debit (Rp)", "Kredit (Rp)", "Status"],
   ];
 
   const body = data.rows.map((r) => [
     formatDate(r.entryDate),
     r.journalNumber,
+    r.projectCode ? `${r.projectCode}${r.projectName ? ` - ${r.projectName}` : ""}` : "Umum",
     r.sourceType,
     r.memo || r.description,
     r.accountCode,
@@ -467,6 +474,7 @@ export async function buildJournalPdf(data: JournalReportResult): Promise<Uint8A
   const foot = [
     [
       "TOTAL (POSTED ONLY)",
+      "",
       "",
       "",
       "",
@@ -484,19 +492,20 @@ export async function buildJournalPdf(data: JournalReportResult): Promise<Uint8A
     foot,
     startY: 34,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 1.8, textColor: [30, 41, 59] },
+    styles: { fontSize: 7.5, cellPadding: 1.5, textColor: [30, 41, 59] },
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
     footStyles: { fillColor: [226, 232, 240], textColor: [15, 23, 42], fontStyle: "bold" },
     columnStyles: {
-      0: { cellWidth: 18 },
-      1: { cellWidth: 26 },
-      2: { cellWidth: 24 },
-      3: { cellWidth: "auto" },
-      4: { cellWidth: 16, halign: "center" },
-      5: { cellWidth: 32 },
-      6: { halign: "right", cellWidth: 26 },
-      7: { halign: "right", cellWidth: 26 },
-      8: { halign: "center", cellWidth: 18 },
+      0: { cellWidth: 16 },
+      1: { cellWidth: 22 },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 20 },
+      4: { cellWidth: "auto" },
+      5: { cellWidth: 14, halign: "center" },
+      6: { cellWidth: 28 },
+      7: { halign: "right", cellWidth: 24 },
+      8: { halign: "right", cellWidth: 24 },
+      9: { halign: "center", cellWidth: 18 },
     },
   });
 

@@ -8,6 +8,7 @@ export interface JournalReportFilter {
   status?: string;
   coaId?: string;
   dataScope?: string;
+  projectId?: string;
 }
 
 export interface JournalReportRow {
@@ -19,6 +20,9 @@ export interface JournalReportRow {
   description: string;
   accountCode: string;
   accountName: string;
+  projectId?: string | null;
+  projectCode?: string | null;
+  projectName?: string | null;
   debit: number;
   credit: number;
   memo: string | null;
@@ -37,6 +41,7 @@ export interface JournalReportResult {
     sourceText: string;
     statusText: string;
     accountText: string;
+    projectText: string;
     dataScopeText: string;
   };
 }
@@ -73,6 +78,7 @@ export async function getJournalReport(
     where: {
       journal: journalWhere,
       ...(filters?.coaId && filters.coaId !== "ALL" ? { coaId: filters.coaId } : {}),
+      ...(filters?.projectId && filters.projectId !== "ALL" ? { projectId: filters.projectId } : {}),
     },
     orderBy: [
       { journal: { entryDate: "desc" } },
@@ -82,6 +88,7 @@ export async function getJournalReport(
     include: {
       journal: true,
       coa: true,
+      project: { select: { id: true, code: true, name: true } },
     },
   });
 
@@ -94,6 +101,9 @@ export async function getJournalReport(
     description: line.journal.description,
     accountCode: line.coa.accountCode,
     accountName: line.coa.accountName,
+    projectId: line.projectId,
+    projectCode: line.project?.code ?? null,
+    projectName: line.project?.name ?? null,
     debit: Number(line.debit),
     credit: Number(line.credit),
     memo: line.memo,
@@ -126,6 +136,7 @@ export async function getJournalReport(
       sourceText: filters?.sourceType && filters.sourceType !== "ALL" ? filters.sourceType : "Semua Sumber",
       statusText: filters?.status && filters.status !== "ALL" ? filters.status : "Semua Status",
       accountText: filters?.coaId && filters.coaId !== "ALL" ? filters.coaId : "Semua Akun COA",
+      projectText: filters?.projectId && filters.projectId !== "ALL" ? filters.projectId : "Semua Proyek",
       dataScopeText: scope === "ALL" ? "Semua Scope (REAL + TEST)" : String(scope),
     },
   };

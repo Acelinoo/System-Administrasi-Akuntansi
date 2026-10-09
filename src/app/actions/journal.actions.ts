@@ -3,8 +3,11 @@
 import { prisma } from "@/lib/db/prisma";
 import { DataScope } from "@prisma/client";
 
-export async function getJournalList(dataScope: DataScope | "ALL" = DataScope.REAL) {
-  const where = dataScope === "ALL" ? {} : { dataScope };
+export async function getJournalList(dataScope: DataScope | "ALL" = DataScope.REAL, projectId?: string) {
+  const where: Record<string, unknown> = dataScope === "ALL" ? {} : { dataScope };
+  if (projectId && projectId !== "ALL") {
+    where.lines = { some: { projectId } };
+  }
   return prisma.journalEntry.findMany({
     where,
     orderBy: { entryDate: "desc" },

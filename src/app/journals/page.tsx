@@ -1,8 +1,24 @@
 import { getJournalList } from "../actions/journal.actions";
+import { prisma } from "@/lib/db/prisma";
 import { formatRupiah, formatDate, txStatusLabel } from "@/lib/utils/format";
+import Link from "next/link";
 
-export default async function JournalListPage() {
-  const journals = await getJournalList();
+export default async function JournalListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ projectId?: string }>;
+}) {
+  const { projectId } = await searchParams;
+  const [journals, allProjects] = await Promise.all([
+    getJournalList("REAL", projectId),
+    prisma.project.findMany({
+      where: { isActive: true },
+      select: { id: true, code: true, name: true },
+      orderBy: { code: "asc" },
+    }),
+  ]);
+
+  const activeProject = allProjects.find((p) => p.id === projectId);
 
   const postedJournals = journals.filter((j) => j.status === "POSTED");
   const totalDebit = postedJournals.reduce(
@@ -20,8 +36,35 @@ export default async function JournalListPage() {
         <div>
           <h1>Buku Jurnal Akuntansi</h1>
           <div className="page-header-subtitle">
-            Ayat jurnal pembukuan double-entry yang digenerate otomatis dari transaksi operasional proyek
+            {activeProject
+              ? `Jurnal Proyek: ${activeProject.code} — ${activeProject.name}`
+              : "Ayat jurnal pembukuan double-entry yang digenerate otomatis dari seluruh transaksi proyek dan umum"}
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <form method="GET" action="/journals" className="flex items-center gap-2">
+            <select
+              name="projectId"
+              defaultValue={projectId || "ALL"}
+              className="form-control"
+              style={{ fontSize: "0.85rem", padding: "6px 12px", width: "auto" }}
+            >
+              <option value="ALL">Semua Proyek & Umum</option>
+              {allProjects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  Proyek: {p.code} - {p.name}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="btn btn-secondary btn-sm">
+              Filter
+            </button>
+            {projectId && (
+              <Link href="/journals" className="btn btn-secondary btn-sm">
+                Reset
+              </Link>
+            )}
+          </form>
         </div>
       </div>
 

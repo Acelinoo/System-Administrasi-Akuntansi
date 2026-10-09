@@ -17,6 +17,15 @@ export interface ProjectReportSummary {
   projectName: string;
   confirmationStatus?: string;
   possibleParentCode?: string | null;
+  clientName?: string | null;
+  projectType?: string | null;
+  contractValue: number | null;
+  totalInflow: number;
+  netBalance: number;
+  remainingContract: number | null;
+  receiptProgressPct: number | null;
+  physicalProgressPct: number | null;
+  totalBudget: number;
   approvedAmount: number;
   realizedAmount: number;
   outstandingAmount: number;
@@ -28,6 +37,10 @@ export interface ProjectReportResult {
   projects: ProjectReportSummary[];
   allProjects: Array<{ id: string; code: string; name: string }>;
   totals: {
+    totalContractValue: number;
+    totalBudget: number;
+    totalInflow: number;
+    totalNetBalance: number;
     totalApproved: number;
     totalRealized: number;
     totalOutstanding: number;
@@ -68,8 +81,8 @@ export async function getProjectReport(filters?: {
     where.batch = { accDate: dateFilter };
   }
 
-  // 1. Run independent project list and items queries in parallel
-  const [projectList, allActiveProjects, items] = await Promise.all([
+  // 1. Run queries in parallel
+  const [projectList, allActiveProjects, items, postedInflows, progressLogs, budgets] = await Promise.all([
     // Projects to show in report (filtered if specific project selected)
     prisma.project.findMany({
       where: filters?.projectId && filters.projectId !== "ALL" ? { id: filters.projectId } : { isActive: true },
@@ -79,6 +92,9 @@ export async function getProjectReport(filters?: {
         name: true,
         confirmationStatus: true,
         possibleParentCode: true,
+        clientName: true,
+        projectType: true,
+        contractValue: true,
       },
       orderBy: { code: "asc" },
     }),
@@ -88,7 +104,7 @@ export async function getProjectReport(filters?: {
       select: { id: true, code: true, name: true },
       orderBy: { code: "asc" },
     }),
-    // Optimized items fetch: select only needed fields (skip heavy text & relations)
+    // Optimized items fetch: select only needed fields
     prisma.accExpenseItem.findMany({
       where,
       select: {
@@ -102,6 +118,37 @@ export async function getProjectReport(filters?: {
         disbursementItems: {
           where: { disbursement: { status: TransactionStatus.POSTED } },
           select: { realizedAmount: true },
+        },
+      },
+    }),
+    // Posted inflows linked to projects
+    prisma.fundInflow.findMany({
+      where: {
+        status: TransactionStatus.POSTED,
+        projectId: { not: null },
+        ...(scope !== "ALL" ? { dataScope: scope } : {}),
+      },
+      select: {
+        projectId: true,
+        amount: true,
+      },
+    }),
+    // Latest physical progress logs
+    prisma.projectProgressLog.findMany({
+      orderBy: { logDate: "desc" },
+      select: {
+        projectId: true,
+        physicalProgressPct: true,
+        logDate: true,
+      },
+    }),
+    // Budgets & items
+    prisma.projectBudget.findMany({
+      where: scope !== "ALL" ? { dataScope: scope } : {},
+      select: {
+        projectId: true,
+        items: {
+          select: { totalAmount: true },
         },
       },
     }),
@@ -148,20 +195,57 @@ export async function getProjectReport(filters?: {
     const realizedAmount = categories.reduce((s, c) => s + c.realizedAmount, 0);
     const outstandingAmount = categories.reduce((s, c) => s + c.outstandingAmount, 0);
 
+    // Inflows for this project
+    const projInflows = postedInflows.filter((inf) => inf.projectId === proj.id);
+    const totalInflow = projInflows.reduce((s, inf) => s + Number(inf.amount), 0);
+    const netBalance = totalInflow - realizedAmount;
+
+    // Contract value & remaining
+    const contractVal = proj.contractValue ? Number(proj.contractValue) : null;
+    const remainingContract = contractVal !== null ? Math.max(0, contractVal - totalInflow) : null;
+
+    // Receipt progress
+    const receiptProgressPct =
+      contractVal !== null && contractVal > 0 ? (totalInflow / contractVal) * 100 : null;
+
+    // Physical progress (civil)
+    const latestLog = progressLogs.find((pl) => pl.projectId === proj.id);
+    const physicalProgressPct = latestLog ? Number(latestLog.physicalProgressPct) : null;
+
+    // Budget total
+    const projBudgets = budgets.filter((b) => b.projectId === proj.id);
+    const totalBudget = projBudgets.reduce(
+      (s, b) => s + b.items.reduce((is, it) => is + Number(it.totalAmount), 0),
+      0
+    );
+
     return {
       projectId: proj.id,
       projectCode: proj.code,
       projectName: proj.name,
       confirmationStatus: proj.confirmationStatus,
       possibleParentCode: proj.possibleParentCode,
+      clientName: proj.clientName,
+      projectType: proj.projectType,
+      contractValue: contractVal,
+      totalInflow,
+      netBalance,
+      remainingContract,
+      receiptProgressPct,
+      physicalProgressPct,
+      totalBudget,
       approvedAmount,
       realizedAmount,
       outstandingAmount,
       itemCount: projItems.length,
       categories,
     };
-  }).filter((p) => p.itemCount > 0 || (filters?.projectId && filters.projectId === p.projectId));
+  }).filter((p) => p.itemCount > 0 || (filters?.projectId && filters.projectId === p.projectId) || (p.contractValue !== null && p.contractValue > 0));
 
+  const totalContractValue = projects.reduce((s, p) => s + (p.contractValue ?? 0), 0);
+  const totalBudget = projects.reduce((s, p) => s + p.totalBudget, 0);
+  const totalInflow = projects.reduce((s, p) => s + p.totalInflow, 0);
+  const totalNetBalance = projects.reduce((s, p) => s + p.netBalance, 0);
   const totalApproved = projects.reduce((s, p) => s + p.approvedAmount, 0);
   const totalRealized = projects.reduce((s, p) => s + p.realizedAmount, 0);
   const totalOutstanding = projects.reduce((s, p) => s + p.outstandingAmount, 0);
@@ -179,6 +263,10 @@ export async function getProjectReport(filters?: {
     projects,
     allProjects: allActiveProjects,
     totals: {
+      totalContractValue,
+      totalBudget,
+      totalInflow,
+      totalNetBalance,
       totalApproved,
       totalRealized,
       totalOutstanding,

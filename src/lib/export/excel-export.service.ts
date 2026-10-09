@@ -286,10 +286,13 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
   const headerRow = ws.addRow([
     "Kode",
     "Nama Proyek / Kategori Biaya",
-    "Total Disetujui (ACC)",
-    "Terealisasi (Keluar)",
-    "Sisa Outstanding",
-    "Progres",
+    "Nilai Kontrak",
+    "Penerimaan (Termin)",
+    "Pengeluaran (Biaya)",
+    "Saldo Bersih",
+    "Sisa Kontrak",
+    "Prog. Kas",
+    "Prog. Fisik",
   ]);
 
   headerRow.height = 24;
@@ -301,48 +304,52 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
   });
 
   data.projects.forEach((proj) => {
-    const pct = proj.approvedAmount > 0 ? (proj.realizedAmount / proj.approvedAmount) * 100 : 0;
     // Parent Project Row
     const pRow = ws.addRow([
       proj.projectCode,
       proj.projectName,
-      proj.approvedAmount,
+      proj.contractValue ?? 0,
+      proj.totalInflow,
       proj.realizedAmount,
-      proj.outstandingAmount,
-      `${pct.toFixed(1)}%`,
+      proj.netBalance,
+      proj.remainingContract ?? 0,
+      proj.receiptProgressPct != null ? `${proj.receiptProgressPct.toFixed(1)}%` : "-",
+      proj.physicalProgressPct != null ? `${proj.physicalProgressPct.toFixed(1)}%` : "Belum tersedia",
     ]);
     pRow.height = 22;
     pRow.eachCell((cell, colNum) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
       cell.font = { name: "Calibri", size: 10, bold: true };
       cell.border = THIN_BORDER;
-      if ([3, 4, 5].includes(colNum)) {
+      if ([3, 4, 5, 6, 7].includes(colNum)) {
         cell.numFmt = '#,##0';
         cell.alignment = { horizontal: "right" };
-      } else if (colNum === 6) {
+      } else if ([8, 9].includes(colNum)) {
         cell.alignment = { horizontal: "center" };
       }
     });
 
     // Breakdown categories under project
     proj.categories.forEach((cat) => {
-      const catPct = cat.approvedAmount > 0 ? (cat.realizedAmount / cat.approvedAmount) * 100 : 0;
       const cRow = ws.addRow([
         `  ↳ ${cat.categoryCode}`,
         cat.categoryName,
-        cat.approvedAmount,
+        "",
+        "",
         cat.realizedAmount,
-        cat.outstandingAmount,
-        `${catPct.toFixed(1)}%`,
+        "",
+        "",
+        "",
+        "",
       ]);
       cRow.height = 19;
       cRow.eachCell((cell, colNum) => {
         cell.font = { name: "Calibri", size: 9, italic: true };
         cell.border = THIN_BORDER;
-        if ([3, 4, 5].includes(colNum)) {
+        if (colNum === 5) {
           cell.numFmt = '#,##0';
           cell.alignment = { horizontal: "right" };
-        } else if (colNum === 6) {
+        } else if ([8, 9].includes(colNum)) {
           cell.alignment = { horizontal: "center" };
         }
       });
@@ -350,17 +357,16 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
   });
 
   // Overall Total
-  const totalPct = data.totals.totalApproved > 0
-    ? (data.totals.totalRealized / data.totals.totalApproved) * 100
-    : 0;
-
   const totalRow = ws.addRow([
     "TOTAL KESELURUHAN",
     `${data.totals.projectCount} Proyek`,
-    data.totals.totalApproved,
+    data.totals.totalContractValue,
+    data.totals.totalInflow,
     data.totals.totalRealized,
-    data.totals.totalOutstanding,
-    `${totalPct.toFixed(1)}%`,
+    data.totals.totalNetBalance,
+    "",
+    "",
+    "",
   ]);
 
   totalRow.height = 24;
@@ -368,22 +374,25 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
     cell.fill = TOTAL_FILL;
     cell.font = { name: "Calibri", size: 10, bold: true };
     cell.border = DOUBLE_BOTTOM_BORDER;
-    if ([3, 4, 5].includes(colNum)) {
+    if ([3, 4, 5, 6].includes(colNum)) {
       cell.numFmt = '#,##0';
       cell.alignment = { horizontal: "right" };
-    } else if (colNum === 6) {
+    } else if ([8, 9].includes(colNum)) {
       cell.alignment = { horizontal: "center" };
     }
   });
 
   ws.views = [{ state: "frozen", ySplit: 4 }];
   ws.columns = [
-    { width: 18 },
-    { width: 35 },
-    { width: 22 },
-    { width: 22 },
-    { width: 22 },
+    { width: 16 },
+    { width: 34 },
+    { width: 20 },
+    { width: 20 },
+    { width: 20 },
+    { width: 20 },
+    { width: 20 },
     { width: 14 },
+    { width: 16 },
   ];
 
   const buffer = await wb.xlsx.writeBuffer();
@@ -632,6 +641,7 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
   const headerRow = ws.addRow([
     "Tanggal",
     "No. Jurnal",
+    "Proyek",
     "Sumber Transaksi",
     "Keterangan / Uraian",
     "Kode Akun",
@@ -650,9 +660,14 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
   });
 
   data.rows.forEach((rowItem) => {
+    const projectDisplay = rowItem.projectCode
+      ? `${rowItem.projectCode}${rowItem.projectName ? ` - ${rowItem.projectName}` : ""}`
+      : "Umum / Non-Proyek";
+
     const row = ws.addRow([
       rowItem.entryDate.toISOString().slice(0, 10),
       rowItem.journalNumber,
+      projectDisplay,
       rowItem.sourceType,
       rowItem.memo || rowItem.description,
       rowItem.accountCode,
@@ -666,10 +681,10 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
     row.eachCell((cell, colNum) => {
       cell.border = THIN_BORDER;
       cell.font = { name: "Calibri", size: 10 };
-      if ([7, 8].includes(colNum)) {
+      if ([8, 9].includes(colNum)) {
         cell.numFmt = '#,##0';
         cell.alignment = { horizontal: "right" };
-      } else if ([1, 2, 3, 5, 9].includes(colNum)) {
+      } else if ([1, 2, 4, 6, 10].includes(colNum)) {
         cell.alignment = { horizontal: "center" };
       }
     });
@@ -677,6 +692,7 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
 
   const totalRow = ws.addRow([
     "TOTAL (POSTED ONLY)",
+    "",
     "",
     "",
     "",
@@ -692,10 +708,10 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
     cell.fill = TOTAL_FILL;
     cell.font = { name: "Calibri", size: 10, bold: true };
     cell.border = DOUBLE_BOTTOM_BORDER;
-    if ([7, 8].includes(colNum)) {
+    if ([8, 9].includes(colNum)) {
       cell.numFmt = '#,##0';
       cell.alignment = { horizontal: "right" };
-    } else if (colNum === 9) {
+    } else if (colNum === 10) {
       cell.alignment = { horizontal: "center" };
       cell.font = {
         name: "Calibri",
@@ -707,11 +723,12 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
   });
 
   ws.views = [{ state: "frozen", ySplit: 5 }];
-  ws.autoFilter = { from: "A5", to: `I${5 + data.rows.length}` };
+  ws.autoFilter = { from: "A5", to: `J${5 + data.rows.length}` };
 
   ws.columns = [
     { width: 14 }, // Tanggal
     { width: 22 }, // No Jurnal
+    { width: 22 }, // Proyek
     { width: 18 }, // Sumber
     { width: 35 }, // Keterangan
     { width: 14 }, // Kode Akun

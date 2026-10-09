@@ -309,7 +309,7 @@ export async function getAccItemList(filters?: {
 }
 
 export async function getAccItemDetail(id: string) {
-  return prisma.accExpenseItem.findUnique({
+  const item = await prisma.accExpenseItem.findUnique({
     where: { id },
     include: {
       batch: true,
@@ -318,6 +318,12 @@ export async function getAccItemDetail(id: string) {
       category: true,
       subCategory: true,
       pic: true,
+      expenseItemDetails: {
+        include: {
+          vendor: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
       disbursementItems: {
         include: {
           disbursement: {
@@ -334,6 +340,13 @@ export async function getAccItemDetail(id: string) {
       },
     },
   });
+
+  if (!item) return null;
+
+  return {
+    ...item,
+    itemDetails: item.expenseItemDetails,
+  };
 }
 
 // -------------------------------------------------------

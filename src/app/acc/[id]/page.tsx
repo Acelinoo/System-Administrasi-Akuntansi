@@ -15,7 +15,7 @@ export default async function AccDetailPage({
 
   const statusInfo = accStatusLabel(item.status);
   const totalRealized = item.disbursementItems.reduce(
-    (sum, di) => sum + Number(di.realizedAmount),
+    (sum: number, di: any) => sum + Number(di.realizedAmount),
     0
   );
   const outstanding = Math.max(0, Number(item.approvedAmount) - totalRealized);
@@ -207,7 +207,68 @@ export default async function AccDetailPage({
                   </tr>
                 </tbody>
               </table>
+              <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                <Link
+                  href={`/projects/${item.projectId}`}
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: "0.75rem" }}
+                >
+                  Lihat Project 360° ({item.project.code}) →
+                </Link>
+              </div>
             </div>
+          </div>
+        </div>
+
+        {/* 2.5 RINCIAN MATERIAL / BARANG (OPSIONAL) */}
+        <div className="card mb-6">
+          <div className="card-header flex justify-between items-center">
+            <div>
+              <h2>Rincian Barang & Material Pembelian</h2>
+              <div className="text-xs text-muted">
+                Rincian kuantitas, satuan, harga satuan, dan toko vendor yang terkait dengan voucher pengeluaran ini
+              </div>
+            </div>
+            <span className="text-xs text-muted font-medium">
+              {item.itemDetails.length} rincian barang
+            </span>
+          </div>
+          <div className="card-body-flush">
+            {item.itemDetails.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-title">Tidak ada rincian material terpisah.</div>
+                <div className="empty-state-desc">
+                  Item pengeluaran ini dicatat langsung berdasarkan pagu voucher disetujui (misal: upah tenaga kerja, sewa alat, atau operasional kantor).
+                </div>
+              </div>
+            ) : (
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Nama Barang / Material</th>
+                    <th className="text-right">Kuantitas</th>
+                    <th>Satuan</th>
+                    <th className="text-right">Harga Satuan (Rp)</th>
+                    <th className="text-right">Total Harga (Rp)</th>
+                    <th>Vendor / Toko</th>
+                    <th>No. Bukti / Ref</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {item.itemDetails.map((det: any) => (
+                    <tr key={det.id}>
+                      <td className="font-medium text-slate-900">{det.itemName}</td>
+                      <td className="col-num text-sm">{Number(det.quantity).toLocaleString("id-ID")}</td>
+                      <td className="text-xs text-muted">{det.unit}</td>
+                      <td className="col-num text-sm">{formatRupiah(Number(det.unitPrice))}</td>
+                      <td className="col-num text-sm font-semibold">{formatRupiah(Number(det.totalPrice))}</td>
+                      <td className="text-sm">{det.vendor ? det.vendor.name : "-"}</td>
+                      <td className="text-xs col-mono">{det.referenceNo || "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -241,7 +302,7 @@ export default async function AccDetailPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {item.disbursementItems.map((di) => {
+                  {item.disbursementItems.map((di: any) => {
                     const txInfo = txStatusLabel(di.disbursement.status);
                     return (
                       <tr key={di.id}>

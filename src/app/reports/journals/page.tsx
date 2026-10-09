@@ -13,16 +13,19 @@ export default async function JournalReportPage({
     sourceType?: string;
     status?: string;
     coaId?: string;
+    projectId?: string;
   }>;
 }) {
   const params = await searchParams;
-  const [data, coaList] = await Promise.all([
+  const [data, coaList, projectsList] = await Promise.all([
     getJournalReport(params),
-    prisma.coaAccount.findMany({ where: { isActive: true }, select: { id: true, accountCode: true, accountName: true } }),
+    prisma.coaAccount.findMany({ where: { isActive: true }, select: { id: true, accountCode: true, accountName: true }, orderBy: { accountCode: "asc" } }),
+    prisma.project.findMany({ where: { isActive: true }, select: { id: true, code: true, name: true }, orderBy: { code: "asc" } }),
   ]);
 
   const filterConfig = {
     showDates: true,
+    projects: projectsList.map((p) => ({ id: p.id, name: `${p.code} - ${p.name}` })),
     sourceTypes: [
       { value: "FUND_INFLOW", label: "Penerimaan Dana (Inflow)" },
       { value: "DISBURSEMENT", label: "Pencairan (Disbursement)" },
@@ -42,9 +45,9 @@ export default async function JournalReportPage({
     <>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Buku Jurnal Umum (Double-Entry)</h2>
+          <h2 className="text-base font-semibold">Laporan Buku Jurnal Umum & Proyek (Double-Entry)</h2>
           <div className="text-xs text-muted">
-            Ayat jurnal transaksi double-entry yang digenerate otomatis dari mutasi penerimaan dan pengeluaran
+            Ayat jurnal transaksi double-entry yang digenerate otomatis dari mutasi penerimaan dan pengeluaran proyek maupun umum
           </div>
         </div>
         <ExportButtons reportType="journal" />
@@ -100,6 +103,7 @@ export default async function JournalReportPage({
                     <th>Tanggal</th>
                     <th>No. Jurnal</th>
                     <th>Sumber</th>
+                    <th>Proyek</th>
                     <th>Keterangan / Memo</th>
                     <th>Kode Akun</th>
                     <th>Nama Akun (COA)</th>
@@ -120,7 +124,14 @@ export default async function JournalReportPage({
                             {row.sourceType}
                           </span>
                         </td>
-                        <td className="truncate" style={{ maxWidth: 240 }}>
+                        <td>
+                          {row.projectCode ? (
+                            <span className="font-semibold text-primary text-xs">{row.projectCode}</span>
+                          ) : (
+                            <span className="text-muted text-xs">Umum</span>
+                          )}
+                        </td>
+                        <td className="truncate" style={{ maxWidth: 220 }}>
                           {row.memo || row.description}
                         </td>
                         <td className="col-mono font-medium">{row.accountCode}</td>

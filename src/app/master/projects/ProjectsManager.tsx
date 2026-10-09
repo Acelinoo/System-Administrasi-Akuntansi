@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   createProjectAction,
   updateProjectAction,
@@ -223,6 +224,13 @@ export default function ProjectsManager({ projects }: { projects: ProjectItem[] 
                   </td>
                   <td className="text-center">
                     <div className="flex items-center justify-center gap-1.5">
+                      <Link
+                        href={`/projects/${proj.id}`}
+                        className="btn btn-primary btn-sm"
+                        style={{ fontSize: "0.75rem", padding: "2px 8px" }}
+                      >
+                        Detail 360°
+                      </Link>
                       <button
                         className="btn btn-secondary btn-sm"
                         style={{ fontSize: "0.75rem", padding: "2px 8px" }}
