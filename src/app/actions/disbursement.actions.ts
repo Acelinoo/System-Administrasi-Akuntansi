@@ -3,10 +3,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { createDisbursement, voidDisbursement } from "@/lib/finance/disbursement.service";
 import { getAllCashBalances } from "@/lib/finance/balance.service";
+import { requireAuth, requireAdmin } from "@/lib/auth/auth.service";
 import { AccStatus, TransactionStatus, DataScope } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { sanitizeErrorMessage } from "@/lib/utils/error";
 
 export async function getDisbursementPageSummary(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  await requireAuth();
   const scopeFilter = dataScope === "ALL" ? {} : { dataScope };
   const [accAgg, postedDisbursementsAgg, totalAccItems] = await Promise.all([
     prisma.accExpenseItem.aggregate({
@@ -33,6 +37,7 @@ export async function getDisbursementPageSummary(dataScope: DataScope | "ALL" = 
 }
 
 export async function getDisbursementList(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  await requireAuth();
   const where = dataScope === "ALL" ? {} : { dataScope };
   return prisma.disbursement.findMany({
     where,
@@ -47,6 +52,7 @@ export async function getDisbursementList(dataScope: DataScope | "ALL" = DataSco
 }
 
 export async function getDisbursementDetail(id: string) {
+  await requireAuth();
   return prisma.disbursement.findUnique({
     where: { id },
     include: {
@@ -69,6 +75,7 @@ export async function getDisbursementDetail(id: string) {
 }
 
 export async function getOutstandingAccItems(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  await requireAuth();
   const scopeFilter = dataScope === "ALL" ? {} : { dataScope };
   return prisma.accExpenseItem.findMany({
     where: {
@@ -91,10 +98,13 @@ export async function getOutstandingAccItems(dataScope: DataScope | "ALL" = Data
 }
 
 export async function getCashBalances(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  await requireAuth();
   return getAllCashBalances(undefined, dataScope);
 }
 
 export async function createDisbursementAction(formData: FormData) {
+  const user = await requireAuth();
+
   const disbursementDate = formData.get("disbursementDate") as string;
   const cashAccountId = formData.get("cashAccountId") as string;
   const paymentMethod = formData.get("paymentMethod") as string;
@@ -109,6 +119,9 @@ export async function createDisbursementAction(formData: FormData) {
     return { error: "Format data item pencairan tidak valid." };
   }
 
+  const dataScopeRaw = formData.get("dataScope") as string | null;
+  const dataScope = dataScopeRaw === "TEST" ? DataScope.TEST : dataScopeRaw === "REAL" ? DataScope.REAL : undefined;
+
   try {
     const result = await createDisbursement({
       disbursementDate: new Date(disbursementDate),
@@ -117,6 +130,8 @@ export async function createDisbursementAction(formData: FormData) {
       totalRealizedAmount,
       notes: notes || null,
       items,
+      createdById: user.id,
+      dataScope,
     });
 
     revalidatePath("/disbursements");
@@ -128,23 +143,32 @@ export async function createDisbursementAction(formData: FormData) {
       total: result.calculatedTotal,
     };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Terjadi kesalahan.";
-    return { error: message };
+    if (err instanceof z.ZodError) {
+      return { error: err.errors.map((e) => e.message).join(", ") };
+    }
+    return { error: sanitizeErrorMessage(err, "Terjadi kesalahan saat memproses pencairan.") };
   }
 }
 
 export async function voidDisbursementAction(formData: FormData) {
+  try {
+    await requireAdmin();
+  } catch (err: unknown) {
+    return { error: sanitizeErrorMessage(err, "Akses ditolak: Operasi ini memerlukan hak Administrator.") };
+  }
+
   const disbursementId = formData.get("disbursementId") as string;
   const voidReason = formData.get("voidReason") as string;
+  const dataScopeRaw = formData.get("dataScope") as string | null;
+  const expectedScope = dataScopeRaw === "TEST" ? DataScope.TEST : dataScopeRaw === "REAL" ? DataScope.REAL : undefined;
 
   try {
-    await voidDisbursement(disbursementId, voidReason);
+    await voidDisbursement(disbursementId, voidReason, undefined, expectedScope);
     revalidatePath("/disbursements");
     revalidatePath("/acc");
     revalidatePath("/");
     return { success: true };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Terjadi kesalahan.";
-    return { error: message };
+    return { error: sanitizeErrorMessage(err, "Terjadi kesalahan saat membatalkan pencairan.") };
   }
 }

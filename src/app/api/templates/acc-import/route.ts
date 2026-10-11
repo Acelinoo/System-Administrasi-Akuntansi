@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { generateAccImportTemplate } from "@/lib/finance/import.service";
+import { getCurrentUser } from "@/lib/auth/auth.service";
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sesi tidak valid atau telah berakhir. Harap login kembali." }, { status: 401 });
+  }
+
   try {
     const buffer = await generateAccImportTemplate();
 

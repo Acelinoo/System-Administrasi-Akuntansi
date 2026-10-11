@@ -52,10 +52,12 @@ export async function getPicReport(filters?: {
   projectId?: string;
   status?: string;
   dataScope?: string;
+  scope?: string;
 }): Promise<PicReportResult> {
   const where: Record<string, unknown> = {};
 
-  const scope = filters?.dataScope ? (filters.dataScope as DataScope | "ALL") : DataScope.REAL;
+  const rawScope = filters?.dataScope || filters?.scope;
+  const scope = rawScope ? (rawScope as DataScope | "ALL") : DataScope.REAL;
   if (scope !== "ALL") {
     where.dataScope = scope;
   }

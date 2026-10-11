@@ -208,3 +208,30 @@ export async function voidJournalEntry(
     },
   });
 }
+
+export interface CreateManualJournalOptions {
+  journalNumber?: string;
+  entryDate: Date;
+  description: string;
+  lines: JournalLineDraft[];
+  dataScope?: DataScope;
+  tx?: Prisma.TransactionClient;
+}
+
+/**
+ * Creates a balanced manual adjustment journal entry (sourceType: MANUAL).
+ */
+export async function createManualJournalEntry(options: CreateManualJournalOptions) {
+  const manualId = `MANUAL-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  return await createJournalEntry({
+    entryDate: options.entryDate,
+    sourceType: JournalSourceType.MANUAL,
+    sourceId: manualId,
+    description: options.description,
+    lines: options.lines,
+    journalNumber: options.journalNumber,
+    dataScope: options.dataScope ?? DataScope.REAL,
+    tx: options.tx,
+  });
+}
+

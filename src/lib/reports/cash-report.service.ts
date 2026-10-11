@@ -27,8 +27,9 @@ export interface CashReportResult {
   };
 }
 
-export async function getCashReport(filters?: { dataScope?: string }): Promise<CashReportResult> {
-  const scope = filters?.dataScope ? (filters.dataScope as DataScope | "ALL") : DataScope.REAL;
+export async function getCashReport(filters?: { dataScope?: string; scope?: string }): Promise<CashReportResult> {
+  const rawScope = filters?.dataScope || filters?.scope;
+  const scope = rawScope ? (rawScope as DataScope | "ALL") : DataScope.REAL;
   const balances = await getAllCashBalances(undefined, scope);
 
   const accounts: CashAccountReportItem[] = balances.accounts.map((b) => ({

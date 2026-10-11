@@ -4,12 +4,15 @@ import { prisma } from "@/lib/db/prisma";
 import { createSubmissionBatch } from "@/lib/finance/acc.service";
 import { AccStatus, TransactionStatus, DataScope } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { requireAuth } from "@/lib/auth/auth.service";
+import { sanitizeErrorMessage } from "@/lib/utils/error";
 
 // -------------------------------------------------------
 // DATA FETCHING (read-only queries)
 // -------------------------------------------------------
 
 export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  await requireAuth();
   const scopeFilter = dataScope === "ALL" ? {} : { dataScope };
 
   const [
@@ -187,6 +190,7 @@ export async function getDashboardStats(dataScope: DataScope | "ALL" = DataScope
 }
 
 export async function getAccBatchList(dataScope: DataScope | "ALL" = DataScope.REAL) {
+  await requireAuth();
   const where = dataScope === "ALL" ? {} : { dataScope };
   return prisma.submissionBatch.findMany({
     where,
@@ -209,6 +213,7 @@ export async function getAccSummaryStats(filters?: {
   search?: string;
   dataScope?: DataScope | "ALL";
 }) {
+  await requireAuth();
   const targetScope = filters?.dataScope ?? DataScope.REAL;
   const where: Record<string, unknown> = targetScope === "ALL" ? {} : { dataScope: targetScope };
 
@@ -260,6 +265,7 @@ export async function getAccItemList(filters?: {
   page?: number;
   pageSize?: number;
 }) {
+  await requireAuth();
   const targetScope = filters?.dataScope ?? DataScope.REAL;
   const where: Record<string, unknown> = targetScope === "ALL" ? {} : { dataScope: targetScope };
 
@@ -309,6 +315,7 @@ export async function getAccItemList(filters?: {
 }
 
 export async function getAccItemDetail(id: string) {
+  await requireAuth();
   const item = await prisma.accExpenseItem.findUnique({
     where: { id },
     include: {
@@ -354,6 +361,7 @@ export async function getAccItemDetail(id: string) {
 // -------------------------------------------------------
 
 export async function getMasterProjects() {
+  await requireAuth();
   return prisma.project.findMany({
     where: { isActive: true },
     orderBy: { code: "asc" },
@@ -367,6 +375,7 @@ export async function getMasterProjects() {
 }
 
 export async function getMasterCategories() {
+  await requireAuth();
   return prisma.expenseCategory.findMany({
     where: { isActive: true },
     orderBy: { code: "asc" },
@@ -380,6 +389,7 @@ export async function getMasterCategories() {
 }
 
 export async function getMasterPics() {
+  await requireAuth();
   return prisma.fieldPic.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
@@ -387,6 +397,7 @@ export async function getMasterPics() {
 }
 
 export async function getMasterCashAccounts() {
+  await requireAuth();
   return prisma.cashAccount.findMany({
     where: { isActive: true },
     orderBy: { accountCode: "asc" },
@@ -398,6 +409,7 @@ export async function getMasterCashAccounts() {
 // -------------------------------------------------------
 
 export async function createAccBatchAction(formData: FormData) {
+  const user = await requireAuth();
   const batchCode = formData.get("batchCode") as string;
   const accDate = formData.get("accDate") as string;
   const approvedByName = (formData.get("approvedByName") as string) || "Pa Giri";
@@ -412,6 +424,9 @@ export async function createAccBatchAction(formData: FormData) {
     return { error: "Format data item tidak valid." };
   }
 
+  const dataScopeRaw = formData.get("dataScope") as string | null;
+  const dataScope = dataScopeRaw === "TEST" ? DataScope.TEST : dataScopeRaw === "REAL" ? DataScope.REAL : undefined;
+
   try {
     const result = await createSubmissionBatch({
       batchCode,
@@ -419,13 +434,14 @@ export async function createAccBatchAction(formData: FormData) {
       approvedByName,
       notes: notes || null,
       items,
+      createdById: user.id,
+      dataScope,
     });
 
     revalidatePath("/acc");
     revalidatePath("/");
     return { success: true, batchId: result.batch.id, itemCount: result.items.length };
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Terjadi kesalahan saat menyimpan data.";
-    return { error: message };
+    return { error: sanitizeErrorMessage(err, "Terjadi kesalahan saat menyimpan data ACC.") };
   }
 }

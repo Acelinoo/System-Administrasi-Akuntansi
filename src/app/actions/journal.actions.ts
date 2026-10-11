@@ -2,15 +2,17 @@
 
 import { prisma } from "@/lib/db/prisma";
 import { DataScope } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/auth.service";
 
 export async function getJournalList(dataScope: DataScope | "ALL" = DataScope.REAL, projectId?: string) {
+  await requireAuth();
   const where: Record<string, unknown> = dataScope === "ALL" ? {} : { dataScope };
   if (projectId && projectId !== "ALL") {
     where.lines = { some: { projectId } };
   }
   return prisma.journalEntry.findMany({
     where,
-    orderBy: { entryDate: "desc" },
+    orderBy: [{ entryDate: "desc" }, { createdAt: "desc" }],
     include: {
       lines: {
         include: {
@@ -23,6 +25,7 @@ export async function getJournalList(dataScope: DataScope | "ALL" = DataScope.RE
 }
 
 export async function getJournalDetail(id: string) {
+  await requireAuth();
   return prisma.journalEntry.findUnique({
     where: { id },
     include: {

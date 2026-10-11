@@ -74,21 +74,7 @@ export async function createDisbursement(
       }
     }
 
-    // 4. Insufficient Funds Check (Negative Balance is Forbidden)
-    // If targetScope is TEST, check against ALL balance (or TEST balance) so tests with seeded funds pass.
-    // For REAL scope, strictly enforce REAL operational cash balance.
-    const accountBalance = await getCashAccountBalance(
-      validated.cashAccountId,
-      tx,
-      targetScope === DataScope.TEST ? "ALL" : DataScope.REAL
-    );
-    if (accountBalance.currentBalance < calculatedTotal) {
-      throw new Error(
-        `Saldo kas/bank tidak mencukupi: Saldo saat ini Rp${accountBalance.currentBalance.toLocaleString("id-ID")}, dibutuhkan Rp${calculatedTotal.toLocaleString("id-ID")}.`
-      );
-    }
-
-    // 5. Validate Each ACC Expense Item & Prevent Overpayment
+    // 4. Validate Each ACC Expense Item, Prevent Overpayment & Enforce Scope Isolation
     const accItemUpdates: {
       accItemId: string;
       newStatus: AccStatus;
@@ -110,6 +96,13 @@ export async function createDisbursement(
 
       if (accItem.status === AccStatus.CANCELLED) {
         throw new Error(`Item pengajuan '${accItem.noKas}' telah dibatalkan (CANCELLED) dan tidak dapat dicairkan.`);
+      }
+
+      // Enforce strict dataScope boundary: TEST requests cannot mutate REAL items, and REAL requests cannot mutate TEST items
+      if (accItem.dataScope !== targetScope) {
+        throw new Error(
+          `Integritas dataScope ditolak: Item '${accItem.noKas}' berada pada scope '${accItem.dataScope}', sedangkan transaksi pencairan berada pada scope '${targetScope}'. Cross-scope mutation dilarang!`
+        );
       }
 
       // Calculate existing posted realizations for this item
@@ -151,6 +144,20 @@ export async function createDisbursement(
         subCategoryId: accItem.subCategoryId,
         description: accItem.description,
       });
+    }
+
+    // 5. Insufficient Funds Check (Negative Balance is Forbidden)
+    // If targetScope is TEST, check against ALL balance (or TEST balance) so tests with seeded funds pass.
+    // For REAL scope, strictly enforce REAL operational cash balance.
+    const accountBalance = await getCashAccountBalance(
+      validated.cashAccountId,
+      tx,
+      targetScope === DataScope.TEST ? "ALL" : DataScope.REAL
+    );
+    if (accountBalance.currentBalance < calculatedTotal) {
+      throw new Error(
+        `Saldo kas/bank tidak mencukupi: Saldo saat ini Rp${accountBalance.currentBalance.toLocaleString("id-ID")}, dibutuhkan Rp${calculatedTotal.toLocaleString("id-ID")}.`
+      );
     }
 
     // 6. Generate Disbursement Number
@@ -261,7 +268,8 @@ export async function createDisbursement(
 export async function voidDisbursement(
   disbursementId: string,
   voidReason: string,
-  txClient?: Prisma.TransactionClient
+  txClient?: Prisma.TransactionClient,
+  expectedScope?: DataScope
 ) {
   if (!voidReason || voidReason.trim().length < 3) {
     throw new Error("Alasan pembatalan (voidReason) wajib diisi minimal 3 karakter.");
@@ -281,6 +289,12 @@ export async function voidDisbursement(
 
     if (disbursement.status === TransactionStatus.VOID) {
       throw new Error(`Pencairan '${disbursement.disbursementNumber}' sudah berstatus VOID.`);
+    }
+
+    if (expectedScope && disbursement.dataScope !== expectedScope) {
+      throw new Error(
+        `Integritas dataScope ditolak: Pencairan '${disbursement.disbursementNumber}' berada pada scope '${disbursement.dataScope}', tidak dapat dibatalkan melalui scope '${expectedScope}'.`
+      );
     }
 
     // 1. Update Disbursement status to VOID

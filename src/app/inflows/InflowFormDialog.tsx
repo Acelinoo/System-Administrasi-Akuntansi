@@ -20,9 +20,11 @@ interface ProjectOption {
 export default function InflowFormDialog({
   accounts,
   projects = [],
+  scope = "REAL",
 }: {
   accounts: Account[];
   projects?: ProjectOption[];
+  scope?: "REAL" | "TEST";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -86,7 +88,27 @@ export default function InflowFormDialog({
               </button>
             </div>
             <form onSubmit={handleSubmit}>
+              <input type="hidden" name="dataScope" value={scope} />
               <div className="card-body">
+                {scope === "TEST" && (
+                  <div
+                    className="alert mb-4"
+                    style={{
+                      background: "#fffbeb",
+                      borderColor: "#fde68a",
+                      color: "#92400e",
+                      fontSize: "0.82rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <span>⚠️</span>
+                    <span>
+                      <strong>Mode Uji Coba (dataScope: TEST).</strong> Penerimaan dana ini terisolasi dan tidak memengaruhi saldo akun REAL.
+                    </span>
+                  </div>
+                )}
                 {error && <div className="alert alert-error">{error}</div>}
 
                 <div className="form-row">

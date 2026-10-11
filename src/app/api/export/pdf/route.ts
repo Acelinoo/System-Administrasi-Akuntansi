@@ -13,8 +13,14 @@ import {
   buildCashPdf,
   buildJournalPdf,
 } from "@/lib/export/pdf-export.service";
+import { getCurrentUser } from "@/lib/auth/auth.service";
 
 export async function GET(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sesi tidak valid atau telah berakhir. Harap login kembali." }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const type = searchParams.get("type") || "acc";
   const startDate = searchParams.get("startDate") || undefined;
@@ -27,7 +33,7 @@ export async function GET(req: NextRequest) {
   const status = searchParams.get("status") || undefined;
   const sourceType = searchParams.get("sourceType") || undefined;
   const coaId = searchParams.get("coaId") || undefined;
-  const dataScope = searchParams.get("dataScope") || undefined;
+  const dataScope = searchParams.get("dataScope") || searchParams.get("scope") || undefined;
 
   const dateTag = new Date().toISOString().slice(0, 10);
 

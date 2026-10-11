@@ -1,188 +1,247 @@
-# PROTRACK — PHASE 8 REPORT: REAL DATA IMPORT & UAT
+# PROTRACK — PHASE 8 REPORT: DASHBOARD & LAPORAN KEUANGAN
 
 ---
 
 ## 1. Executive Summary
 
-* **Phase:** Phase 8 — Real Data Import & User Acceptance Testing (UAT)
+* **Phase:** Phase 8 — Dashboard, Laporan Keuangan, Rekonsiliasi Angka & Kesiapan Ekspor
 * **Application:** ProTrack — Project Administration & Reporting System
 * **Workspace:** `C:\Marchelino Kurniawan\Project-2026\Admsystem`
-* **Real-Data Import Engine Status:** **PRODUCTION-READY** (Server-side parser, row-by-row validator, parent-child integrity verifier, atomic transaction isolation, and interactive preview wizard fully implemented and verified).
-* **Real Operational Data Status:** **NOT FOUND IN WORKSPACE** (No `.xlsx`, `.xls`, or `.csv` client files were found in `C:\Marchelino Kurniawan\Project-2026\Admsystem` or adjacent workspace folders).
-* **Epistemic Discipline Compliance:** In strict compliance with Section 2 of the Phase 8 Directive (*"Do NOT invent financial data. Do NOT generate fake transactions and call them real-data validation... Clearly report that actual Excel-to-ProTrack validation cannot be completed yet"*), fake operational numbers were **NOT fabricated**.
-* **Overall Status:** **`REAL-DATA UAT BLOCKED`** (Awaiting real operational Excel file upload from client/user; import engine, validation rules, UI preview, atomic transactions, and downstream consistency are 100% verified and operational).
+* **Status:** **COMPLETED & PRODUCTION-READY**
+* **Verification Results:**
+  * `npx tsc --noEmit`: **PASS (0 errors)**
+  * `npm run lint`: **PASS (0 errors, 0 warnings)**
+  * `npx tsx tests/phase8-reconciliation.ts`: **PASS (39/39 assertions, 100%)**
+  * REAL Baseline: **100% INTACT & PRESERVED** (379 batches, 1028 ACC items, Rp4.303.052.418 approved, 0 disbursements, 0 journals)
 
 ---
 
-## 2. Source Data
+## 2. Temuan Audit (Audit Findings)
 
-| Attribute | State / Finding |
-| :--- | :--- |
-| **Source File Name** | *None provided in workspace* (Search performed for `*.xlsx`, `*.xls`, `*.csv`) |
-| **Worksheet Count** | N/A (Awaiting real client spreadsheet) |
-| **Relevant Date Range** | N/A |
-| **Record Count** | 0 real records available in repository |
-| **Official Template Available** | **Yes** (`/api/templates/acc-import` — Downloadable via ProTrack UI) |
+Audit komprehensif dilakukan terhadap seluruh antarmuka, service layer, dan route handler:
 
----
-
-## 3. Excel → ProTrack Mapping
-
-The controlled Excel import engine (`src/lib/finance/import.service.ts`) supports flexible, case-insensitive column headers and maps them to ProTrack data models:
-
-| Excel Field | ProTrack Target | Transformation / Lookup Rule | Validation Rule |
-| :--- | :--- | :--- | :--- |
-| **No Kas** (`No Kas`, `No. Kas`, `NoKas`, `No ACC`) | `acc_expense_items.no_kas` | Trim, uppercase. If empty, auto-generated from database sequence. | Must match `KU.YY.xxx` or `KT.YY.xxx`. Unique within file and unique in database. |
-| **Jenis Kas** (`Jenis Kas`, `Tipe Kas`, `Cash Type`) | `acc_expense_items.cash_type` | Uppercase enum (`KT` or `KU`). Inferred from `noKas` prefix if omitted. | Must be `KU` or `KT`. Must match `noKas` prefix if both provided. |
-| **Tanggal** (`Tanggal`, `Tgl`, `Date`, `Tgl ACC`) | `submission_batches.acc_date` | Parsed ISO date / Date object (`YYYY-MM-DD`). | Valid calendar date. |
-| **Proyek** (`Proyek`, `Project`, `Kode Proyek`) | `acc_expense_items.project_id` | Case-insensitive lookup against `Project.code` or `Project.name`. | Must exist and be active in master data. Unmapped rows flagged. |
-| **Sub Unit** (`Sub Unit`, `Sub-Unit`, `Sub Proyek`) | `acc_expense_items.sub_unit_id` | Lookup against `ProjectSubUnit.code` or `name` under identified project. | **Parent-Child Integrity:** Sub-Unit MUST belong to the specified Project. Unmapped flagged. |
-| **Kategori** (`Kategori`, `Category`, `Kategori Biaya`) | `acc_expense_items.category_id` | Lookup against `ExpenseCategory.code` or `name`. | Must exist and be active. Unmapped flagged. |
-| **Sub Kategori** (`Sub Kategori`, `SubCategory`) | `acc_expense_items.sub_category_id` | Optional lookup against `ExpenseSubCategory` under identified category. | Must belong to category if provided. |
-| **PIC** (`PIC`, `Nama PIC`, `Penanggung Jawab`) | `acc_expense_items.pic_id` | Lookup against `FieldPic.name` (trimmed, case-insensitive). | Must exist and be active in master data. Unmapped flagged. |
-| **Uraian** (`Uraian`, `Keterangan`, `Deskripsi`) | `acc_expense_items.description` | Sanitized text string. | Required, minimum 3 characters. |
-| **Nominal Diajukan** (`Diajukan`, `Pengajuan`, `Budget`) | `acc_expense_items.requested_amount` | Indonesian currency parsing (removes "Rp", dots, commas). | Optional draft amount; if filled, must be > 0. |
-| **Nominal ACC** (`ACC`, `Nominal ACC`, `Disetujui`) | `acc_expense_items.approved_amount` | Indonesian currency parsing to `Decimal(15, 2)`. | **Mandatory:** numeric, must be > 0. Zero/negative rejected. |
-| **Catatan** (`Catatan`, `Notes`) | `acc_expense_items.notes` | Sanitized text string. | Optional. |
+| Modul / Komponen | Status Sebelum Fix | Temuan Audit | Dampak & Risiko |
+|---|---|---|---|
+| **Dashboard Utama (`src/app/page.tsx`)** | **GAP** | 1. Tidak menerima query parameter `searchParams` (`scope`/`dataScope`), sehingga selalu me-load data `REAL` dan mengabaikan mode pengujian (`TEST`).<br>2. Tidak menampilkan kartu metrik eksekutif untuk Total Nilai Kontrak, Total Pagu RAP, Jumlah Proyek Aktif, dan Status Kontrol Biaya.<br>3. Bagian Ringkasan Proyek tidak menampilkan kolom Pagu RAP dan indikator visual batas anggaran overbudget/waspada. | Pengguna/tester tidak dapat menguji dashboard dalam mode TEST, dan pimpinan tidak mendapatkan peringatan langsung saat proyek mendekati pagu RAP. |
+| **Laporan Kas & Bank (`src/app/reports/cash/page.tsx`)** | **GAP** | 1. Memanggil `getCashReport()` tanpa parameter scope (`dataScope`), sehingga mengabaikan mode TEST.<br>2. Belum memiliki ringkasan matematis Arus Kas Operasional (*Cash Flow Statement*) dan pembuktian rekonsiliasi formal. | Tester tidak dapat melihat mutasi kas akun uji coba di antarmuka laporan kas. |
+| **Laporan Jurnal Umum (`src/app/reports/journals/page.tsx`)** | **DEFECT & GAP** | 1. **Defect Tampilan:** Pada `<tfoot>`, `colSpan={6}` menyebabkan angka Total Debit tergeser ke kolom Nama Akun (COA), Total Kredit ke kolom Debit, dan status BALANCED ke kolom Kredit.<br>2. Belum ada ringkasan klasifikasi beban (COA Summary) berdasarkan akun `5xxx`, `6xxx`, dan `3xxx`. | Tampilan total debit/kredit di tabel buku jurnal umum tidak sejajar dengan header kolomnya. |
+| **Laporan Rekap ACC, Realisasi, & PIC** | **GAP** | Halaman `/reports/acc`, `/reports/realization`, dan `/reports/pic` belum menampilkan penanda visual `TEST MODE` saat dibuka dengan query `?scope=TEST`. | Inkonsistensi UX antar halaman laporan saat pengujian terisolasi. |
+| **Route Handler Ekspor (`/api/export/*`)** | **GAP** | `/api/export/excel/route.ts` dan `/api/export/pdf/route.ts` hanya membaca `searchParams.get("dataScope")` dan tidak memeriksa `searchParams.get("scope")`. | Pengunduhan Excel/PDF dari halaman yang menggunakan parameter `?scope=TEST` sempat menghasilkan berkas scope default REAL. |
+| **Metadata Berkas Ekspor Excel & PDF** | **GAP** | Header Excel dan PDF belum mencantumkan metadata `Scope` dan penanda `[MODE PENGUJIAN / TEST DATA]`. | Dokumen hasil cetak tidak membedakan apakah data bersumber dari operasional nyata atau pengujian. |
 
 ---
 
-## 4. Import Result
+## 3. Fitur yang Diperbaiki dan Ditambahkan
 
-Summary of import engine audit results executed during automated and interactive testing:
+### A. Dashboard Terpadu & Peringatan Pengendalian Biaya
+1. **Dukungan Penuh Multi-Scope (`REAL` vs `TEST`):**
+   * Mengintegrasikan `searchParams?: Promise<{ scope?: string; dataScope?: string }>` pada `DashboardPage`.
+   * Menampilkan badge `MODE PENGUJIAN (dataScope: TEST)` di header dashboard saat parameter aktif.
+   * Parameter scope diteruskan secara reaktif ke tautan aksi (`/acc/new?scope=TEST`, `/disbursements/new?scope=TEST`, `/projects/[id]?scope=TEST`).
+2. **Kartu KPI Eksekutif Proyek & Anggaran:**
+   * **Total Nilai Kontrak Proyek:** Akumulasi nilai kontrak seluruh proyek aktif.
+   * **Total Pagu RAP (Anggaran):** Akumulasi pagu anggaran aktif dan sisa pagu biaya.
+   * **Saldo Likuiditas Kas & Bank:** Posisi kas fisik dan rekening bank real-time.
+   * **Status Kontrol Biaya Proyek:** Indikator dinamis (*Overbudget*, *Waspada $\ge$90%*, atau *Aman/Healthy*).
+3. **Banner Peringatan Dini Overbudget:**
+   * Merender alert banner dinamis tepat di atas tabel monitoring proyek jika terdapat proyek yang melebihi pagu RAP atau telah menyerap biaya $\ge$90%.
+4. **Kolom Pagu RAP & Status Kontrol pada Tabel Proyek:**
+   * Menambahkan kolom `Pagu RAP` dan `Status Kontrol` (`OVER`, `WASPADA`, `AMAN`, `-`) pada tabel monitoring proyek dashboard.
 
-| Metric | Value | Notes |
-| :--- | :--- | :--- |
-| **Total Rows Evaluated in Test Suite** | 10 rows | Across 7 distinct test scenarios in `tests/phase8-import-safety.ts` |
-| **Valid Rows Correctly Resolved** | 4 rows | Successfully resolved to active Project, Sub-Unit, Category, and PIC |
-| **Rejected Rows (Invalid Data)** | 6 rows | Successfully rejected prior to database insertion: |
-| — *Missing Mandatory Headers* | *Blocked* | Header row missing `Proyek`, `Kategori`, or `Nominal ACC` throws immediate error |
-| — *Duplicate No Kas (Intra-file)* | 1 row | Caught and flagged in issues table with exact row number |
-| — *Duplicate No Kas (Existing in DB)* | 1 row | Pre-flight database check caught collision against active DB records |
-| — *Invalid / Zero / Negative Amount* | 3 rows | Checked and flagged (`Nominal ACC harus angka positif lebih besar dari 0`) |
-| — *Cross-Project Sub-Unit Mismatch* | 1 row | Caught `ALCENT -> SIPIL` integrity violation (`SIPIL` belongs to `SUMEDANG`) |
-| — *Unmapped Master Data* | 3 rows | Detected `PROYEK_FIKTIF_XYZ`, `KATEGORI_TIDAK_ADA`, `PIC_MISTERIUS` |
-| **Imported to Database (Audit Batch)** | 2 rows | Atomically inserted into `submission_batches` and `acc_expense_items` |
-| **Atomic Transaction Rollback Verification** | **PASS** | Fault injection (1 valid row + 1 duplicate row) rolled back 100% without orphan records |
+### B. Laporan Keuangan Terpadu & Rekonsiliasi
+1. **Laporan Posisi Saldo Kas & Bank (`/reports/cash`):**
+   * Mendukung filter `scope=TEST` dan menampilkan badge status pengujian.
+   * Menambahkan blok **Rekonsiliasi Arus Kas Operasional (Cash Flow Statement)** yang memverifikasi rumus deterministik:
+     $$\text{Saldo Akhir} = \text{Saldo Awal} + \text{Total Inflow} - \text{Total Pencairan}$$
+   * Dilengkapi badge indikator `100% RECONCILED (SEIMBANG)`.
+2. **Laporan Buku Jurnal Umum (`/reports/journals`):**
+   * Memperbaiki perataan footer tabel dengan `colSpan={7}`, sehingga nominal Debit dan Kredit berada persis di bawah kolom masing-masing.
+   * Menambahkan blok **Ringkasan Beban & Posisi Akun Jurnal (COA Summary)**:
+     * Total Beban Pokok Proyek (Akun `5xxx`: Upah, Material, Subkon, Alat, Logistik).
+     * Total Beban Operasional Umum (Akun `6xxx`: Administrasi & Kantor).
+     * Total Akumulasi Beban Riil (`5xxx` + `6xxx`).
+     * Dropping Modal / Ekuitas (Akun `3xxx`: Modal Masuk dari Manajemen).
+3. **Penyelarasan Seluruh Modul Laporan (`acc`, `realization`, `pic`, `projects`):**
+   * Seluruh 6 laporan kini memiliki dukungan terpadu untuk `scope=TEST` dengan badge visual kuning `TEST MODE`.
 
----
-
-## 5. Reconciliation (Excel vs ProTrack)
-
-> [!NOTE]
-> In accordance with Section 2 & 7 of the Phase 8 requirements, this reconciliation reflects the verified test batch imported via the new controlled Excel import engine compared against database state. When the actual client Excel file is uploaded by staff, the UI Preview automatically produces these exact reconciliation totals before confirmation.
-
-| Metric | Source Excel (Batch KT) | ProTrack Database | Difference | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| **Record Count** | 2 | 2 | 0 | **RECONCILED** |
-| **Total ACC (Approved)** | Rp 4.600.000 | Rp 4.600.000 | Rp 0 | **RECONCILED** |
-| **Total Realization** | Rp 0 (Fresh Import) | Rp 0 | Rp 0 | **RECONCILED** |
-| **Total Outstanding** | Rp 4.600.000 | Rp 4.600.000 | Rp 0 | **RECONCILED** |
-| **Project Totals:** | | | | |
-| — `ALCENT / SMP` | Rp 2.500.000 | Rp 2.500.000 | Rp 0 | **RECONCILED** |
-| — `SUMEDANG / SIPIL` | Rp 2.100.000 | Rp 2.100.000 | Rp 0 | **RECONCILED** |
-| **PIC Totals:** | | | | |
-| — `PA HERI` | Rp 2.500.000 | Rp 2.500.000 | Rp 0 | **RECONCILED** |
-| — `PA DEDI` | Rp 2.100.000 | Rp 2.100.000 | Rp 0 | **RECONCILED** |
-| **Category Totals:** | | | | |
-| — `UPAH` | Rp 2.500.000 | Rp 2.500.000 | Rp 0 | **RECONCILED** |
-| — `MATERIAL` | Rp 2.100.000 | Rp 2.100.000 | Rp 0 | **RECONCILED** |
-| **No Kas Uniqueness** | `KT.26.701`, `KT.26.702` | Preserved & Unique | 0 Collision | **RECONCILED** |
+### C. Mesin Ekspor Excel & PDF dengan Penanda Pengujian
+1. **Normalisasi Parameter Ekspor:**
+   * Route handler `/api/export/excel` dan `/api/export/pdf` membaca `searchParams.get("dataScope") || searchParams.get("scope")`.
+2. **Watermark dan Metadata Dokumen:**
+   * Berkas Excel mencantumkan baris metadata `Scope: REAL` atau `Scope: TEST [MODE PENGUJIAN / TEST DATA]`.
+   * Berkas PDF menyematkan teks header amber `[MODE PENGUJIAN / TEST DATA]` di sudut kanan atas dokumen saat diekspor dari data pengujian.
 
 ---
 
-## 6. UAT Result (System Workflows)
+## 4. File yang Berubah (Files Changed)
 
-Manual and automated browser testing was conducted against the production build running at `http://localhost:3000`:
-
-| Area | Result | Notes |
-| :--- | :--- | :--- |
-| **Import Wizard UI (`/acc/import`)** | **PASS** | Dropzone accepts `.xlsx`/`.xls`, displays file size, downloads official template, and presents comprehensive validation summary (Total, Valid, Invalid, Duplicates, Unmapped, Issues Table). |
-| **Dashboard (`/`)** | **PASS** | Top cards accurately display live database figures: Total ACC (`Rp 251.170.000`), Realisasi (`Rp 70.585.000`), Outstanding (`Rp 180.585.000`), Inflow (`Rp 280.000.000`), Kas & Bank (`Rp 209.415.000`). Status breakdown reflects active counts. |
-| **ACC Management (`/acc`)** | **PASS** | Displays `📥 Impor Excel` button alongside `+ Input ACC Baru`. Filters by Project, Status, Search work seamlessly. |
-| **Inflow (`/inflows`)** | **PASS** | Inflow posting correctly records general ledger entries, updates bank balance, and preserves audit trail. |
-| **Disbursement (`/disbursements`)** | **PASS** | Partial realization, multiple tranches, overpayment prevention, and insufficient cash validation strictly enforced. |
-| **VOID Lifecycle** | **PASS** | Reverses disbursement impact, restores ACC item status to `APPROVED`, resets realized amount, voids journal entries, and excludes voided records from active totals. |
-| **PIC Monitoring (`/pic`)** | **PASS** | Displays distribution per PIC, outstanding vouchers, and realization rates with zero discrepancy. |
-| **Journal (`/journals`)** | **PASS** | Double-entry invariant strictly balanced: `Total Debit === Total Credit` (`Rp 350.585.000`). VOID journals preserved for audit without affecting active ledger. |
-| **Reports (`/reports/*`)** | **PASS** | Rekap ACC, Realisasi, Per Proyek, Per PIC, Kas & Bank, and Jurnal reports reconcile 100% against Dashboard and database records. |
-| **Excel Export (ExcelJS)** | **PASS** | All 6 report modules export clean `.xlsx` spreadsheets with proper formatting, headers, and formulas. |
-| **PDF Export (jsPDF)** | **PASS** | All 6 report modules generate high-resolution, unclipped PDF documents with filter parameters. |
-
----
-
-## 7. Bugs Fixed During Phase 8
-
-1. **Next.js Prerender Cold-Start Database Timeout:**
-   * *Problem:* Next.js static page optimization during `next build` attempted to prerender dynamic data pages before database connections warmed up on serverless Neon Postgres.
-   * *Fix:* Added `export const dynamic = "force-dynamic";` to root `layout.tsx` ensuring dynamic, on-demand server rendering.
-2. **Interactive Transaction Timeout:**
-   * *Problem:* Remote serverless database latency could occasionally exceed Prisma's default 5000ms transaction timeout.
-   * *Fix:* Configured `{ maxWait: 10000, timeout: 25000 }` on all financial transactions (`acc.service.ts`, `inflow.service.ts`, `disbursement.service.ts`, and `import.service.ts`).
-3. **ExcelJS NextResponse Body Compatibility:**
-   * *Problem:* In Next.js 16 App Router, passing a Node `Buffer` directly to `new NextResponse(buffer)` triggers a TypeScript type incompatibility with `BodyInit`.
-   * *Fix:* Wrapped buffer in `new Uint8Array(buffer)` in `src/app/api/templates/acc-import/route.ts`.
-4. **Column Mapping Alignment in In-Memory Test Utility:**
-   * *Problem:* Heterogeneous test row objects caused column offsets when building synthetic test workbooks.
-   * *Fix:* Mapped values explicitly by unique column header set in `tests/phase8-import-safety.ts`.
+| File | Tipe Perubahan | Deskripsi Perubahan |
+|---|---|---|
+| `src/app/page.tsx` | Modified | Menambahkan dukungan `searchParams`, badge mode pengujian, kartu metrik eksekutif kontrak & RAP, alert banner overbudget, dan kolom Pagu RAP & Status Kontrol di tabel proyek. |
+| `src/app/reports/cash/page.tsx` | Modified | Menambahkan dukungan `searchParams` scope, badge `TEST MODE`, dan blok Rekonsiliasi Arus Kas Operasional (*Cash Flow Statement*). |
+| `src/app/reports/journals/page.tsx` | Modified | Memperbaiki perataan tabel footer (`colSpan={7}`) dan menambahkan blok Ringkasan Beban & Posisi Akun Jurnal (COA Summary). |
+| `src/app/reports/acc/page.tsx` | Modified | Menambahkan dukungan `searchParams` scope dan badge visual `TEST MODE`. |
+| `src/app/reports/realization/page.tsx` | Modified | Menambahkan dukungan `searchParams` scope dan badge visual `TEST MODE`. |
+| `src/app/reports/pic/page.tsx` | Modified | Menambahkan dukungan `searchParams` scope dan badge visual `TEST MODE`. |
+| `src/app/api/export/excel/route.ts` | Modified | Membaca fallback `scope` dari query param saat `dataScope` kosong. |
+| `src/app/api/export/pdf/route.ts` | Modified | Membaca fallback `scope` dari query param saat `dataScope` kosong. |
+| `src/lib/export/excel-export.service.ts` | Modified | Menyertakan metadata `Scope` dan penanda `[MODE PENGUJIAN / TEST DATA]` pada header seluruh 6 jenis laporan Excel. |
+| `src/lib/export/pdf-export.service.ts` | Modified | Menambahkan parameter `dataScopeText` pada `addHeader` dan merender penanda `[MODE PENGUJIAN / TEST DATA]` pada seluruh 6 jenis laporan PDF. |
+| `src/lib/reports/acc-report.service.ts` | Modified | Menormalisasi pembacaan `filters.dataScope` dan `filters.scope`. |
+| `src/lib/reports/realization-report.service.ts` | Modified | Menormalisasi pembacaan `filters.dataScope` dan `filters.scope`. |
+| `src/lib/reports/cash-report.service.ts` | Modified | Menormalisasi pembacaan `filters.dataScope` dan `filters.scope`. |
+| `src/lib/reports/pic-report.service.ts` | Modified | Menormalisasi pembacaan `filters.dataScope` dan `filters.scope`. |
+| `src/lib/reports/project-report.service.ts` | Modified | Menormalisasi pembacaan `filters.dataScope` dan `filters.scope`. |
+| `tests/phase8-reconciliation.ts` | Created | Test suite otomatis rekonsiliasi multi-modul, siklus hidup VOID, export validation, dan integritas baseline REAL. |
 
 ---
 
-## 8. Known Issues & Operational Classifications
+## 5. Hasil Tes Aktual Beserta Perintah dan Hasilnya
 
-### A. IMPLEMENTATION BUG
-* *None.* All automated tests, TypeScript checks, and browser UAT flows passed with zero runtime errors.
+### 1. Static Type Checking (TypeScript)
+* **Perintah:** `npx tsc --noEmit`
+* **Hasil:**
+  ```text
+  Exit Code: 0
+  Stdout: (empty)
+  Stderr: (empty)
+  Status: PASS (0 type errors)
+  ```
 
-### B. DATA QUALITY ISSUE
-* **Absence of Real Operational Excel File in Repository:** No real client operational spreadsheet was provided in the project workspace. To uphold epistemic integrity, fake financial numbers were not fabricated.
+### 2. Code Quality & Formatting (ESLint)
+* **Perintah:** `npm run lint`
+* **Hasil:**
+  ```text
+  Exit Code: 0
+  Output:
+  > protrack@0.1.0 lint
+  > eslint src
+  Status: PASS (0 lint warnings, 0 lint errors)
+  ```
 
-### C. BUSINESS RULE REQUIRES CONFIRMATION
-* **Multiple Sheet Support in Client Workbooks:** If future client Excel workbooks contain multiple worksheets (e.g. one sheet per project or one sheet per week), staff should ensure the active data is in the first sheet or use the official template provided at `/api/templates/acc-import`.
-* **Sub-Unit Naming Variations:** If real client spreadsheets use informal abbreviations (e.g., "SMP 1" instead of "SMP"), staff should either add the alias to master data or map it using the provided template before importing.
+### 3. Automated Reconciliation Test Suite (Phase 8 Suite)
+* **Perintah:** `npx tsx tests/phase8-reconciliation.ts`
+* **Hasil Eksekusi:**
+  ```text
+  ===================================================================
+     PROTRACK PHASE 8 — DASHBOARD, FINANCIAL REPORTS & RECONCILIATION
+  ===================================================================
 
-### D. ENVIRONMENT LIMITATION
-* Remote Neon PostgreSQL connection latency requires the configured 10s maxWait / 25s timeout for large atomic transaction batches.
+  --- [PRE-CHECK] REAL Invariant Baseline Verification ---
+    > Batches:       379 (Target: 379)
+    > ACC Items:     1028 (Target: 1028)
+    > Approved:      Rp 4.303.052.418 (Target: 4303052418)
+    > Disbursements: 0 (Target: 0)
+    > Journals:      0 (Target: 0)
+
+    ✔ [PASS] Baseline REAL batches count is 379
+    ✔ [PASS] Baseline REAL ACC items count is 1028
+    ✔ [PASS] Baseline REAL total approved amount is Rp 4.303.052.418
+    ✔ [PASS] Baseline REAL disbursements count is 0
+    ✔ [PASS] Baseline REAL journal entries count is 0
+
+  --- [SECTION 1] REAL Scope Multi-Report Reconciliation ---
+    ✔ [PASS] Approved amount is identical across Dashboard, Project, ACC, and PIC reports
+    ✔ [PASS] Zero realized amount invariant in REAL scope across all financial services
+    ✔ [PASS] Cash & Bank balance equation strictly balances: Opening + Inflow - Disbursement = Current Balance
+    ✔ [PASS] Zero journal entries in REAL scope and balanced debit/credit
+
+  --- [SECTION 2] TEST Scope Transaction Lifecycle & Reconciliation ---
+    > Created TEST Item: KT.TEST.PH8.6690 (Approved: Rp 15.000.000)
+    > Created TEST Inflow: Rp 50.000.000 (No: IN-2026-10-6886)
+    ✔ [PASS] Dashboard TEST scope reflects POSTED inflow
+    ✔ [PASS] Cash report TEST scope reflects POSTED inflow
+    ✔ [PASS] Journal entry for Fund Inflow is double-entry balanced (Debit === Credit)
+    > Created TEST Disbursement: Rp 9.000.000 (Voucher: DISB-2026-10-10-8060)
+    ✔ [PASS] Dashboard reflects POSTED disbursement amount
+    ✔ [PASS] Cash report reflects POSTED disbursement outflow
+    ✔ [PASS] Cash report balance remains strictly reconciled after disbursement
+    ✔ [PASS] Journal entries for Inflow + Disbursement remain strictly balanced
+    ✔ [PASS] ACC item transitioned to PARTIALLY_REALIZED after partial payment (9m of 15m)
+
+  --- [SECTION 3] VOID Lifecycle & Reversal Reconciliation ---
+    > Successfully VOIDED Disbursement: DISB-2026-10-10-8060
+    ✔ [PASS] VOID disbursement is completely excluded from Dashboard realized amount
+    ✔ [PASS] VOID disbursement is completely excluded from Cash Report disbursement total
+    ✔ [PASS] POSTED journals remain strictly balanced after voiding disbursement
+    ✔ [PASS] ACC item status safely rolled back to APPROVED after voiding disbursement
+    > Successfully VOIDED Inflow: IN-2026-10-6886
+    ✔ [PASS] VOID inflow is completely excluded from Cash Report inflow total
+
+  --- [SECTION 4] Export Engine Audit (Excel & PDF) ---
+    ✔ [PASS] Excel ACC report generated valid bytes
+    ✔ [PASS] Excel Realization report generated valid bytes
+    ✔ [PASS] Excel Project report generated valid bytes
+    ✔ [PASS] Excel PIC report generated valid bytes
+    ✔ [PASS] Excel Cash & Bank report generated valid bytes
+    ✔ [PASS] Excel Journal report generated valid bytes
+    ✔ [PASS] PDF ACC report generated valid bytes
+    ✔ [PASS] PDF Realization report generated valid bytes
+    ✔ [PASS] PDF Project report generated valid bytes
+    ✔ [PASS] PDF PIC report generated valid bytes
+    ✔ [PASS] PDF Cash & Bank report generated valid bytes
+    ✔ [PASS] PDF Journal report generated valid bytes
+
+  --- [SECTION 5] Test Cleanup & Final Invariant Validation ---
+    ✔ Cleaned up all temporary TEST artifacts.
+
+  --- [FINAL CHECK] REAL Invariant Baseline Verification ---
+    > Batches:       379 (Initial: 379)
+    > ACC Items:     1028 (Initial: 1028)
+    > Approved:      Rp 4.303.052.418 (Initial: 4303052418)
+    > Disbursements: 0 (Initial: 0)
+    > Journals:      0 (Initial: 0)
+
+    ✔ [PASS] Final REAL batches count is strictly 379
+    ✔ [PASS] Final REAL ACC items count is strictly 1028
+    ✔ [PASS] Final REAL total approved amount is strictly Rp 4.303.052.418
+    ✔ [PASS] Final REAL disbursements count is strictly 0
+    ✔ [PASS] Final REAL journal entries count is strictly 0
+
+  ===================================================================
+     PHASE 8 SUITE FINISHED: 39/39 PASS (100.0%)
+     STATUS: ALL RECONCILIATION & SAFETY INVARIANTS SATISFIED 100%!
+  ===================================================================
+  ```
 
 ---
 
-## 9. Automated Test Result
+## 6. Hasil Rekonsiliasi (Reconciliation Matrix)
 
-Exact commands and outputs executed on the codebase:
+Rekonsiliasi menyeluruh antar halaman dan laporan membuktikan integritas angka:
 
-### 1. Automated Test Suite (`npm test`)
-```powershell
-npm test
-```
-**Result:** **123 / 123 PASSED (100%)**
-* `tests/run-all-tests.ts`: **25/25 PASSED** (Services, Sequences, Constraints, Invariants)
-* `tests/phase5-consistency-audit.ts`: **19/19 PASSED** (Cross-report consistency, formulas, exports)
-* `tests/phase7-e2e-consistency.ts`: **41/41 PASSED** (End-to-end lifecycle, disbursements, VOID reversal, exports)
-* `tests/phase8-import-safety.ts`: **38/38 PASSED** (Excel parsing, mandatory columns, duplicate No Kas, invalid amounts, unmapped masters, parent-child integrity, atomic rollback, database reconciliation)
-
-### 2. Linter (`npm run lint`)
-```powershell
-npm run lint
-```
-**Result:** **0 errors, 0 warnings** (Clean across `src`).
-
-### 3. TypeScript Compilation (`npx tsc --noEmit`)
-```powershell
-npx tsc --noEmit
-```
-**Result:** **0 errors** (Strict type compliance).
-
-### 4. Production Build (`npm run build`)
-```powershell
-npm run build
-```
-**Result:** **Compiled successfully** in 25.1s. All 27 server routes, API endpoints, and dynamic pages generated cleanly without errors.
+| Pasangan Rekonsiliasi | Formula / Sumber Data | Status Rekonsiliasi | Bukti Hasil Uji |
+|---|---|---|---|
+| **Voucher Pencairan vs Laporan Proyek** | $\sum \text{DisbursementItem.realizedAmount} \equiv \text{Project.realizedAmount}$ | **100% MATCH** | Nominal voucher posted Rp 9.000.000 tercermin identik pada realisasi belanja laporan proyek tanpa selisih. |
+| **Penerimaan Dana vs Laporan Kas** | $\sum \text{Posted FundInflows} \equiv \text{CashReport.totalInflow}$ | **100% MATCH** | Nilai drop dana Rp 50.000.000 tercatat identik pada kartu dana masuk dashboard dan arus kas masuk. |
+| **Keseimbangan Kas & Bank** | $\text{Saldo Akhir} = \text{Saldo Awal} + \text{Inflow} - \text{Disbursement}$ | **100% MATCH** | Persamaan saldo terbukti deterministik dan seimbang di seluruh mutasi normal maupun setelah transaksi di-void. |
+| **Double-Entry Jurnal** | $\sum \text{Debit} \equiv \sum \text{Credit}$ | **100% MATCH** | Seluruh transaksi posted menghasilkan ayat jurnal seimbang. Inflow (Kas Debit / Dropping Kredit) dan Pencairan (Beban Debit / Kas Kredit). |
+| **Pengecualian Transaksi VOID** | Transaksi berstatus `VOID` dikeluarkan dari seluruh agregasi | **100% EXCLUDED** | Saat voucher di-void, realisasi kembali ke Rp 0, saldo kas pulih instan, dan status item ACC kembali ke `APPROVED`. |
+| **Isolasi REAL vs TEST** | Query wajib memfilter `dataScope` secara eksplisit | **100% ISOLATED** | Tidak ada kebocoran transaksi TEST ke data REAL. Mutasi TEST diuji dan dibersihkan tanpa menggeser 1 transaksi pun di REAL. |
 
 ---
 
-## 10. Final Status
+## 7. Hasil Pemeriksaan Baseline REAL
 
-```text
-REAL-DATA UAT BLOCKED
-```
+Pemeriksaan sebelum dan sesudah pengujian membuktikan bahwa data operasional nyata **100% terlindungi tanpa ada perubahan sekecil apa pun**:
 
-*(Reason: The controlled Excel import architecture, validation engine, preview wizard, atomic transaction safety, and downstream reporting invariants are fully implemented, tested, and production-ready. However, because the actual client operational spreadsheet was not available in the workspace, real-data reconciliation against client data cannot be completed until the file is uploaded by the user).*
+| Indikator Baseline REAL | Target Wajib | Nilai Awal | Nilai Akhir | Verifikasi |
+|---|---|---|---|---|
+| **Submission Batches** | 379 | 379 | 379 | **PASS (Intact)** |
+| **ACC Expense Items** | 1.028 | 1.028 | 1.028 | **PASS (Intact)** |
+| **Total Approved Amount** | Rp 4.303.052.418 | Rp 4.303.052.418 | Rp 4.303.052.418 | **PASS (Intact)** |
+| **REAL Disbursements** | 0 | 0 | 0 | **PASS (Intact)** |
+| **REAL Journals** | 0 | 0 | 0 | **PASS (Intact)** |
+
+---
+
+## 8. Masalah yang Masih Tersisa dan Langkah Berikutnya
+
+### Masalah yang Tersisa (Known Open Items)
+* Tidak ada blocker atau bug akuntansi yang tersisa di Phase 8. Seluruh formula rekonsiliasi, penanda scope, ekspor dokumen, dan halaman dashboard telah terverifikasi stabil.
+
+### Rekomendasi Tahap Berikutnya (Roadmap Alignment)
+* Sesuai urutan roadmap pengembangan ProTrack, tahap berikutnya adalah **Phase 9 — Production Handover & Deployment Preparation / Final Polish**:
+  1. Audit kesiapan environment production (variable konfigurasi, security headers, logging).
+  2. Final pre-flight build check (`npm run build`).
+  3. Penyusunan SOP operasional dan petunjuk serah terima aplikasi kepada staf administrasi dan keuangan proyek.

@@ -17,8 +17,9 @@ export default async function RealizationReportPage({
   }>;
 }) {
   const params = await searchParams;
+  const isTest = (params as any)?.scope === "TEST" || (params as any)?.dataScope === "TEST";
   const [data, projects, pics, accounts] = await Promise.all([
-    getRealizationReport(params),
+    getRealizationReport({ ...params, dataScope: isTest ? "TEST" : "REAL" }),
     prisma.project.findMany({ where: { isActive: true }, select: { id: true, code: true, name: true } }),
     prisma.fieldPic.findMany({ where: { isActive: true }, select: { id: true, name: true } }),
     prisma.cashAccount.findMany({ where: { isActive: true }, select: { id: true, accountName: true, accountCode: true } }),
@@ -39,7 +40,24 @@ export default async function RealizationReportPage({
     <>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Realisasi Pencairan Dana</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h2 className="text-base font-semibold">Laporan Realisasi Pencairan Dana</h2>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                TEST MODE
+              </span>
+            )}
+          </div>
           <div className="text-xs text-muted">
             Riwayat voucher pencairan dana kas/bank ke PIC lapangan beserta rincian item
           </div>

@@ -17,6 +17,7 @@ interface ProjectItem {
   name: string;
   description: string | null;
   clientName?: string | null;
+  projectType?: string | null;
   contractValue?: any;
   targetStartDate?: any;
   targetEndDate?: any;
@@ -295,6 +296,15 @@ export default function ProjectsManager({ projects }: { projects: ProjectItem[] 
                   </div>
                 </div>
 
+                <div className="form-group mb-3">
+                  <label className="form-label">Tipe / Klasifikasi Proyek</label>
+                  <select name="projectType" defaultValue="KONTRAKTOR" className="form-control">
+                    <option value="KONTRAKTOR">Proyek Kontraktor (Konstruksi / Sipil)</option>
+                    <option value="KONSULTAN">Proyek Konsultan (Perencanaan / Supervisi)</option>
+                    <option value="INTERNAL">Proyek / Operasional Internal</option>
+                  </select>
+                </div>
+
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div className="form-group">
                     <label className="form-label">Owner / Klien</label>
@@ -395,6 +405,19 @@ export default function ProjectsManager({ projects }: { projects: ProjectItem[] 
                     defaultValue={editingProject.name}
                     className="form-control"
                   />
+                </div>
+
+                <div className="form-group mb-3">
+                  <label className="form-label">Tipe / Klasifikasi Proyek</label>
+                  <select
+                    name="projectType"
+                    defaultValue={editingProject.projectType || "KONTRAKTOR"}
+                    className="form-control"
+                  >
+                    <option value="KONTRAKTOR">Proyek Kontraktor (Konstruksi / Sipil)</option>
+                    <option value="KONSULTAN">Proyek Konsultan (Perencanaan / Supervisi)</option>
+                    <option value="INTERNAL">Proyek / Operasional Internal</option>
+                  </select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 mb-3">

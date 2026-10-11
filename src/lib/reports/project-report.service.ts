@@ -25,7 +25,15 @@ export interface ProjectReportSummary {
   remainingContract: number | null;
   receiptProgressPct: number | null;
   physicalProgressPct: number | null;
+  targetStartDate?: Date | null;
+  targetEndDate?: Date | null;
+  scheduleElapsedPct?: number | null;
   totalBudget: number;
+  remainingBudget: number | null;
+  budgetBurnRatePct: number | null;
+  costVarianceStatus: "HEALTHY" | "WARNING" | "OVERBUDGET" | "NO_BUDGET";
+  hasBudget: boolean;
+  hasProgressLog: boolean;
   approvedAmount: number;
   realizedAmount: number;
   outstandingAmount: number;
@@ -39,12 +47,17 @@ export interface ProjectReportResult {
   totals: {
     totalContractValue: number;
     totalBudget: number;
+    totalRemainingBudget: number;
     totalInflow: number;
     totalNetBalance: number;
     totalApproved: number;
     totalRealized: number;
     totalOutstanding: number;
     projectCount: number;
+    overBudgetCount: number;
+    warningBudgetCount: number;
+    healthyBudgetCount: number;
+    noBudgetCount: number;
   };
   filterMeta: {
     periodText: string;
@@ -58,10 +71,12 @@ export async function getProjectReport(filters?: {
   endDate?: string;
   projectId?: string;
   dataScope?: string;
+  scope?: string;
 }): Promise<ProjectReportResult> {
   const where: Record<string, unknown> = {};
 
-  const scope = filters?.dataScope ? (filters.dataScope as DataScope | "ALL") : DataScope.REAL;
+  const rawScope = filters?.dataScope || filters?.scope;
+  const scope = rawScope ? (rawScope as DataScope | "ALL") : DataScope.REAL;
   if (scope !== "ALL") {
     where.dataScope = scope;
   }
@@ -95,6 +110,8 @@ export async function getProjectReport(filters?: {
         clientName: true,
         projectType: true,
         contractValue: true,
+        targetStartDate: true,
+        targetEndDate: true,
       },
       orderBy: { code: "asc" },
     }),
@@ -142,9 +159,10 @@ export async function getProjectReport(filters?: {
         logDate: true,
       },
     }),
-    // Budgets & items
+    // Budgets & items (ordered by createdAt desc to select active budget version)
     prisma.projectBudget.findMany({
       where: scope !== "ALL" ? { dataScope: scope } : {},
+      orderBy: { createdAt: "desc" },
       select: {
         projectId: true,
         items: {
@@ -212,12 +230,36 @@ export async function getProjectReport(filters?: {
     const latestLog = progressLogs.find((pl) => pl.projectId === proj.id);
     const physicalProgressPct = latestLog ? Number(latestLog.physicalProgressPct) : null;
 
-    // Budget total
+    // Budget total & remaining from active (latest) budget version
     const projBudgets = budgets.filter((b) => b.projectId === proj.id);
-    const totalBudget = projBudgets.reduce(
-      (s, b) => s + b.items.reduce((is, it) => is + Number(it.totalAmount), 0),
-      0
-    );
+    const activeBudget = projBudgets.length > 0 ? projBudgets[0] : null;
+    const totalBudget = activeBudget
+      ? activeBudget.items.reduce((is, it) => is + Number(it.totalAmount), 0)
+      : 0;
+    const remainingBudget = totalBudget > 0 ? totalBudget - realizedAmount : null;
+    const budgetBurnRatePct = totalBudget > 0 ? (realizedAmount / totalBudget) * 100 : null;
+
+    let costVarianceStatus: "HEALTHY" | "WARNING" | "OVERBUDGET" | "NO_BUDGET" = "NO_BUDGET";
+    if (totalBudget > 0) {
+      if (realizedAmount > totalBudget) {
+        costVarianceStatus = "OVERBUDGET";
+      } else if (realizedAmount >= totalBudget * 0.9) {
+        costVarianceStatus = "WARNING";
+      } else {
+        costVarianceStatus = "HEALTHY";
+      }
+    }
+
+    let scheduleElapsedPct: number | null = null;
+    if (proj.targetStartDate && proj.targetEndDate) {
+      const start = new Date(proj.targetStartDate).getTime();
+      const end = new Date(proj.targetEndDate).getTime();
+      const now = Date.now();
+      if (end > start) {
+        const elapsed = ((now - start) / (end - start)) * 100;
+        scheduleElapsedPct = Math.min(100, Math.max(0, Math.round(elapsed * 10) / 10));
+      }
+    }
 
     return {
       projectId: proj.id,
@@ -233,22 +275,36 @@ export async function getProjectReport(filters?: {
       remainingContract,
       receiptProgressPct,
       physicalProgressPct,
+      targetStartDate: proj.targetStartDate,
+      targetEndDate: proj.targetEndDate,
+      scheduleElapsedPct,
       totalBudget,
+      remainingBudget,
+      budgetBurnRatePct,
+      costVarianceStatus,
+      hasBudget: totalBudget > 0,
+      hasProgressLog: physicalProgressPct !== null,
       approvedAmount,
       realizedAmount,
       outstandingAmount,
       itemCount: projItems.length,
       categories,
     };
-  }).filter((p) => p.itemCount > 0 || (filters?.projectId && filters.projectId === p.projectId) || (p.contractValue !== null && p.contractValue > 0));
+  }).filter((p) => p.itemCount > 0 || (filters?.projectId && filters.projectId === p.projectId) || (p.contractValue !== null && p.contractValue > 0) || p.totalBudget > 0);
 
   const totalContractValue = projects.reduce((s, p) => s + (p.contractValue ?? 0), 0);
   const totalBudget = projects.reduce((s, p) => s + p.totalBudget, 0);
+  const totalRemainingBudget = projects.reduce((s, p) => s + (p.remainingBudget ?? 0), 0);
   const totalInflow = projects.reduce((s, p) => s + p.totalInflow, 0);
   const totalNetBalance = projects.reduce((s, p) => s + p.netBalance, 0);
   const totalApproved = projects.reduce((s, p) => s + p.approvedAmount, 0);
   const totalRealized = projects.reduce((s, p) => s + p.realizedAmount, 0);
   const totalOutstanding = projects.reduce((s, p) => s + p.outstandingAmount, 0);
+
+  const overBudgetCount = projects.filter((p) => p.costVarianceStatus === "OVERBUDGET").length;
+  const warningBudgetCount = projects.filter((p) => p.costVarianceStatus === "WARNING").length;
+  const healthyBudgetCount = projects.filter((p) => p.costVarianceStatus === "HEALTHY").length;
+  const noBudgetCount = projects.filter((p) => p.costVarianceStatus === "NO_BUDGET").length;
 
   let periodText = "Semua Periode";
   if (filters?.startDate && filters?.endDate) {
@@ -265,12 +321,17 @@ export async function getProjectReport(filters?: {
     totals: {
       totalContractValue,
       totalBudget,
+      totalRemainingBudget,
       totalInflow,
       totalNetBalance,
       totalApproved,
       totalRealized,
       totalOutstanding,
       projectCount: projects.length,
+      overBudgetCount,
+      warningBudgetCount,
+      healthyBudgetCount,
+      noBudgetCount,
     },
     filterMeta: {
       periodText,

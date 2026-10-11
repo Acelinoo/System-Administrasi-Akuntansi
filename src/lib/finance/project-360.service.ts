@@ -20,7 +20,13 @@ export interface ProjectCostControlMetrics {
   receiptProgressPct: number | null; // Penerimaan Aktual / Nilai Kontrak * 100%
   physicalProgressPct: number | null; // Dari opname fisik bagian sipil terbaru (null jika belum ada)
   remainingRapBudget: number | null; // Total RAP - Pengeluaran Aktual
+  budgetBurnRatePct: number | null; // (Pengeluaran Aktual / Total RAP) * 100%
   costVarianceStatus: "HEALTHY" | "WARNING" | "OVERBUDGET" | "NO_BUDGET";
+  scheduleElapsedPct: number | null; // Estimasi linier durasi jadwal kontrak yang telah berjalan
+  scheduleLagPct: number | null; // Selisih scheduleElapsedPct - physicalProgressPct
+  isScheduleLagging: boolean; // True jika progres fisik tertinggal > 10% dari estimasi jadwal
+  hasBudget: boolean;
+  hasProgressLog: boolean;
 }
 
 export interface ProjectCategoryCostItem {
@@ -33,6 +39,30 @@ export interface ProjectCategoryCostItem {
   outstandingAmount: number;
   variance: number; // budgetAmount - realizedAmount (jika ada RAP)
   status: "NORMAL" | "WARNING" | "EXCEEDED";
+}
+
+export interface EnrichedVendorContract {
+  id: string;
+  vendorId: string;
+  projectId: string | null;
+  contractNumber: string;
+  title: string;
+  contractValue: number;
+  paidAmount: number;
+  remainingBalance: number;
+  paymentProgressPct: number;
+  startDate: Date | null;
+  endDate: Date | null;
+  status: string;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  vendor: {
+    id: string;
+    name: string;
+    code: string | null;
+    type: string;
+  };
 }
 
 export async function getProject360Data(
@@ -189,10 +219,13 @@ export async function getProject360Data(
   // 3. Financial Metrics Calculations (following Golden Invariants)
   const contractValue = project.contractValue ? Number(project.contractValue) : null;
 
-  // Total RAP budget across active budget versions (summing items)
-  const totalRapBudget = budgets.reduce((sum, b) => {
-    return sum + b.items.reduce((itemSum, it) => itemSum + Number(it.totalAmount), 0);
-  }, 0);
+  // Active Budget = Latest budget version (ordered by createdAt desc)
+  const activeBudget = budgets.length > 0 ? budgets[0] : null;
+
+  // Total RAP budget from active (latest) budget version (not summing across all historical revisions)
+  const totalRapBudget = activeBudget
+    ? activeBudget.items.reduce((itemSum, it) => itemSum + Number(it.totalAmount), 0)
+    : 0;
 
   // Total Realized Inflows (Posted FundInflows)
   const totalPostedInflow = fundInflows.reduce((sum, inf) => sum + Number(inf.amount), 0);
@@ -245,17 +278,41 @@ export async function getProject360Data(
   // Sisa Anggaran RAP
   const remainingRapBudget = totalRapBudget > 0 ? totalRapBudget - totalPostedExpense : null;
 
+  // Budget Burn Rate (% realisasi terhadap RAP)
+  const budgetBurnRatePct =
+    totalRapBudget > 0 ? (totalPostedExpense / totalRapBudget) * 100 : null;
+
   // Cost Variance Status
   let costVarianceStatus: "HEALTHY" | "WARNING" | "OVERBUDGET" | "NO_BUDGET" = "NO_BUDGET";
   if (totalRapBudget > 0) {
     if (totalPostedExpense > totalRapBudget) {
       costVarianceStatus = "OVERBUDGET";
-    } else if (totalPostedExpense > totalRapBudget * 0.9) {
+    } else if (totalPostedExpense >= totalRapBudget * 0.9) {
       costVarianceStatus = "WARNING";
     } else {
       costVarianceStatus = "HEALTHY";
     }
   }
+
+  // Schedule timeline elapsed & schedule lag
+  let scheduleElapsedPct: number | null = null;
+  let scheduleLagPct: number | null = null;
+  if (project.targetStartDate && project.targetEndDate) {
+    const start = new Date(project.targetStartDate).getTime();
+    const end = new Date(project.targetEndDate).getTime();
+    const now = Date.now();
+    if (end > start) {
+      const elapsed = ((now - start) / (end - start)) * 100;
+      scheduleElapsedPct = Math.min(100, Math.max(0, Math.round(elapsed * 10) / 10));
+      if (physicalProgressPct !== null) {
+        scheduleLagPct = Math.round((scheduleElapsedPct - physicalProgressPct) * 10) / 10;
+      }
+    }
+  }
+
+  const isScheduleLagging = scheduleLagPct !== null && scheduleLagPct > 10;
+  const hasBudget = totalRapBudget > 0;
+  const hasProgressLog = physicalProgressPct !== null;
 
   const metrics: ProjectCostControlMetrics = {
     contractValue,
@@ -270,19 +327,25 @@ export async function getProject360Data(
     receiptProgressPct,
     physicalProgressPct,
     remainingRapBudget,
+    budgetBurnRatePct,
     costVarianceStatus,
+    scheduleElapsedPct,
+    scheduleLagPct,
+    isScheduleLagging,
+    hasBudget,
+    hasProgressLog,
   };
 
-  // 4. Group Expenses by Category & Map to RAP if available
+  // 4. Group Expenses by Category & Map to Active RAP if available
   const rapCatMap = new Map<string, number>();
-  budgets.forEach((b) => {
-    b.items.forEach((it) => {
+  if (activeBudget) {
+    activeBudget.items.forEach((it) => {
       if (it.category) {
         const catKey = it.category.toUpperCase().trim();
         rapCatMap.set(catKey, (rapCatMap.get(catKey) ?? 0) + Number(it.totalAmount));
       }
     });
-  });
+  }
 
   const categoryMap = new Map<string, ProjectCategoryCostItem>();
   accItems.forEach((item) => {
@@ -320,6 +383,26 @@ export async function getProject360Data(
     }
   });
 
+  // Also include any categories from active RAP that do not have expenses yet
+  rapCatMap.forEach((budgetAmount, catKey) => {
+    const alreadyMapped = Array.from(categoryMap.values()).some(
+      (c) => c.categoryCode.toUpperCase().trim() === catKey
+    );
+    if (!alreadyMapped) {
+      categoryMap.set(`budget-${catKey}`, {
+        categoryId: `budget-${catKey}`,
+        categoryCode: catKey,
+        categoryName: catKey,
+        budgetAmount,
+        approvedAmount: 0,
+        realizedAmount: 0,
+        outstandingAmount: 0,
+        variance: budgetAmount,
+        status: "NORMAL",
+      });
+    }
+  });
+
   const categoryCostBreakdown = Array.from(categoryMap.values()).map((c) => ({
     ...c,
     variance: c.budgetAmount > 0 ? c.budgetAmount - c.realizedAmount : 0,
@@ -347,14 +430,65 @@ export async function getProject360Data(
     }))
   );
 
+  // 6. Enrich Vendor Contracts with Realized Payments & Remaining Balances
+  const enrichedVendorContracts: EnrichedVendorContract[] = vendorContracts.map((vc) => {
+    const contractVal = Number(vc.contractValue);
+    let paidAmount = 0;
+
+    accItems.forEach((ai) => {
+      const approvedAmt = Number(ai.approvedAmount);
+      const itemRealized = ai.disbursementItems.reduce(
+        (sum, di) => sum + Number(di.realizedAmount),
+        0
+      );
+      if (itemRealized <= 0 || approvedAmt <= 0) return;
+
+      const realizationRatio = Math.min(1, itemRealized / approvedAmt);
+
+      const matchingDetails = ai.expenseItemDetails.filter(
+        (det) => det.vendorId === vc.vendorId
+      );
+      matchingDetails.forEach((det) => {
+        const detailTotal = Number(det.totalPrice);
+        const paidForDetail = Math.round(detailTotal * realizationRatio * 100) / 100;
+        paidAmount += paidForDetail;
+      });
+    });
+
+    paidAmount = Math.round(paidAmount * 100) / 100;
+    const remainingBalance = Math.max(0, contractVal - paidAmount);
+    const paymentProgressPct =
+      contractVal > 0 ? Math.min(100, Math.round((paidAmount / contractVal) * 1000) / 10) : 0;
+
+    return {
+      id: vc.id,
+      vendorId: vc.vendorId,
+      projectId: vc.projectId,
+      contractNumber: vc.contractNumber,
+      title: vc.title,
+      contractValue: contractVal,
+      paidAmount,
+      remainingBalance,
+      paymentProgressPct,
+      startDate: vc.startDate,
+      endDate: vc.endDate,
+      status: vc.status,
+      notes: vc.notes,
+      createdAt: vc.createdAt,
+      updatedAt: vc.updatedAt,
+      vendor: vc.vendor,
+    };
+  });
+
   return {
     project,
     metrics,
     categoryCostBreakdown,
     budgets,
+    activeBudgetId: activeBudget ? activeBudget.id : null,
     termins,
     progressLogs,
-    vendorContracts,
+    vendorContracts: enrichedVendorContracts,
     fundInflows,
     accItems: formattedAccItems,
     journalLines,
@@ -489,6 +623,12 @@ export async function deleteBudgetItem(itemId: string) {
   });
 }
 
+export async function deleteProjectBudget(budgetId: string) {
+  return await prisma.projectBudget.delete({
+    where: { id: budgetId },
+  });
+}
+
 export async function createProjectTermin(data: {
   projectId: string;
   terminNumber: number;
@@ -519,6 +659,7 @@ export async function recordTerminPayment(data: {
   receivedDate: Date;
   referenceNo?: string | null;
   notes?: string | null;
+  dataScope?: DataScope;
 }) {
   return await prisma.$transaction(async (tx) => {
     const termin = await tx.projectTermin.findUnique({
@@ -543,6 +684,7 @@ export async function recordTerminPayment(data: {
         amount: data.amount,
         sourceInfo: `Penerimaan ${termin.name} - ${termin.project.name}`,
         referenceNo: data.referenceNo ?? termin.invoiceNumber ?? undefined,
+        dataScope: data.dataScope,
       },
       tx
     );
@@ -597,20 +739,58 @@ export async function createExpenseItemDetail(data: {
   referenceNo?: string | null;
   notes?: string | null;
 }) {
+  const accItem = await prisma.accExpenseItem.findUnique({
+    where: { id: data.accItemId },
+  });
+
+  if (!accItem) {
+    throw new Error(`Item pengeluaran ACC dengan ID '${data.accItemId}' tidak ditemukan.`);
+  }
+
+  if (Number(data.quantity) <= 0) {
+    throw new Error("Kuantitas barang harus lebih besar dari 0.");
+  }
+
+  if (Number(data.unitPrice) < 0) {
+    throw new Error("Harga satuan barang tidak boleh negatif.");
+  }
+
+  if (data.vendorId) {
+    const vendor = await prisma.vendor.findUnique({
+      where: { id: data.vendorId },
+    });
+    if (!vendor) {
+      throw new Error(`Vendor rekanan dengan ID '${data.vendorId}' tidak ditemukan.`);
+    }
+  }
+
   const totalPrice = Math.round(Number(data.quantity) * Number(data.unitPrice) * 100) / 100;
 
   return await prisma.expenseItemDetail.create({
     data: {
       accItemId: data.accItemId,
-      itemName: data.itemName,
+      itemName: data.itemName.trim(),
       quantity: data.quantity,
-      unit: data.unit || "bh",
+      unit: (data.unit || "bh").trim(),
       unitPrice: data.unitPrice,
       totalPrice,
       vendorId: data.vendorId ?? null,
-      referenceNo: data.referenceNo ?? null,
-      notes: data.notes ?? null,
+      referenceNo: data.referenceNo?.trim() ?? null,
+      notes: data.notes?.trim() ?? null,
     },
+  });
+}
+
+export async function deleteExpenseItemDetail(detailId: string) {
+  const detail = await prisma.expenseItemDetail.findUnique({
+    where: { id: detailId },
+  });
+  if (!detail) {
+    throw new Error(`Rincian barang dengan ID '${detailId}' tidak ditemukan.`);
+  }
+
+  return await prisma.expenseItemDetail.delete({
+    where: { id: detailId },
   });
 }
 
@@ -625,17 +805,54 @@ export async function createVendorContract(data: {
   status?: string;
   notes?: string | null;
 }) {
+  const vendor = await prisma.vendor.findUnique({
+    where: { id: data.vendorId },
+  });
+  if (!vendor) {
+    throw new Error(`Vendor rekanan dengan ID '${data.vendorId}' tidak ditemukan.`);
+  }
+
+  if (data.projectId) {
+    const project = await prisma.project.findUnique({
+      where: { id: data.projectId },
+    });
+    if (!project) {
+      throw new Error(`Proyek dengan ID '${data.projectId}' tidak ditemukan.`);
+    }
+  }
+
+  if (Number(data.contractValue) <= 0) {
+    throw new Error("Nilai kontrak vendor harus lebih besar dari 0.");
+  }
+
+  if (data.startDate && data.endDate && data.startDate > data.endDate) {
+    throw new Error("Tanggal mulai kontrak tidak boleh melebihi tanggal selesai.");
+  }
+
   return await prisma.vendorContract.create({
     data: {
       vendorId: data.vendorId,
       projectId: data.projectId ?? null,
-      contractNumber: data.contractNumber,
-      title: data.title,
+      contractNumber: data.contractNumber.trim(),
+      title: data.title.trim(),
       contractValue: data.contractValue,
       startDate: data.startDate ?? null,
       endDate: data.endDate ?? null,
       status: data.status || "ACTIVE",
-      notes: data.notes ?? null,
+      notes: data.notes?.trim() ?? null,
     },
+  });
+}
+
+export async function deleteVendorContract(contractId: string) {
+  const contract = await prisma.vendorContract.findUnique({
+    where: { id: contractId },
+  });
+  if (!contract) {
+    throw new Error(`Kontrak vendor dengan ID '${contractId}' tidak ditemukan.`);
+  }
+
+  return await prisma.vendorContract.delete({
+    where: { id: contractId },
   });
 }

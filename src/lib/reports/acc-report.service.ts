@@ -61,7 +61,8 @@ export interface AccReportResult {
 export async function getAccReport(filters?: AccReportFilter): Promise<AccReportResult> {
   const where: Record<string, unknown> = {};
 
-  const scope = filters?.dataScope ? (filters.dataScope as DataScope | "ALL") : DataScope.REAL;
+  const rawScope = filters?.dataScope || (filters as any)?.scope;
+  const scope = rawScope ? (rawScope as DataScope | "ALL") : DataScope.REAL;
   if (scope !== "ALL") {
     where.dataScope = scope;
   }

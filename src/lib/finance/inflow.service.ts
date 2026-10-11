@@ -2,6 +2,7 @@ import { prisma } from "../db/prisma";
 import { JournalSourceType, Prisma, TransactionStatus, DataScope } from "@prisma/client";
 import { CreateFundInflowInput, createFundInflowSchema } from "../validation/inflow.schema";
 import { createJournalEntry, getCashAccountCoaId, voidJournalEntry } from "./journal.service";
+import { getCashAccountBalance } from "./balance.service";
 
 export async function createFundInflow(
   rawInput: CreateFundInflowInput,
@@ -93,6 +94,7 @@ export async function createFundInflow(
         },
         {
           coaId: equityCoa.id,
+          projectId: validated.projectId ?? null,
           debit: 0,
           credit: validated.amount,
           memo: `Dropping Dana Atasan / Manajemen`,
@@ -119,11 +121,16 @@ export async function createFundInflow(
 
 /**
  * Voids a posted fund inflow and its associated journal.
+ * Strictly verifies:
+ *   - voidReason length >= 3
+ *   - scope isolation (expectedScope match)
+ *   - insufficient funds / negative balance prevention
  */
 export async function voidFundInflow(
   inflowId: string,
   voidReason: string,
-  txClient?: Prisma.TransactionClient
+  txClient?: Prisma.TransactionClient,
+  expectedScope?: DataScope
 ) {
   if (!voidReason || voidReason.trim().length < 3) {
     throw new Error("Alasan pembatalan (voidReason) wajib diisi minimal 3 karakter.");
@@ -140,6 +147,24 @@ export async function voidFundInflow(
 
     if (inflow.status === TransactionStatus.VOID) {
       throw new Error(`Penerimaan dana '${inflow.inflowNumber}' sudah berstatus VOID.`);
+    }
+
+    if (expectedScope && inflow.dataScope !== expectedScope) {
+      throw new Error(
+        `Integritas dataScope ditolak: Penerimaan dana '${inflow.inflowNumber}' berada pada scope '${inflow.dataScope}', tidak dapat dibatalkan melalui scope '${expectedScope}'.`
+      );
+    }
+
+    // Negative balance check: voiding this inflow removes cash; ensure current balance >= inflow amount
+    const currentBal = await getCashAccountBalance(
+      inflow.destinationAccountId,
+      tx,
+      inflow.dataScope === DataScope.TEST ? "ALL" : DataScope.REAL
+    );
+    if (currentBal.currentBalance < Number(inflow.amount)) {
+      throw new Error(
+        `Pembatalan dana masuk ditolak: Saldo kas/bank saat ini Rp${currentBal.currentBalance.toLocaleString("id-ID")} tidak mencukupi untuk menarik kembali penerimaan sebesar Rp${Number(inflow.amount).toLocaleString("id-ID")}. Void akan menyebabkan saldo kas menjadi negatif.`
+      );
     }
 
     // Update status to VOID

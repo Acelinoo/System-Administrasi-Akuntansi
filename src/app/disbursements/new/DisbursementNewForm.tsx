@@ -39,10 +39,12 @@ export default function DisbursementNewForm({
   outstandingItems,
   accounts,
   balances,
+  scope = "REAL",
 }: {
   outstandingItems: OutstandingItem[];
   accounts: Account[];
   balances: Balances;
+  scope?: "REAL" | "TEST";
 }) {
   const router = useRouter();
   const [disbDate, setDisbDate] = useState(new Date().toISOString().slice(0, 10));
@@ -96,14 +98,43 @@ export default function DisbursementNewForm({
       setError("Pilih minimal 1 item ACC untuk dicairkan.");
       return;
     }
-    setError(null);
-    setSuccess(null);
-    setSubmitting(true);
+    if (!cashAccountId) {
+      setError("Pilih akun kas/bank pembayar terlebih dahulu.");
+      return;
+    }
+    if (total <= 0) {
+      setError("Total nominal pencairan harus lebih besar dari Rp0.");
+      return;
+    }
+    if (selectedBalance < total) {
+      setError(
+        `Saldo kas/bank tidak mencukupi: Saldo saat ini ${formatRp(selectedBalance)}, dibutuhkan ${formatRp(total)}.`
+      );
+      return;
+    }
 
     const items = selectedItems.map((s) => ({
       accItemId: s.accItemId,
       realizedAmount: parseFloat(s.realizedAmount),
     }));
+
+    for (const item of items) {
+      if (isNaN(item.realizedAmount) || item.realizedAmount <= 0) {
+        setError("Nominal pencairan untuk setiap item harus berupa angka lebih besar dari 0.");
+        return;
+      }
+      const outstandingInfo = outstandingItems.find((o) => o.id === item.accItemId);
+      if (outstandingInfo && item.realizedAmount > outstandingInfo.outstanding) {
+        setError(
+          `Nominal pencairan untuk ${outstandingInfo.noKas} (${formatRp(item.realizedAmount)}) melebihi sisa outstanding (${formatRp(outstandingInfo.outstanding)}).`
+        );
+        return;
+      }
+    }
+
+    setError(null);
+    setSuccess(null);
+    setSubmitting(true);
 
     const formData = new FormData();
     formData.set("disbursementDate", disbDate);
@@ -112,6 +143,7 @@ export default function DisbursementNewForm({
     formData.set("totalRealizedAmount", total.toString());
     formData.set("notes", notes);
     formData.set("items", JSON.stringify(items));
+    formData.set("dataScope", scope);
 
     try {
       const result = await createDisbursementAction(formData);
@@ -119,7 +151,7 @@ export default function DisbursementNewForm({
         setError(result.error);
       } else {
         setSuccess(`Pencairan berhasil. Total: ${formatRp(result.total!)}`);
-        setTimeout(() => router.push("/disbursements"), 1500);
+        setTimeout(() => router.push(scope === "TEST" ? "/disbursements?scope=TEST" : "/disbursements"), 1500);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Terjadi kesalahan.");
@@ -130,6 +162,25 @@ export default function DisbursementNewForm({
 
   return (
     <form onSubmit={handleSubmit}>
+      {scope === "TEST" && (
+        <div
+          className="alert mb-4"
+          style={{
+            background: "#fffbeb",
+            borderColor: "#fde68a",
+            color: "#92400e",
+            fontSize: "0.85rem",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+          }}
+        >
+          <span style={{ fontSize: "1.1rem" }}>⚠️</span>
+          <span>
+            <strong>Mode Uji Coba Browser Aktif (dataScope: TEST).</strong> Seluruh pencairan pada formulir ini sepenuhnya terisolasi dan tidak akan memengaruhi data atau saldo operasional REAL.
+          </span>
+        </div>
+      )}
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 

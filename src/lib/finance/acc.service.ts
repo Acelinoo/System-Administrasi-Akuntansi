@@ -19,12 +19,14 @@ export async function createSubmissionBatch(
       throw new Error(`Batch dengan kode '${validated.batchCode}' sudah ada.`);
     }
 
-    // Determine dataScope based on batchCode
+    // Determine dataScope based on input or batchCode
     const isTestBatch =
+      validated.dataScope === "TEST" ||
       validated.batchCode.startsWith("BATCH-TEST-") ||
+      validated.batchCode.startsWith("TEST-") ||
       validated.batchCode.startsWith("BATCH-P7-") ||
       validated.batchCode.startsWith("BATCH-P8B-");
-    const dataScope = isTestBatch ? "TEST" : "REAL";
+    const dataScope = isTestBatch ? "TEST" : (validated.dataScope ?? "REAL");
 
     // 3. Create Submission Batch Header
     const batch = await tx.submissionBatch.create({

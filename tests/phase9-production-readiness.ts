@@ -19,6 +19,7 @@ import { getCashReport } from "../src/lib/reports/cash-report.service";
 import { getJournalReport } from "../src/lib/reports/journal-report.service";
 import { getAllCashBalances } from "../src/lib/finance/balance.service";
 import { createDisbursement } from "../src/lib/finance/disbursement.service";
+import { createFundInflow, voidFundInflow } from "../src/lib/finance/inflow.service";
 
 let totalAssertions = 0;
 let passedAssertions = 0;
@@ -175,7 +176,7 @@ async function runPhase9Tests() {
       cashAccountId: cashAccounts[0].id,
       paymentMethod: "CASH",
       totalRealizedAmount: 999999999999,
-      dataScope: DataScope.TEST,
+      dataScope: DataScope.REAL,
       items: [
         {
           accItemId: testAccItem!.id,
@@ -192,6 +193,89 @@ async function runPhase9Tests() {
     }
   }
   assert(overpaymentBlocked, "Disbursement exceeding approved amount was strictly BLOCKED by safety guard");
+
+  // 3. Inflow Void Cross-Scope Guard Check
+  const testInflow = await createFundInflow({
+    inflowDate: new Date(),
+    destinationAccountId: cashAccounts[0].id,
+    amount: 1000000,
+    sourceInfo: "TEST Inflow Guard Validation",
+    dataScope: DataScope.TEST,
+  });
+
+  let crossScopeVoidBlocked = false;
+  try {
+    // Attempt to void TEST inflow using REAL expectedScope
+    await voidFundInflow(testInflow.id, "Attempt cross-scope void", undefined, DataScope.REAL);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("Integritas dataScope ditolak")) {
+      crossScopeVoidBlocked = true;
+    }
+  }
+  assert(crossScopeVoidBlocked, "Void inflow with cross-scope mismatch was strictly BLOCKED by safety guard");
+
+  // 4. Inflow Void Negative Balance Prevention Check
+  const tempProject = await prisma.project.findFirst({ where: { isActive: true } });
+  const tempCategory = await prisma.expenseCategory.findFirst({ where: { isActive: true } });
+  const tempPic = await prisma.fieldPic.findFirst({ where: { isActive: true } });
+  const tempBatchCode = `GUARD-BATCH-${Date.now()}`;
+  const tempNoKas = `KT.GUARD.${Date.now().toString().slice(-4)}`;
+
+  const tempBatch = await prisma.submissionBatch.create({
+    data: {
+      batchCode: tempBatchCode,
+      accDate: new Date(),
+      dataScope: DataScope.TEST,
+    },
+  });
+
+  const tempAccItem = await prisma.accExpenseItem.create({
+    data: {
+      batchId: tempBatch.id,
+      cashType: "KT",
+      projectId: tempProject!.id,
+      categoryId: tempCategory!.id,
+      picId: tempPic!.id,
+      description: "Temporary Guard Item",
+      approvedAmount: 1000000,
+      dataScope: DataScope.TEST,
+      noKas: tempNoKas,
+    },
+  });
+
+  const testDisb = await createDisbursement({
+    disbursementDate: new Date(),
+    cashAccountId: cashAccounts[0].id,
+    paymentMethod: "CASH",
+    totalRealizedAmount: 1000000,
+    dataScope: DataScope.TEST,
+    items: [
+      {
+        accItemId: tempAccItem.id,
+        realizedAmount: 1000000,
+      },
+    ],
+  });
+
+  // Now current balance in TEST is 0. Trying to void testInflow would cause balance to drop below 0!
+  let negativeInflowVoidBlocked = false;
+  try {
+    await voidFundInflow(testInflow.id, "Attempt void causing negative cash", undefined, DataScope.TEST);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message.includes("Void akan menyebabkan saldo kas menjadi negatif")) {
+      negativeInflowVoidBlocked = true;
+    }
+  }
+  assert(negativeInflowVoidBlocked, "Void inflow causing negative cash balance was strictly BLOCKED by safety guard");
+
+  // Clean up temporary guard artifacts
+  await prisma.journalLine.deleteMany({ where: { journal: { sourceId: { in: [testInflow.id, testDisb.disbursement.id] } } } });
+  await prisma.journalEntry.deleteMany({ where: { sourceId: { in: [testInflow.id, testDisb.disbursement.id] } } });
+  await prisma.disbursementItem.deleteMany({ where: { disbursementId: testDisb.disbursement.id } });
+  await prisma.disbursement.deleteMany({ where: { id: testDisb.disbursement.id } });
+  await prisma.fundInflow.deleteMany({ where: { id: testInflow.id } });
+  await prisma.accExpenseItem.deleteMany({ where: { id: tempAccItem.id } });
+  await prisma.submissionBatch.deleteMany({ where: { id: tempBatch.id } });
 
   // --- TEST 5: Production Readiness Assets Verification ---
   console.log("\n--- TEST 5: Production Readiness Assets Verification ---");

@@ -1,12 +1,21 @@
 import { getOutstandingAccItems, getCashBalances } from "../../actions/disbursement.actions";
 import { getMasterCashAccounts } from "../../actions/acc.actions";
 import DisbursementNewForm from "./DisbursementNewForm";
+import { DataScope } from "@prisma/client";
 
-export default async function DisbursementNewPage() {
+export default async function DisbursementNewPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ scope?: string }>;
+}) {
+  const params = await searchParams;
+  const isTest = params?.scope === "TEST";
+  const scope = isTest ? DataScope.TEST : DataScope.REAL;
+
   const [outstandingItems, accounts, balances] = await Promise.all([
-    getOutstandingAccItems(),
+    getOutstandingAccItems(scope),
     getMasterCashAccounts(),
-    getCashBalances(),
+    getCashBalances(scope),
   ]);
 
   // Compute remaining outstanding for each item
@@ -35,9 +44,29 @@ export default async function DisbursementNewPage() {
     <>
       <div className="page-header">
         <div>
-          <h1>Pencairan Baru</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h1>Pencairan Baru</h1>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                MODE UJI COBA (dataScope: TEST)
+              </span>
+            )}
+          </div>
           <div className="page-header-subtitle">
-            Pilih item ACC yang akan dicairkan
+            {isTest
+              ? "Lingkungan Terisolasi — Hanya menampilkan item ACC TEST dan akun kas pembayar TEST. Data REAL aman."
+              : "Pilih item ACC yang akan dicairkan"}
           </div>
         </div>
       </div>
@@ -47,6 +76,7 @@ export default async function DisbursementNewPage() {
           outstandingItems={itemsWithOutstanding}
           accounts={JSON.parse(JSON.stringify(accounts))}
           balances={JSON.parse(JSON.stringify(balances))}
+          scope={isTest ? "TEST" : "REAL"}
         />
       </div>
     </>

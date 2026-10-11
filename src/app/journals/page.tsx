@@ -6,16 +6,22 @@ import Link from "next/link";
 export default async function JournalListPage({
   searchParams,
 }: {
-  searchParams: Promise<{ projectId?: string }>;
+  searchParams?: Promise<{ projectId?: string; scope?: string }>;
 }) {
-  const { projectId } = await searchParams;
-  const [journals, allProjects] = await Promise.all([
-    getJournalList("REAL", projectId),
+  const params = await searchParams;
+  const projectId = params?.projectId;
+  const isTest = params?.scope === "TEST";
+  const scope = isTest ? "TEST" : "REAL";
+
+  const [journals, allProjects, realCount, testCount] = await Promise.all([
+    getJournalList(scope as "REAL" | "TEST", projectId),
     prisma.project.findMany({
       where: { isActive: true },
       select: { id: true, code: true, name: true },
       orderBy: { code: "asc" },
     }),
+    prisma.journalEntry.count({ where: { dataScope: "REAL" } }),
+    prisma.journalEntry.count({ where: { dataScope: "TEST" } }),
   ]);
 
   const activeProject = allProjects.find((p) => p.id === projectId);
@@ -34,15 +40,36 @@ export default async function JournalListPage({
     <>
       <div className="page-header">
         <div>
-          <h1>Buku Jurnal Akuntansi</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h1>Buku Jurnal Akuntansi</h1>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                MODE UJI COBA (dataScope: TEST)
+              </span>
+            )}
+          </div>
           <div className="page-header-subtitle">
             {activeProject
               ? `Jurnal Proyek: ${activeProject.code} — ${activeProject.name}`
+              : isTest
+              ? "Lingkungan Terisolasi — Menampilkan ayat jurnal double-entry hasil pengujian manual (dataScope: TEST)."
               : "Ayat jurnal pembukuan double-entry yang digenerate otomatis dari seluruh transaksi proyek dan umum"}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <form method="GET" action="/journals" className="flex items-center gap-2">
+            {isTest && <input type="hidden" name="scope" value="TEST" />}
             <select
               name="projectId"
               defaultValue={projectId || "ALL"}
@@ -60,7 +87,7 @@ export default async function JournalListPage({
               Filter
             </button>
             {projectId && (
-              <Link href="/journals" className="btn btn-secondary btn-sm">
+              <Link href={isTest ? "/journals?scope=TEST" : "/journals"} className="btn btn-secondary btn-sm">
                 Reset
               </Link>
             )}
@@ -69,6 +96,28 @@ export default async function JournalListPage({
       </div>
 
       <div className="page-body">
+        {/* Scope Switcher Tabs */}
+        <div className="scope-tabs mb-6">
+          <Link
+            href={projectId && projectId !== "ALL" ? `/journals?projectId=${projectId}` : "/journals"}
+            className={`scope-tab ${!isTest ? "active" : ""}`}
+            title="Lihat Jurnal Akuntansi Data Operasional Nyata (REAL)"
+          >
+            <span className="status-indicator-dot online" />
+            <span>Data Operasional (REAL)</span>
+            <span className="scope-tab-badge">{realCount}</span>
+          </Link>
+          <Link
+            href={projectId && projectId !== "ALL" ? `/journals?scope=TEST&projectId=${projectId}` : "/journals?scope=TEST"}
+            className={`scope-tab ${isTest ? "active test-active" : ""}`}
+            title="Lihat Jurnal Akuntansi Pengujian UAT (TEST)"
+          >
+            <span className="status-indicator-dot test" />
+            <span>Pengujian UAT (TEST)</span>
+            <span className="scope-tab-badge">{testCount}</span>
+          </Link>
+        </div>
+
         {/* Summary Cards */}
         <div className="stat-grid mb-6">
           <div className="stat-card">
@@ -113,10 +162,49 @@ export default async function JournalListPage({
           <div className="card">
             <div className="empty-state">
               <div className="empty-state-icon">📒</div>
-              <div className="empty-state-title">Belum ada jurnal tercatat</div>
-              <div className="empty-state-desc">
-                Jurnal akan dibuat otomatis saat ada transaksi penerimaan dana atau pencairan voucher posted.
+              <div className="empty-state-title">
+                {!isTest
+                  ? "Belum ada jurnal operasional (REAL) tercatat"
+                  : "Belum ada jurnal pengujian (TEST) tercatat"}
               </div>
+              <div className="empty-state-desc">
+                {!isTest
+                  ? "Jurnal operasional REAL akan dibuat otomatis saat transaksi penerimaan dana atau pencairan voucher REAL diposting."
+                  : "Jurnal pengujian TEST akan dibuat otomatis saat transaksi ber-scope TEST diposting."}
+              </div>
+              {!isTest && testCount > 0 && (
+                <div
+                  style={{
+                    marginTop: 20,
+                    padding: "14px 18px",
+                    borderRadius: 8,
+                    background: "#fef3c7",
+                    border: "1px solid #fde68a",
+                    maxWidth: 520,
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      color: "#92400e",
+                      marginBottom: 10,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    💡 Ditemukan {testCount} entri jurnal pada mode pengujian (scope=TEST), termasuk voucher pencairan UAT Anda.
+                  </p>
+                  <Link
+                    href={projectId && projectId !== "ALL" ? `/journals?scope=TEST&projectId=${projectId}` : "/journals?scope=TEST"}
+                    className="btn btn-sm btn-primary"
+                    style={{ background: "#d97706", borderColor: "#b45309" }}
+                  >
+                    Buka Jurnal Pengujian UAT ({testCount} Jurnal) →
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         ) : (

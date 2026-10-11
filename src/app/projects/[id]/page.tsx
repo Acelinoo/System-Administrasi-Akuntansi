@@ -5,13 +5,18 @@ import Project360Client from "./Project360Client";
 
 export default async function ProjectDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ scope?: string; dataScope?: string }>;
 }) {
   const { id } = await params;
+  const sParams = await searchParams;
+  const isTest = sParams?.scope === "TEST" || sParams?.dataScope === "TEST";
+  const scope = isTest ? "TEST" : "REAL";
 
   const [data, cashAccounts, vendors, categories] = await Promise.all([
-    getProject360Data(id),
+    getProject360Data(id, scope),
     prisma.cashAccount.findMany({
       where: { isActive: true },
       select: { id: true, accountName: true, accountCode: true },

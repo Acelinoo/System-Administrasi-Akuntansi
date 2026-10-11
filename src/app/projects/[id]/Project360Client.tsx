@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -20,13 +20,16 @@ import {
 } from "../../components/Icons";
 import {
   createProjectBudgetAction,
+  deleteProjectBudgetAction,
   addBudgetItemAction,
   deleteBudgetItemAction,
   createProjectTerminAction,
   recordTerminPaymentAction,
   createProjectProgressLogAction,
   createExpenseItemDetailAction,
+  deleteExpenseItemDetailAction,
   createVendorContractAction,
+  deleteVendorContractAction,
   updateProjectContractDetailsAction,
 } from "../../actions/project-360.actions";
 
@@ -60,6 +63,28 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Material Detail Modal dynamic calculations
+  const [modalQty, setModalQty] = useState<number>(1);
+  const [modalUnitPrice, setModalUnitPrice] = useState<number>(0);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowEditProjectModal(false);
+        setShowBudgetModal(false);
+        setShowBudgetItemModal(false);
+        setShowTerminModal(false);
+        setShowPayTerminModal(false);
+        setShowProgressModal(false);
+        setShowMaterialModal(false);
+        setShowVendorContractModal(false);
+        setErrorMsg(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Form Handlers
   const handleEditProject = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -108,6 +133,15 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
     if (!confirm("Hapus pos anggaran ini?")) return;
     await deleteBudgetItemAction(itemId, project.id);
     router.refresh();
+  };
+
+  const handleDeleteBudget = async (budgetId: string) => {
+    if (!confirm("Hapus seluruh versi anggaran ini beserta seluruh pos rincian di dalamnya?")) return;
+    setLoading(true);
+    const res = await deleteProjectBudgetAction(budgetId, project.id);
+    setLoading(false);
+    if (res.error) alert(res.error);
+    else router.refresh();
   };
 
   const handleCreateTermin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -182,6 +216,30 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
     }
   };
 
+  const handleDeleteExpenseItemDetail = async (detailId: string, itemName: string) => {
+    if (!confirm(`Hapus rincian material '${itemName}'?`)) return;
+    setLoading(true);
+    const formData = new FormData();
+    formData.set("detailId", detailId);
+    formData.set("projectId", project.id);
+    const res = await deleteExpenseItemDetailAction(formData);
+    setLoading(false);
+    if (res.error) setErrorMsg(res.error);
+    else router.refresh();
+  };
+
+  const handleDeleteVendorContract = async (contractId: string, contractNumber: string) => {
+    if (!confirm(`Hapus kontrak vendor '${contractNumber}'?`)) return;
+    setLoading(true);
+    const formData = new FormData();
+    formData.set("contractId", contractId);
+    formData.set("projectId", project.id);
+    const res = await deleteVendorContractAction(formData);
+    setLoading(false);
+    if (res.error) setErrorMsg(res.error);
+    else router.refresh();
+  };
+
   return (
     <>
       {/* 1. PROJECT HEADER */}
@@ -248,6 +306,129 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
       </div>
 
       <div className="page-body">
+        {/* PROACTIVE COST CONTROL & PROGRESS MONITORING ALERTS */}
+        <div className="flex flex-col gap-2 mb-4">
+          {metrics.costVarianceStatus === "OVERBUDGET" && (
+            <div
+              style={{
+                background: "#fef2f2",
+                border: "1px solid #f87171",
+                borderRadius: "6px",
+                padding: "10px 14px",
+                fontSize: "0.82rem",
+                color: "#991b1b",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>🚨</span>
+              <div>
+                <strong>PERINGATAN PENGENDALIAN BIAYA (OVER BUDGET):</strong> Realisasi pengeluaran proyek (
+                {formatRupiah(metrics.totalPostedExpense)}) telah melampaui pagu RAP (
+                {formatRupiah(metrics.totalRapBudget)}) sebesar{" "}
+                <strong>{formatRupiah(Math.abs(metrics.remainingRapBudget || 0))}</strong> (Burn Rate:{" "}
+                {metrics.budgetBurnRatePct ? metrics.budgetBurnRatePct.toFixed(1) : "100"}%). Segera lakukan audit
+                pos biaya atau ajukan adendum RAP.
+              </div>
+            </div>
+          )}
+
+          {metrics.costVarianceStatus === "WARNING" && (
+            <div
+              style={{
+                background: "#fffbeb",
+                border: "1px solid #fcd34d",
+                borderRadius: "6px",
+                padding: "10px 14px",
+                fontSize: "0.82rem",
+                color: "#92400e",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>⚠️</span>
+              <div>
+                <strong>PERHATIAN PENDEKATAN ANGGARAN:</strong> Realisasi pengeluaran telah mencapai{" "}
+                <strong>{metrics.budgetBurnRatePct ? metrics.budgetBurnRatePct.toFixed(1) : "90"}%</strong> dari total
+                pagu RAP. Sisa anggaran tersisa{" "}
+                <strong>{formatRupiah(metrics.remainingRapBudget || 0)}</strong>.
+              </div>
+            </div>
+          )}
+
+          {!metrics.hasBudget && metrics.totalPostedExpense > 0 && (
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                borderRadius: "6px",
+                padding: "10px 14px",
+                fontSize: "0.82rem",
+                color: "#475569",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>ℹ️</span>
+              <div>
+                <strong>ANGGARAN RAP BELUM DIBUAT:</strong> Proyek ini telah mencatatkan pengeluaran kas (
+                {formatRupiah(metrics.totalPostedExpense)}) namun belum memiliki dokumen pagu RAP/RAB aktif. Susun
+                versi RAP pada tab <em>'Anggaran RAP/RAB'</em> di bawah untuk mengaktifkan sistem kontrol varian biaya.
+              </div>
+            </div>
+          )}
+
+          {!metrics.hasProgressLog && (
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "6px",
+                padding: "10px 14px",
+                fontSize: "0.82rem",
+                color: "#64748b",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>📋</span>
+              <div>
+                <strong>OPNAME FISIK BELUM TERCATAT:</strong> Bagian sipil belum menginput log progres fisik berkala
+                untuk proyek ini. Klik tombol <em>'Catat Opname Fisik Baru'</em> pada tab <em>'Progres Fisik Sipil'</em> untuk mencatat persentase lapangan.
+              </div>
+            </div>
+          )}
+
+          {metrics.isScheduleLagging && (
+            <div
+              style={{
+                background: "#fff7ed",
+                border: "1px solid #fed7aa",
+                borderRadius: "6px",
+                padding: "10px 14px",
+                fontSize: "0.82rem",
+                color: "#c2410c",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>⏱️</span>
+              <div>
+                <strong>KETERLAMBATAN PROGRES FISIK:</strong> Progres fisik aktual (
+                {metrics.physicalProgressPct?.toFixed(1)}%) tertinggal sebesar{" "}
+                <strong>{metrics.scheduleLagPct?.toFixed(1)}%</strong> dibandingkan estimasi durasi linier jadwal
+                kontrak ({metrics.scheduleElapsedPct?.toFixed(1)}% durasi telah berjalan). Disarankan percepatan
+                pekerjaan di lapangan.
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 2. PROMINENT 8-CARD FINANCIAL & COST CONTROL HERO */}
         <div
           style={{
@@ -691,28 +872,46 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                 </div>
               </div>
             ) : (
-              budgets.map((b: any) => (
-                <div className="card mb-6" key={b.id}>
-                  <div className="card-header flex justify-between items-center">
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-slate-900 text-base">{b.title}</span>
-                        <span className="status status-info">{formatRupiah(Number(b.totalBudget))}</span>
+              budgets.map((b: any, index: number) => {
+                const isActive = index === 0;
+                return (
+                  <div className="card mb-6" key={b.id}>
+                    <div className="card-header flex justify-between items-center">
+                      <div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-slate-900 text-base">{b.title}</span>
+                          <span
+                            className={`status ${isActive ? "status-success" : "status-neutral"}`}
+                            style={{ fontSize: "0.72rem" }}
+                          >
+                            {isActive ? "Versi Aktif (Acuan Biaya)" : "Riwayat Revisi (Arsip)"}
+                          </span>
+                          <span className="status status-info">{formatRupiah(Number(b.totalBudget))}</span>
+                        </div>
+                        {b.notes && <div className="text-xs text-muted mt-0.5">{b.notes}</div>}
                       </div>
-                      {b.notes && <div className="text-xs text-muted mt-0.5">{b.notes}</div>}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedBudgetId(b.id);
+                            setErrorMsg(null);
+                            setShowBudgetItemModal(true);
+                          }}
+                          className="btn btn-secondary btn-sm"
+                        >
+                          <PlusIcon size={13} />
+                          <span>Tambah Item Pekerjaan</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBudget(b.id)}
+                          className="btn btn-ghost btn-sm text-red-600 hover:bg-red-50"
+                          style={{ fontSize: "0.75rem", padding: "4px 8px" }}
+                          title="Hapus versi anggaran ini"
+                        >
+                          🗑️ Hapus RAP
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => {
-                        setSelectedBudgetId(b.id);
-                        setErrorMsg(null);
-                        setShowBudgetItemModal(true);
-                      }}
-                      className="btn btn-secondary btn-sm"
-                    >
-                      <PlusIcon size={13} />
-                      <span>Tambah Item Pekerjaan</span>
-                    </button>
-                  </div>
                   <div className="card-body-flush">
                     {b.items.length === 0 ? (
                       <div className="p-4 text-center text-xs text-muted">
@@ -764,8 +963,9 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                     )}
                   </div>
                 </div>
-              ))
-            )}
+              );
+            })
+          )}
           </div>
         )}
 
@@ -980,6 +1180,8 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                               <button
                                 onClick={() => {
                                   setSelectedAccItem(item);
+                                  setModalQty(1);
+                                  setModalUnitPrice(0);
                                   setErrorMsg(null);
                                   setShowMaterialModal(true);
                                 }}
@@ -1020,13 +1222,17 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                         <th className="text-right">Total Harga</th>
                         <th>Vendor / Toko</th>
                         <th>No. Bukti / Ref</th>
+                        <th className="text-center" style={{ width: 70 }}>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                       {allItemDetails.map((det: any) => (
                         <tr key={det.id}>
                           <td className="col-mono text-xs">{det.accItemNoKas}</td>
-                          <td className="font-medium text-slate-900">{det.itemName}</td>
+                          <td className="font-medium text-slate-900">
+                            <div>{det.itemName}</div>
+                            {det.notes && <div className="text-[11px] text-muted">{det.notes}</div>}
+                          </td>
                           <td className="col-num text-sm">{Number(det.quantity).toLocaleString("id-ID")}</td>
                           <td className="text-xs text-muted">{det.unit}</td>
                           <td className="col-num text-sm">{formatRupiah(Number(det.unitPrice))}</td>
@@ -1035,6 +1241,16 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                             {det.vendor ? `${det.vendor.name}` : "-"}
                           </td>
                           <td className="text-xs col-mono">{det.referenceNo || "-"}</td>
+                          <td className="text-center">
+                            <button
+                              onClick={() => handleDeleteExpenseItemDetail(det.id, det.itemName)}
+                              className="btn btn-ghost btn-sm text-danger"
+                              style={{ fontSize: "0.72rem", padding: "2px 6px" }}
+                              title="Hapus rincian material"
+                            >
+                              Hapus
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -1067,13 +1283,52 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
               </button>
             </div>
 
+            {/* Vendor / Subcontract Summary KPI Cards */}
+            {(() => {
+              const totalVendorCommitment = vendorContracts.reduce((s: number, vc: any) => s + Number(vc.contractValue || 0), 0);
+              const totalVendorPaid = vendorContracts.reduce((s: number, vc: any) => s + Number(vc.paidAmount || 0), 0);
+              const totalVendorRemaining = vendorContracts.reduce((s: number, vc: any) => s + Number(vc.remainingBalance != null ? vc.remainingBalance : Math.max(0, Number(vc.contractValue) - Number(vc.paidAmount || 0))), 0);
+
+              return (
+                <div className="stat-grid mb-4">
+                  <div className="stat-card">
+                    <div>
+                      <div className="stat-label">Total Komitmen SPK</div>
+                      <div className="stat-value primary">{formatRupiah(totalVendorCommitment)}</div>
+                    </div>
+                    <div className="stat-sub">{vendorContracts.length} kontrak terdaftar</div>
+                  </div>
+                  <div className="stat-card">
+                    <div>
+                      <div className="stat-label">Realisasi Dibayar (POSTED)</div>
+                      <div className="stat-value positive">{formatRupiah(totalVendorPaid)}</div>
+                    </div>
+                    <div className="stat-sub">
+                      {totalVendorCommitment > 0
+                        ? `${((totalVendorPaid / totalVendorCommitment) * 100).toFixed(1)}% terbayar`
+                        : "Rp0"}
+                    </div>
+                  </div>
+                  <div className="stat-card">
+                    <div>
+                      <div className="stat-label">Sisa Saldo Kewajiban SPK</div>
+                      <div className={`stat-value ${totalVendorRemaining > 0 ? "warning" : "positive"}`}>
+                        {formatRupiah(totalVendorRemaining)}
+                      </div>
+                    </div>
+                    <div className="stat-sub">Saldo komitmen tersisa</div>
+                  </div>
+                </div>
+              );
+            })()}
+
             <div className="card">
               <div className="card-body-flush">
                 {vendorContracts.length === 0 ? (
                   <div className="empty-state">
                     <div className="empty-state-title">Belum ada kontrak vendor atau subkon terdaftar.</div>
                     <div className="empty-state-desc">
-                      Catat nomor SPK/kontrak dengan mandor borongan atau supplier toko untuk memantau komitmen biaya.
+                      Catat nomor SPK/kontrak dengan mandor borongan atau supplier toko untuk memantau komitmen biaya dan pembayaran bertahap.
                     </div>
                   </div>
                 ) : (
@@ -1085,31 +1340,65 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                         <th>Nama Vendor / Subkon</th>
                         <th>Tipe</th>
                         <th className="text-right">Nilai Kontrak (Rp)</th>
+                        <th className="text-right">Terbayar (Rp)</th>
+                        <th className="text-right">Sisa Saldo (Rp)</th>
+                        <th className="text-center">Progres</th>
                         <th>Periode Pelaksanaan</th>
                         <th className="text-center">Status</th>
+                        <th className="text-center" style={{ width: 70 }}>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {vendorContracts.map((vc: any) => (
-                        <tr key={vc.id}>
-                          <td className="col-mono font-medium">{vc.contractNumber}</td>
-                          <td className="font-semibold text-slate-900">{vc.title}</td>
-                          <td className="text-sm">{vc.vendor.name}</td>
-                          <td>
-                            <span className="status status-neutral" style={{ fontSize: "0.72rem" }}>
-                              {vc.vendor.type}
-                            </span>
-                          </td>
-                          <td className="col-num font-bold text-primary">{formatRupiah(Number(vc.contractValue))}</td>
-                          <td className="text-xs">
-                            {vc.startDate ? formatDate(vc.startDate) : "-"} s.d.{" "}
-                            {vc.endDate ? formatDate(vc.endDate) : "-"}
-                          </td>
-                          <td className="text-center">
-                            <span className="status status-success">{vc.status}</span>
-                          </td>
-                        </tr>
-                      ))}
+                      {vendorContracts.map((vc: any) => {
+                        const paid = Number(vc.paidAmount || 0);
+                        const remaining = Number(vc.remainingBalance != null ? vc.remainingBalance : Math.max(0, Number(vc.contractValue) - paid));
+                        const pct = Number(vc.paymentProgressPct || 0);
+
+                        return (
+                          <tr key={vc.id}>
+                            <td className="col-mono font-medium">{vc.contractNumber}</td>
+                            <td className="font-semibold text-slate-900">
+                              <div>{vc.title}</div>
+                              {vc.notes && <div className="text-[11px] text-muted">{vc.notes}</div>}
+                            </td>
+                            <td className="text-sm">{vc.vendor.name}</td>
+                            <td>
+                              <span className="status status-neutral" style={{ fontSize: "0.72rem" }}>
+                                {vc.vendor.type}
+                              </span>
+                            </td>
+                            <td className="col-num font-bold text-slate-900">{formatRupiah(Number(vc.contractValue))}</td>
+                            <td className="col-num font-semibold text-emerald-700">{formatRupiah(paid)}</td>
+                            <td className="col-num font-semibold" style={{ color: remaining > 0 ? "var(--color-warning)" : "var(--color-success)" }}>
+                              {formatRupiah(remaining)}
+                            </td>
+                            <td className="text-center">
+                              <span className={`px-1.5 py-0.5 rounded text-[11px] font-semibold ${pct >= 100 ? "bg-emerald-100 text-emerald-800" : pct > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-600"}`}>
+                                {pct.toFixed(0)}%
+                              </span>
+                            </td>
+                            <td className="text-xs">
+                              {vc.startDate ? formatDate(vc.startDate) : "-"} s.d.{" "}
+                              {vc.endDate ? formatDate(vc.endDate) : "-"}
+                            </td>
+                            <td className="text-center">
+                              <span className="status status-success">{vc.status}</span>
+                            </td>
+                            <td className="text-center">
+                              {paid === 0 && (
+                                <button
+                                  onClick={() => handleDeleteVendorContract(vc.id, vc.contractNumber)}
+                                  className="btn btn-ghost btn-sm text-danger"
+                                  style={{ fontSize: "0.72rem", padding: "2px 6px" }}
+                                  title="Hapus kontrak vendor (hanya bila belum ada pembayaran)"
+                                >
+                                  Hapus
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 )}
@@ -1302,11 +1591,31 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
 
       {/* 1. Modal Edit Proyek & Kontrak */}
       {showEditProjectModal && (
-        <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 540 }}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setErrorMsg(null);
+            setShowEditProjectModal(false);
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{ maxWidth: 540 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2>Edit Kontrak & Klasifikasi Proyek</h2>
-              <button onClick={() => setShowEditProjectModal(false)} className="modal-close">&times;</button>
+              <h3 className="modal-title">Edit Kontrak & Klasifikasi Proyek</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setShowEditProjectModal(false);
+                }}
+                className="modal-close"
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
             </div>
             <form onSubmit={handleEditProject}>
               <input type="hidden" name="id" value={project.id} />
@@ -1377,42 +1686,117 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
 
       {/* 2. Modal Buat RAP Baru */}
       {showBudgetModal && (
-        <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 500 }}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setErrorMsg(null);
+            setShowBudgetModal(false);
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{ maxWidth: 520 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2>Buat Versi Anggaran RAP / RAB Baru</h2>
-              <button onClick={() => setShowBudgetModal(false)} className="modal-close">&times;</button>
+              <div>
+                <h3 className="modal-title">Buat Rencana Anggaran (RAP / RAB)</h3>
+                <div className="modal-subtitle">
+                  Pagu acuan biaya pekerjaan & material untuk proyek {project.code} — {project.name}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setShowBudgetModal(false);
+                }}
+                className="modal-close"
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
             </div>
             <form onSubmit={handleCreateBudget}>
               <input type="hidden" name="projectId" value={project.id} />
               <div className="modal-body">
-                {errorMsg && <div className="alert alert-danger mb-4">{errorMsg}</div>}
-                <div className="form-group mb-3">
-                  <label className="form-label">Judul Anggaran / Revisi</label>
+                {errorMsg && <div className="alert alert-error mb-4">{errorMsg}</div>}
+
+                {/* Penjelasan Alur 2 Tahap */}
+                <div
+                  className="alert alert-info mb-4"
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                    alignItems: "flex-start",
+                    background: "var(--blue-50)",
+                    borderColor: "var(--blue-200)",
+                  }}
+                >
+                  <div style={{ fontSize: "1.1rem", lineHeight: 1, marginTop: "2px" }}>ℹ️</div>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--blue-700)", marginBottom: "2px" }}>
+                      Tahap 1 dari 2: Penetapan Versi Anggaran
+                    </div>
+                    <div style={{ fontSize: "0.76rem", lineHeight: 1.45, color: "var(--slate-600)" }}>
+                      Buat identitas versi anggaran terlebih dahulu. Setelah versi tersimpan, Anda dapat menyusun rincian pos pekerjaan, volume, satuan, dan harga satuan secara terstruktur.
+                    </div>
+                  </div>
+                </div>
+
+                <div className="form-group mb-4">
+                  <label className="form-label">
+                    Judul atau Versi RAP <span style={{ color: "var(--red-600)" }}>*</span>
+                  </label>
                   <input
                     type="text"
                     name="title"
                     required
-                    placeholder="Contoh: RAP Pelaksanaan Awal 2026 / Revisi 1"
+                    placeholder="Contoh: RAP Pelaksanaan Awal 2026 atau Revisi 1"
                     className="form-control"
+                    autoFocus
                   />
+                  <div className="form-hint">
+                    Beri nama versi anggaran yang jelas untuk acuan monitoring dan evaluasi varians biaya lapangan.
+                  </div>
                 </div>
-                <div className="form-group mb-3">
-                  <label className="form-label">Catatan RAP (Opsional)</label>
+
+                <div className="form-group mb-2">
+                  <label className="form-label">
+                    Catatan & Dasar Persetujuan <span className="text-muted font-normal">(Opsional)</span>
+                  </label>
                   <textarea
                     name="notes"
                     rows={3}
-                    placeholder="Catatan persetujuan anggaran internal..."
+                    placeholder="Contoh: Disetujui atasan di luar sistem per tanggal 10 Oktober 2026 berdasarkan addendum kontrak nomor..."
                     className="form-control"
+                    style={{ resize: "vertical" }}
                   />
+                  <div className="form-hint">
+                    Catatan internal mengenai dasar penyusunan anggaran, tanggal ACC atasan, atau lingkup pekerjaan.
+                  </div>
                 </div>
               </div>
+
               <div className="modal-footer">
-                <button type="button" onClick={() => setShowBudgetModal(false)} className="btn btn-secondary">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMsg(null);
+                    setShowBudgetModal(false);
+                  }}
+                  className="btn btn-secondary"
+                  disabled={loading}
+                >
                   Batal
                 </button>
-                <button type="submit" disabled={loading} className="btn btn-primary">
-                  {loading ? "Memproses..." : "Buat RAP"}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
+                  style={{ minWidth: 140 }}
+                >
+                  {loading ? "Menyimpan..." : "Buat Versi RAP"}
                 </button>
               </div>
             </form>
@@ -1422,36 +1806,65 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
 
       {/* 3. Modal Tambah Item RAP */}
       {showBudgetItemModal && (
-        <div className="modal-overlay">
-          <div className="modal" style={{ maxWidth: 540 }}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setErrorMsg(null);
+            setShowBudgetItemModal(false);
+          }}
+        >
+          <div
+            className="modal-content"
+            style={{ maxWidth: 540 }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2>Tambah Pos Item Anggaran RAP</h2>
-              <button onClick={() => setShowBudgetItemModal(false)} className="modal-close">&times;</button>
+              <div>
+                <h3 className="modal-title">Tambah Pos Item Anggaran RAP</h3>
+                <div className="modal-subtitle">
+                  Tahap 2: Input rincian volume, satuan, dan pagu biaya per pos pekerjaan
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setErrorMsg(null);
+                  setShowBudgetItemModal(false);
+                }}
+                className="modal-close"
+                aria-label="Tutup"
+              >
+                ✕
+              </button>
             </div>
             <form onSubmit={handleAddBudgetItem}>
               <input type="hidden" name="projectId" value={project.id} />
               <input type="hidden" name="budgetId" value={selectedBudgetId} />
               <div className="modal-body">
-                {errorMsg && <div className="alert alert-danger mb-4">{errorMsg}</div>}
+                {errorMsg && <div className="alert alert-error mb-4">{errorMsg}</div>}
                 <div className="grid-2 mb-3">
                   <div className="form-group">
                     <label className="form-label">Kode Item (Opsional)</label>
                     <input type="text" name="itemCode" placeholder="Contoh: A.1 / SIPIL.01" className="form-control" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Kategori Pos</label>
-                    <select name="category" className="form-control">
-                      <option value="MATERIAL">MATERIAL</option>
-                      <option value="UPAH">UPAH</option>
-                      <option value="SUBKON">SUBKON</option>
-                      <option value="SEWA_ALAT">SEWA_ALAT</option>
-                      <option value="OPS_LAPANGAN">OPS_LAPANGAN</option>
-                      <option value="LAINNYA">LAINNYA</option>
+                    <label className="form-label">
+                      Kategori Pos <span style={{ color: "var(--red-600)" }}>*</span>
+                    </label>
+                    <select name="category" required className="form-control">
+                      <option value="">-- Pilih Kategori Master --</option>
+                      {lookups.categories.map((c) => (
+                        <option key={c.id} value={c.code}>
+                          {c.code} — {c.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
                 <div className="form-group mb-3">
-                  <label className="form-label">Uraian Pekerjaan / Material</label>
+                  <label className="form-label">
+                    Uraian Pekerjaan / Material <span style={{ color: "var(--red-600)" }}>*</span>
+                  </label>
                   <input
                     type="text"
                     name="description"
@@ -1460,26 +1873,56 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
                     className="form-control"
                   />
                 </div>
-                <div className="grid-3 mb-3">
+                <div className="grid-3 mb-2">
                   <div className="form-group">
-                    <label className="form-label">Volume</label>
-                    <input type="number" step="any" name="volume" defaultValue={1} required className="form-control" />
+                    <label className="form-label">
+                      Volume <span style={{ color: "var(--red-600)" }}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0.0001"
+                      name="volume"
+                      defaultValue={1}
+                      required
+                      className="form-control"
+                    />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Satuan</label>
+                    <label className="form-label">
+                      Satuan <span style={{ color: "var(--red-600)" }}>*</span>
+                    </label>
                     <input type="text" name="unit" defaultValue="ls" required className="form-control" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Harga Satuan (Rp)</label>
-                    <input type="number" step="any" name="unitPrice" required placeholder="0" className="form-control" />
+                    <label className="form-label">
+                      Harga Satuan (Rp) <span style={{ color: "var(--red-600)" }}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      name="unitPrice"
+                      required
+                      placeholder="0"
+                      className="form-control"
+                    />
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" onClick={() => setShowBudgetItemModal(false)} className="btn btn-secondary">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorMsg(null);
+                    setShowBudgetItemModal(false);
+                  }}
+                  className="btn btn-secondary"
+                  disabled={loading}
+                >
                   Batal
                 </button>
-                <button type="submit" disabled={loading} className="btn btn-primary">
+                <button type="submit" disabled={loading} className="btn btn-primary" style={{ minWidth: 130 }}>
                   {loading ? "Menyimpan..." : "Tambah ke RAP"}
                 </button>
               </div>
@@ -1683,60 +2126,129 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
 
       {/* 7. Modal Tambah Rincian Material untuk Item ACC */}
       {showMaterialModal && selectedAccItem && (
-        <div className="modal-overlay">
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowMaterialModal(false);
+          }}
+        >
           <div className="modal" style={{ maxWidth: 540 }}>
             <div className="modal-header">
-              <h2>Tambah Rincian Material / Barang</h2>
+              <div>
+                <h2>Tambah Rincian Material / Barang</h2>
+                <div className="text-xs text-muted">
+                  Catat item pembelian bahan bangunan atau barang proyek
+                </div>
+              </div>
               <button onClick={() => setShowMaterialModal(false)} className="modal-close">&times;</button>
             </div>
             <form onSubmit={handleCreateMaterialDetail}>
               <input type="hidden" name="projectId" value={project.id} />
               <input type="hidden" name="accItemId" value={selectedAccItem.id} />
               <div className="modal-body">
-                {errorMsg && <div className="alert alert-danger mb-4">{errorMsg}</div>}
+                {errorMsg && <div className="alert alert-error mb-4">{errorMsg}</div>}
                 <div className="text-xs bg-slate-50 p-2.5 rounded border border-slate-200 mb-3">
-                  Item ACC: <strong>{selectedAccItem.noKas}</strong> — {selectedAccItem.description} (Disetujui: {formatRupiah(Number(selectedAccItem.approvedAmount))})
+                  Item ACC: <strong>{selectedAccItem.noKas}</strong> — {selectedAccItem.description}  
+                  <br />
+                  <span className="text-muted">Pagu Disetujui: {formatRupiah(Number(selectedAccItem.approvedAmount))}</span>
                 </div>
                 <div className="form-group mb-3">
-                  <label className="form-label">Nama Barang / Material</label>
-                  <input type="text" name="itemName" required placeholder="Contoh: Semen Tiga Roda 50kg" className="form-control" />
+                  <label className="form-label required">
+                    Nama Barang / Material <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="itemName"
+                    required
+                    placeholder="Contoh: Semen Tiga Roda 50kg, Besi 10mm"
+                    className="form-control"
+                  />
+                  <div className="text-xs text-muted mt-1">Sebutkan nama barang secara spesifik beserta spesifikasi/merek</div>
                 </div>
                 <div className="grid-3 mb-3">
                   <div className="form-group">
-                    <label className="form-label">Kuantitas</label>
-                    <input type="number" step="any" name="quantity" defaultValue={1} required className="form-control" />
+                    <label className="form-label required">
+                      Kuantitas <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0.01"
+                      name="quantity"
+                      value={modalQty}
+                      onChange={(e) => setModalQty(parseFloat(e.target.value) || 0)}
+                      required
+                      className="form-control"
+                    />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Satuan</label>
+                    <label className="form-label required">
+                      Satuan <span className="text-danger">*</span>
+                    </label>
                     <input type="text" name="unit" defaultValue="sak" required className="form-control" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Harga Satuan (Rp)</label>
-                    <input type="number" step="any" name="unitPrice" required placeholder="0" className="form-control" />
+                    <label className="form-label required">
+                      Harga Satuan (Rp) <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0"
+                      name="unitPrice"
+                      value={modalUnitPrice}
+                      onChange={(e) => setModalUnitPrice(parseFloat(e.target.value) || 0)}
+                      required
+                      placeholder="0"
+                      className="form-control"
+                    />
                   </div>
                 </div>
+
+                {/* Subtotal Preview */}
+                <div className="bg-blue-50 border border-blue-200 p-2.5 rounded mb-3 flex justify-between items-center">
+                  <span className="text-xs font-semibold text-blue-900">Total Harga:</span>
+                  <span className="text-sm font-bold text-blue-700">{formatRupiah(Math.max(0, modalQty * modalUnitPrice))}</span>
+                </div>
+
                 <div className="grid-2 mb-3">
                   <div className="form-group">
                     <label className="form-label">Vendor / Toko (Opsional)</label>
-                    <select name="vendorId" className="form-control">
-                      <option value="NONE">-- Pilih Vendor / Toko --</option>
+                    <select name="vendorId" className="form-control" defaultValue="NONE">
+                      <option value="NONE">-- Beli Langsung / Toko Umum --</option>
                       {lookups.vendors.map((v) => (
                         <option key={v.id} value={v.id}>{v.name} ({v.type})</option>
                       ))}
                     </select>
+                    <div className="text-xs text-muted mt-1">Pilih toko jika belanja via supplier terdaftar</div>
                   </div>
                   <div className="form-group">
                     <label className="form-label">No. Bukti / Nota (Opsional)</label>
                     <input type="text" name="referenceNo" placeholder="No. nota toko" className="form-control" />
+                    <div className="text-xs text-muted mt-1">Nomor bukti nota belanja fisik</div>
                   </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Catatan Tambahan (Opsional)</label>
+                  <textarea
+                    name="notes"
+                    rows={2}
+                    placeholder="Keterangan spesifikasi atau catatan bon..."
+                    className="form-control"
+                  />
                 </div>
               </div>
               <div className="modal-footer">
                 <button type="button" onClick={() => setShowMaterialModal(false)} className="btn btn-secondary">
                   Batal
                 </button>
-                <button type="submit" disabled={loading} className="btn btn-primary">
-                  {loading ? "Menyimpan..." : "Tambah Rincian"}
+                <button
+                  type="submit"
+                  disabled={loading || modalQty <= 0 || modalUnitPrice < 0}
+                  className="btn btn-primary"
+                >
+                  {loading ? "Menyimpan..." : "Simpan Rincian"}
                 </button>
               </div>
             </form>
@@ -1746,48 +2258,76 @@ export default function Project360Client({ data, lookups }: Project360ClientProp
 
       {/* 8. Modal Tambah Kontrak Vendor */}
       {showVendorContractModal && (
-        <div className="modal-overlay">
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowVendorContractModal(false);
+          }}
+        >
           <div className="modal" style={{ maxWidth: 540 }}>
             <div className="modal-header">
-              <h2>Tambah SPK / Kontrak Vendor</h2>
+              <div>
+                <h2>Tambah SPK / Kontrak Vendor</h2>
+                <div className="text-xs text-muted">
+                  Catat kontrak kerja borongan subkon atau komitmen pasokan toko
+                </div>
+              </div>
               <button onClick={() => setShowVendorContractModal(false)} className="modal-close">&times;</button>
             </div>
             <form onSubmit={handleCreateVendorContract}>
               <input type="hidden" name="projectId" value={project.id} />
               <div className="modal-body">
-                {errorMsg && <div className="alert alert-danger mb-4">{errorMsg}</div>}
+                {errorMsg && <div className="alert alert-error mb-4">{errorMsg}</div>}
                 <div className="form-group mb-3">
-                  <label className="form-label">Pilih Rekanan Vendor / Subkon</label>
+                  <label className="form-label required">
+                    Pilih Rekanan Vendor / Subkon <span className="text-danger">*</span>
+                  </label>
                   <select name="vendorId" required className="form-control">
                     <option value="">-- Pilih Rekanan Master Vendor --</option>
                     {lookups.vendors.map((v) => (
                       <option key={v.id} value={v.id}>{v.name} ({v.type})</option>
                     ))}
                   </select>
+                  <div className="text-xs text-muted mt-1">Pihak kedua pelaksana pekerjaan borongan</div>
                 </div>
                 <div className="grid-2 mb-3">
                   <div className="form-group">
-                    <label className="form-label">Nomor SPK / Kontrak</label>
+                    <label className="form-label required">
+                      Nomor SPK / Kontrak <span className="text-danger">*</span>
+                    </label>
                     <input type="text" name="contractNumber" required placeholder="SPK-2026-SUB-01" className="form-control" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Nilai Kontrak (Rp)</label>
-                    <input type="number" step="any" name="contractValue" required placeholder="0" className="form-control" />
+                    <label className="form-label required">
+                      Nilai Kontrak (Rp) <span className="text-danger">*</span>
+                    </label>
+                    <input type="number" step="any" min="1" name="contractValue" required placeholder="0" className="form-control" />
                   </div>
                 </div>
                 <div className="form-group mb-3">
-                  <label className="form-label">Judul Pekerjaan / SPK</label>
+                  <label className="form-label required">
+                    Judul Pekerjaan / SPK <span className="text-danger">*</span>
+                  </label>
                   <input type="text" name="title" required placeholder="Contoh: Pekerjaan Borongan Kusen & Pintu" className="form-control" />
                 </div>
                 <div className="grid-2 mb-3">
                   <div className="form-group">
-                    <label className="form-label">Mulai</label>
+                    <label className="form-label">Tanggal Mulai</label>
                     <input type="date" name="startDate" className="form-control" />
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Selesai</label>
+                    <label className="form-label">Tanggal Selesai</label>
                     <input type="date" name="endDate" className="form-control" />
                   </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Catatan / Ketentuan Termin (Opsional)</label>
+                  <textarea
+                    name="notes"
+                    rows={2}
+                    placeholder="Ketentuan termin pembayaran, retensi 5%, atau syarat serah terima..."
+                    className="form-control"
+                  />
                 </div>
               </div>
               <div className="modal-footer">

@@ -14,9 +14,12 @@ export default async function JournalReportPage({
     status?: string;
     coaId?: string;
     projectId?: string;
+    scope?: string;
+    dataScope?: string;
   }>;
 }) {
   const params = await searchParams;
+  const isTest = params.scope === "TEST" || params.dataScope === "TEST";
   const [data, coaList, projectsList] = await Promise.all([
     getJournalReport(params),
     prisma.coaAccount.findMany({ where: { isActive: true }, select: { id: true, accountCode: true, accountName: true }, orderBy: { accountCode: "asc" } }),
@@ -41,11 +44,40 @@ export default async function JournalReportPage({
 
   const isBalanced = data.totals.totalDebit === data.totals.totalCredit;
 
+  const activeRows = data.rows.filter((r) => r.status === "POSTED");
+  const projectExpenses = activeRows
+    .filter((r) => r.accountCode.startsWith("5"))
+    .reduce((s, r) => s + r.debit - r.credit, 0);
+  const overheadExpenses = activeRows
+    .filter((r) => r.accountCode.startsWith("6"))
+    .reduce((s, r) => s + r.debit - r.credit, 0);
+  const totalExpenses = projectExpenses + overheadExpenses;
+  const equityInflows = activeRows
+    .filter((r) => r.accountCode.startsWith("3"))
+    .reduce((s, r) => s + r.credit - r.debit, 0);
+
   return (
     <>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Buku Jurnal Umum & Proyek (Double-Entry)</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h2 className="text-base font-semibold">Laporan Buku Jurnal Umum & Proyek (Double-Entry)</h2>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                TEST MODE
+              </span>
+            )}
+          </div>
           <div className="text-xs text-muted">
             Ayat jurnal transaksi double-entry yang digenerate otomatis dari mutasi penerimaan dan pengeluaran proyek maupun umum
           </div>
@@ -81,6 +113,67 @@ export default async function JournalReportPage({
           </div>
           <div className="stat-sub">
             {isBalanced ? "Debit sama dengan Kredit" : "Peringatan: Terdapat selisih saldo"}
+          </div>
+        </div>
+      </div>
+
+      {/* RINGKASAN REKAPITULASI BEBAN & POSISI AKUN (COA SUMMARY) */}
+      <div
+        className="card mb-6"
+        style={{
+          background: "var(--slate-50)",
+          border: "1px solid var(--slate-200)",
+        }}
+      >
+        <div className="card-header flex justify-between items-center">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">
+              Ringkasan Beban & Posisi Akun Jurnal (COA Summary)
+            </h3>
+            <div className="text-xs text-muted">
+              Klasifikasi ayat jurnal posted berdasarkan klasifikasi bagan akun (COA)
+            </div>
+          </div>
+          <span className="text-xs text-muted">
+            {activeRows.length} baris posted aktif
+          </span>
+        </div>
+        <div className="card-body">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "16px",
+            }}
+          >
+            <div>
+              <div className="text-xs text-muted mb-1">Total Beban Pokok Proyek (5xxx)</div>
+              <div className="text-base font-bold text-slate-800">
+                {formatRupiah(projectExpenses)}
+              </div>
+              <div className="text-xs text-muted mt-0.5">Upah, Material, Subkon, Sewa Alat</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">Total Beban Operasional Umum (6xxx)</div>
+              <div className="text-base font-bold text-slate-800">
+                {formatRupiah(overheadExpenses)}
+              </div>
+              <div className="text-xs text-muted mt-0.5">Operasional & Administrasi Umum</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">Total Akumulasi Beban (5xxx + 6xxx)</div>
+              <div className="text-base font-bold" style={{ color: "var(--color-danger)" }}>
+                {formatRupiah(totalExpenses)}
+              </div>
+              <div className="text-xs text-muted mt-0.5">Total realisasi belanja dibukukan</div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">Dropping Modal / Ekuitas (3xxx)</div>
+              <div className="text-base font-bold text-emerald-600">
+                {formatRupiah(equityInflows)}
+              </div>
+              <div className="text-xs text-muted mt-0.5">Drop dana atasan/manajemen posted</div>
+            </div>
           </div>
         </div>
       </div>
@@ -154,7 +247,7 @@ export default async function JournalReportPage({
                 </tbody>
                 <tfoot>
                   <tr style={{ background: "var(--bg-subtle)", fontWeight: "bold" }}>
-                    <td colSpan={6} className="text-right">
+                    <td colSpan={7} className="text-right">
                       TOTAL (POSTED ONLY):
                     </td>
                     <td className="col-num text-primary">{formatRupiah(data.totals.totalDebit)}</td>

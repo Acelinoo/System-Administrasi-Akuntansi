@@ -4,19 +4,123 @@ import ExportButtons from "../ExportButtons";
 
 export const dynamic = "force-dynamic";
 
-export default async function CashReportPage() {
-  const data = await getCashReport();
+export default async function CashReportPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{
+    scope?: string;
+    dataScope?: string;
+  }>;
+}) {
+  const params = await searchParams;
+  const isTest = params?.scope === "TEST" || params?.dataScope === "TEST";
+  const data = await getCashReport({ dataScope: isTest ? "TEST" : "REAL" });
+
+  const isReconciled =
+    data.totals.totalOpening + data.totals.totalInflow - data.totals.totalDisbursement ===
+    data.totals.totalCurrentBalance;
 
   return (
     <>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Posisi Saldo Kas & Bank</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h2 className="text-base font-semibold">Laporan Posisi Saldo Kas & Bank</h2>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                TEST MODE
+              </span>
+            )}
+          </div>
           <div className="text-xs text-muted">
             Mutasi dan rekonsiliasi saldo real-time akun kas fisik dan rekening bank operasional
           </div>
         </div>
         <ExportButtons reportType="cash" />
+      </div>
+
+      {/* RINGKASAN ARUS KAS OPERASIONAL & REKONSILIASI */}
+      <div
+        className="card mb-6"
+        style={{
+          background: "var(--slate-50)",
+          border: "1px solid var(--slate-200)",
+        }}
+      >
+        <div className="card-header flex justify-between items-center">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">
+              Rekonsiliasi Arus Kas Operasional (Cash Flow Statement)
+            </h3>
+            <div className="text-xs text-muted">
+              Verifikasi rumus saldo deterministik: Saldo Akhir = Saldo Awal + Total Penerimaan (Inflow) - Total Pencairan (Disbursement)
+            </div>
+          </div>
+          <span
+            className={`status ${isReconciled ? "status-success" : "status-danger"}`}
+            style={{ fontSize: "0.75rem", padding: "2px 8px" }}
+          >
+            {isReconciled ? "100% RECONCILED (SEIMBANG)" : "SELISIH REKONSILIASI"}
+          </span>
+        </div>
+        <div className="card-body">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: "16px",
+            }}
+          >
+            <div>
+              <div className="text-xs text-muted mb-1">1. Saldo Awal Likuiditas</div>
+              <div className="text-base font-bold text-slate-800">
+                {formatRupiah(data.totals.totalOpening)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">2. Arus Kas Masuk (Penerimaan)</div>
+              <div className="text-base font-bold" style={{ color: "var(--color-success)" }}>
+                +{formatRupiah(data.totals.totalInflow)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">3. Arus Kas Keluar (Pencairan)</div>
+              <div className="text-base font-bold" style={{ color: "var(--color-danger)" }}>
+                -{formatRupiah(data.totals.totalDisbursement)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">4. Arus Kas Bersih (Net Flow)</div>
+              <div
+                className="text-base font-bold"
+                style={{
+                  color:
+                    data.totals.totalInflow - data.totals.totalDisbursement >= 0
+                      ? "var(--color-success)"
+                      : "var(--color-danger)",
+                }}
+              >
+                {formatRupiah(data.totals.totalInflow - data.totals.totalDisbursement)}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs text-muted mb-1">5. Saldo Akhir Likuiditas</div>
+              <div className="text-base font-bold text-primary">
+                {formatRupiah(data.totals.totalCurrentBalance)}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="stat-grid mb-6">

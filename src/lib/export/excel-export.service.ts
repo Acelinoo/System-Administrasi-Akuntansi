@@ -49,9 +49,11 @@ export async function buildAccExcel(data: AccReportResult): Promise<Uint8Array> 
   const ws = wb.addWorksheet("Rekap ACC");
 
   // Title Block
+  const scopeLabel = data.filterMeta.dataScopeText || "REAL";
+  const scopeTag = scopeLabel.includes("TEST") ? " [MODE PENGUJIAN / TEST DATA]" : "";
   ws.addRow(["PROTRACK — LAPORAN REKAPITULASI PENGAJUAN ACC"]);
   ws.addRow([`Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText} | PIC: ${data.filterMeta.picText}`]);
-  ws.addRow([`Status: ${data.filterMeta.statusText} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
+  ws.addRow([`Status: ${data.filterMeta.statusText} | Scope: ${scopeLabel}${scopeTag} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
   ws.addRow([]); // Blank line
 
   ws.getCell("A1").font = { name: "Calibri", size: 14, bold: true };
@@ -168,9 +170,11 @@ export async function buildRealizationExcel(data: RealizationReportResult): Prom
   wb.creator = "ProTrack System";
   const ws = wb.addWorksheet("Realisasi");
 
+  const scopeLabel = data.filterMeta.dataScopeText || "REAL";
+  const scopeTag = scopeLabel.includes("TEST") ? " [MODE PENGUJIAN / TEST DATA]" : "";
   ws.addRow(["PROTRACK — LAPORAN REALISASI PENCAIRAN DANA"]);
   ws.addRow([`Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText} | Akun: ${data.filterMeta.accountText}`]);
-  ws.addRow([`Status: ${data.filterMeta.statusText} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
+  ws.addRow([`Status: ${data.filterMeta.statusText} | Scope: ${scopeLabel}${scopeTag} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
   ws.addRow([]);
 
   ws.getCell("A1").font = { name: "Calibri", size: 14, bold: true };
@@ -276,8 +280,10 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
   wb.creator = "ProTrack System";
   const ws = wb.addWorksheet("Per Project");
 
+  const scopeLabel = data.filterMeta.dataScopeText || "REAL";
+  const scopeTag = scopeLabel.includes("TEST") ? " [MODE PENGUJIAN / TEST DATA]" : "";
   ws.addRow(["PROTRACK — LAPORAN REKAPITULASI DANA PER PROYEK"]);
-  ws.addRow([`Periode: ${data.filterMeta.periodText} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
+  ws.addRow([`Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText} | Scope: ${scopeLabel}${scopeTag} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
   ws.addRow([]);
 
   ws.getCell("A1").font = { name: "Calibri", size: 14, bold: true };
@@ -288,11 +294,14 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
     "Nama Proyek / Kategori Biaya",
     "Nilai Kontrak",
     "Penerimaan (Termin)",
+    "Pagu RAP",
     "Pengeluaran (Biaya)",
+    "Sisa RAP",
     "Saldo Bersih",
     "Sisa Kontrak",
     "Prog. Kas",
     "Prog. Fisik",
+    "Status Kontrol",
   ]);
 
   headerRow.height = 24;
@@ -305,26 +314,40 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
 
   data.projects.forEach((proj) => {
     // Parent Project Row
+    const statusText =
+      proj.costVarianceStatus === "OVERBUDGET"
+        ? "OVER BUDGET"
+        : proj.costVarianceStatus === "WARNING"
+        ? `MENDEKATI RAP (${proj.budgetBurnRatePct ? proj.budgetBurnRatePct.toFixed(0) : "90"}%)`
+        : proj.costVarianceStatus === "HEALTHY"
+        ? `AMAN (${proj.budgetBurnRatePct ? proj.budgetBurnRatePct.toFixed(0) : "0"}%)`
+        : proj.realizedAmount > 0
+        ? "Tanpa RAP"
+        : "-";
+
     const pRow = ws.addRow([
       proj.projectCode,
       proj.projectName,
-      proj.contractValue ?? 0,
+      proj.contractValue != null ? proj.contractValue : "-",
       proj.totalInflow,
+      proj.totalBudget > 0 ? proj.totalBudget : "-",
       proj.realizedAmount,
+      proj.remainingBudget !== null ? proj.remainingBudget : "-",
       proj.netBalance,
-      proj.remainingContract ?? 0,
+      proj.remainingContract != null ? proj.remainingContract : "-",
       proj.receiptProgressPct != null ? `${proj.receiptProgressPct.toFixed(1)}%` : "-",
       proj.physicalProgressPct != null ? `${proj.physicalProgressPct.toFixed(1)}%` : "Belum tersedia",
+      statusText,
     ]);
     pRow.height = 22;
     pRow.eachCell((cell, colNum) => {
       cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFF8FAFC" } };
       cell.font = { name: "Calibri", size: 10, bold: true };
       cell.border = THIN_BORDER;
-      if ([3, 4, 5, 6, 7].includes(colNum)) {
+      if ([3, 4, 5, 6, 7, 8, 9].includes(colNum)) {
         cell.numFmt = '#,##0';
         cell.alignment = { horizontal: "right" };
-      } else if ([8, 9].includes(colNum)) {
+      } else if ([10, 11, 12].includes(colNum)) {
         cell.alignment = { horizontal: "center" };
       }
     });
@@ -332,11 +355,14 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
     // Breakdown categories under project
     proj.categories.forEach((cat) => {
       const cRow = ws.addRow([
-        `  ↳ ${cat.categoryCode}`,
+        `  - ${cat.categoryCode}`,
         cat.categoryName,
         "",
         "",
+        "",
         cat.realizedAmount,
+        "",
+        "",
         "",
         "",
         "",
@@ -346,10 +372,10 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
       cRow.eachCell((cell, colNum) => {
         cell.font = { name: "Calibri", size: 9, italic: true };
         cell.border = THIN_BORDER;
-        if (colNum === 5) {
+        if (colNum === 6) {
           cell.numFmt = '#,##0';
           cell.alignment = { horizontal: "right" };
-        } else if ([8, 9].includes(colNum)) {
+        } else if ([10, 11, 12].includes(colNum)) {
           cell.alignment = { horizontal: "center" };
         }
       });
@@ -360,10 +386,13 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
   const totalRow = ws.addRow([
     "TOTAL KESELURUHAN",
     `${data.totals.projectCount} Proyek`,
-    data.totals.totalContractValue,
+    data.totals.totalContractValue > 0 ? data.totals.totalContractValue : "-",
     data.totals.totalInflow,
+    data.totals.totalBudget > 0 ? data.totals.totalBudget : "-",
     data.totals.totalRealized,
+    data.totals.totalBudget > 0 ? data.totals.totalRemainingBudget : "-",
     data.totals.totalNetBalance,
+    "",
     "",
     "",
     "",
@@ -374,25 +403,28 @@ export async function buildProjectExcel(data: ProjectReportResult): Promise<Uint
     cell.fill = TOTAL_FILL;
     cell.font = { name: "Calibri", size: 10, bold: true };
     cell.border = DOUBLE_BOTTOM_BORDER;
-    if ([3, 4, 5, 6].includes(colNum)) {
+    if ([3, 4, 5, 6, 7, 8].includes(colNum)) {
       cell.numFmt = '#,##0';
       cell.alignment = { horizontal: "right" };
-    } else if ([8, 9].includes(colNum)) {
+    } else if ([10, 11, 12].includes(colNum)) {
       cell.alignment = { horizontal: "center" };
     }
   });
 
   ws.views = [{ state: "frozen", ySplit: 4 }];
   ws.columns = [
-    { width: 16 },
-    { width: 34 },
-    { width: 20 },
-    { width: 20 },
-    { width: 20 },
-    { width: 20 },
-    { width: 20 },
     { width: 14 },
-    { width: 16 },
+    { width: 30 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 18 },
+    { width: 12 },
+    { width: 14 },
+    { width: 18 },
   ];
 
   const buffer = await wb.xlsx.writeBuffer();
@@ -407,8 +439,10 @@ export async function buildPicExcel(data: PicReportResult): Promise<Uint8Array> 
   wb.creator = "ProTrack System";
   const ws = wb.addWorksheet("Per PIC");
 
+  const scopeLabel = data.filterMeta.dataScopeText || "REAL";
+  const scopeTag = scopeLabel.includes("TEST") ? " [MODE PENGUJIAN / TEST DATA]" : "";
   ws.addRow(["PROTRACK — LAPORAN MONITORING DISTRIBUSI PIC LAPANGAN"]);
-  ws.addRow([`Periode: ${data.filterMeta.periodText} | PIC: ${data.filterMeta.picText} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
+  ws.addRow([`Periode: ${data.filterMeta.periodText} | PIC: ${data.filterMeta.picText} | Scope: ${scopeLabel}${scopeTag} | Dicetak: ${new Date().toLocaleString("id-ID")}`]);
   ws.addRow([]);
 
   ws.getCell("A1").font = { name: "Calibri", size: 14, bold: true };
@@ -533,8 +567,10 @@ export async function buildCashExcel(data: CashReportResult): Promise<Uint8Array
   wb.creator = "ProTrack System";
   const ws = wb.addWorksheet("Kas Bank");
 
+  const scopeLabel = data.filterMeta?.dataScopeText || "REAL";
+  const scopeTag = scopeLabel.includes("TEST") ? " [MODE PENGUJIAN / TEST DATA]" : "";
   ws.addRow(["PROTRACK — LAPORAN POSISI SALDO KAS & BANK"]);
-  ws.addRow([`Dicetak pada: ${new Date().toLocaleString("id-ID")}`]);
+  ws.addRow([`Scope: ${scopeLabel}${scopeTag} | Dicetak pada: ${new Date().toLocaleString("id-ID")}`]);
   ws.addRow([]);
 
   ws.getCell("A1").font = { name: "Calibri", size: 14, bold: true };
@@ -630,9 +666,11 @@ export async function buildJournalExcel(data: JournalReportResult): Promise<Uint
   wb.creator = "ProTrack System";
   const ws = wb.addWorksheet("Jurnal");
 
+  const scopeLabel = data.filterMeta.dataScopeText || "REAL";
+  const scopeTag = scopeLabel.includes("TEST") ? " [MODE PENGUJIAN / TEST DATA]" : "";
   ws.addRow(["PROTRACK — LAPORAN BUKU JURNAL UMUM"]);
   ws.addRow([`Periode: ${data.filterMeta.periodText} | Sumber: ${data.filterMeta.sourceText} | Status: ${data.filterMeta.statusText}`]);
-  ws.addRow([`Dicetak pada: ${new Date().toLocaleString("id-ID")}`]);
+  ws.addRow([`Scope: ${scopeLabel}${scopeTag} | Dicetak pada: ${new Date().toLocaleString("id-ID")}`]);
   ws.addRow([]);
 
   ws.getCell("A1").font = { name: "Calibri", size: 14, bold: true };

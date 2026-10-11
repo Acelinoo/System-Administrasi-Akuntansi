@@ -8,6 +8,7 @@ export interface JournalReportFilter {
   status?: string;
   coaId?: string;
   dataScope?: string;
+  scope?: string;
   projectId?: string;
 }
 
@@ -51,7 +52,8 @@ export async function getJournalReport(
 ): Promise<JournalReportResult> {
   const journalWhere: Record<string, unknown> = {};
 
-  const scope = filters?.dataScope ? (filters.dataScope as DataScope | "ALL") : DataScope.REAL;
+  const rawScope = filters?.dataScope ?? filters?.scope;
+  const scope = rawScope ? (rawScope as DataScope | "ALL") : DataScope.REAL;
   if (scope !== "ALL") {
     journalWhere.dataScope = scope;
   }

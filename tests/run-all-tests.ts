@@ -473,6 +473,36 @@ async function runTestSuite() {
   }
 
   // ----------------------------------------------------
+  // CLEANUP TEST DATA
+  // ----------------------------------------------------
+  try {
+    if (disb1Id || disb2Id) {
+      await prisma.journalLine.deleteMany({
+        where: { journal: { sourceId: { in: [disb1Id, disb2Id, inflowId].filter(Boolean) } } },
+      });
+      await prisma.journalEntry.deleteMany({
+        where: { sourceId: { in: [disb1Id, disb2Id, inflowId].filter(Boolean) } },
+      });
+      await prisma.disbursementItem.deleteMany({
+        where: { disbursementId: { in: [disb1Id, disb2Id].filter(Boolean) } },
+      });
+      await prisma.disbursement.deleteMany({
+        where: { id: { in: [disb1Id, disb2Id].filter(Boolean) } },
+      });
+    }
+    if (inflowId) {
+      await prisma.fundInflow.deleteMany({ where: { id: inflowId } });
+    }
+    const testBatch = await prisma.submissionBatch.findUnique({ where: { batchCode: testBatchCode } });
+    if (testBatch) {
+      await prisma.accExpenseItem.deleteMany({ where: { batchId: testBatch.id } });
+      await prisma.submissionBatch.deleteMany({ where: { id: testBatch.id } });
+    }
+  } catch {
+    // ignore cleanup errors
+  }
+
+  // ----------------------------------------------------
   // SUMMARY
   // ----------------------------------------------------
   console.log("\n========================================================");

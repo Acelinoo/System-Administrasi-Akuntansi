@@ -3,12 +3,14 @@
 import { prisma } from "@/lib/db/prisma";
 import { revalidatePath } from "next/cache";
 import { AccountType, CoaType, NormalBalance, VendorType } from "@prisma/client";
+import { requireAuth, requireAdmin } from "@/lib/auth/auth.service";
 
 // ==========================================
 // FETCHERS
 // ==========================================
 
 export async function getMasterProjectsList() {
+  await requireAuth();
   return prisma.project.findMany({
     orderBy: { code: "asc" },
     include: {
@@ -19,6 +21,7 @@ export async function getMasterProjectsList() {
 }
 
 export async function getMasterCategoriesList() {
+  await requireAuth();
   return prisma.expenseCategory.findMany({
     orderBy: { code: "asc" },
     include: {
@@ -29,6 +32,7 @@ export async function getMasterCategoriesList() {
 }
 
 export async function getMasterPicsList() {
+  await requireAuth();
   return prisma.fieldPic.findMany({
     orderBy: { name: "asc" },
     include: {
@@ -38,6 +42,7 @@ export async function getMasterPicsList() {
 }
 
 export async function getMasterCashAccountsList() {
+  await requireAuth();
   return prisma.cashAccount.findMany({
     orderBy: { accountCode: "asc" },
     include: {
@@ -47,6 +52,7 @@ export async function getMasterCashAccountsList() {
 }
 
 export async function getMasterCoaList() {
+  await requireAuth();
   return prisma.coaAccount.findMany({
     orderBy: { accountCode: "asc" },
     include: {
@@ -60,10 +66,12 @@ export async function getMasterCoaList() {
 // ==========================================
 
 export async function createProjectAction(formData: FormData) {
-  const code = (formData.get("code") as string).trim().toUpperCase();
-  const name = (formData.get("name") as string).trim();
+  await requireAdmin();
+  const code = (formData.get("code") as string)?.trim()?.toUpperCase();
+  const name = (formData.get("name") as string)?.trim();
   const description = (formData.get("description") as string)?.trim() || null;
   const clientName = (formData.get("clientName") as string)?.trim() || null;
+  const projectType = (formData.get("projectType") as string)?.trim() || "KONTRAKTOR";
   const contractValueRaw = (formData.get("contractValue") as string)?.trim();
   const contractValue = contractValueRaw ? parseFloat(contractValueRaw) : null;
   const targetStartDateRaw = (formData.get("targetStartDate") as string)?.trim();
@@ -82,6 +90,7 @@ export async function createProjectAction(formData: FormData) {
         name,
         description,
         clientName,
+        projectType,
         contractValue: contractValue !== null && !isNaN(contractValue) ? contractValue : null,
         targetStartDate,
         targetEndDate,
@@ -96,10 +105,12 @@ export async function createProjectAction(formData: FormData) {
 }
 
 export async function updateProjectAction(formData: FormData) {
+  await requireAdmin();
   const id = formData.get("id") as string;
-  const name = (formData.get("name") as string).trim();
+  const name = (formData.get("name") as string)?.trim();
   const description = (formData.get("description") as string)?.trim() || null;
   const clientName = (formData.get("clientName") as string)?.trim() || null;
+  const projectType = (formData.get("projectType") as string)?.trim() || "KONTRAKTOR";
   const contractValueRaw = (formData.get("contractValue") as string)?.trim();
   const contractValue = contractValueRaw ? parseFloat(contractValueRaw) : null;
   const targetStartDateRaw = (formData.get("targetStartDate") as string)?.trim();
@@ -118,6 +129,7 @@ export async function updateProjectAction(formData: FormData) {
         name,
         description,
         clientName,
+        projectType,
         contractValue: contractValue !== null && !isNaN(contractValue) ? contractValue : null,
         targetStartDate,
         targetEndDate,
@@ -131,6 +143,7 @@ export async function updateProjectAction(formData: FormData) {
 }
 
 export async function createSubUnitAction(formData: FormData) {
+  await requireAdmin();
   const projectId = formData.get("projectId") as string;
   const code = (formData.get("code") as string).trim().toUpperCase();
   const name = (formData.get("name") as string).trim();
@@ -151,6 +164,7 @@ export async function createSubUnitAction(formData: FormData) {
 }
 
 export async function toggleProjectStatusAction(id: string, currentStatus: boolean) {
+  await requireAdmin();
   try {
     await prisma.project.update({
       where: { id },
@@ -168,6 +182,7 @@ export async function toggleProjectStatusAction(id: string, currentStatus: boole
 // ==========================================
 
 export async function createCategoryAction(formData: FormData) {
+  await requireAdmin();
   const code = (formData.get("code") as string).trim().toUpperCase();
   const name = (formData.get("name") as string).trim();
 
@@ -187,6 +202,7 @@ export async function createCategoryAction(formData: FormData) {
 }
 
 export async function createSubCategoryAction(formData: FormData) {
+  await requireAdmin();
   const categoryId = formData.get("categoryId") as string;
   const code = (formData.get("code") as string).trim().toUpperCase();
   const name = (formData.get("name") as string).trim();
@@ -207,6 +223,7 @@ export async function createSubCategoryAction(formData: FormData) {
 }
 
 export async function toggleCategoryStatusAction(id: string, currentStatus: boolean) {
+  await requireAdmin();
   try {
     await prisma.expenseCategory.update({
       where: { id },
@@ -224,6 +241,7 @@ export async function toggleCategoryStatusAction(id: string, currentStatus: bool
 // ==========================================
 
 export async function createPicAction(formData: FormData) {
+  await requireAuth();
   const name = (formData.get("name") as string).trim().toUpperCase();
   const roleTitle = (formData.get("roleTitle") as string)?.trim() || null;
   const phone = (formData.get("phone") as string)?.trim() || null;
@@ -244,6 +262,7 @@ export async function createPicAction(formData: FormData) {
 }
 
 export async function togglePicStatusAction(id: string, currentStatus: boolean) {
+  await requireAuth();
   try {
     await prisma.fieldPic.update({
       where: { id },
@@ -261,6 +280,7 @@ export async function togglePicStatusAction(id: string, currentStatus: boolean) 
 // ==========================================
 
 export async function createCashAccountAction(formData: FormData) {
+  await requireAdmin();
   const accountCode = (formData.get("accountCode") as string).trim().toUpperCase();
   const accountName = (formData.get("accountName") as string).trim();
   const accountType = formData.get("accountType") as AccountType;
@@ -294,6 +314,7 @@ export async function createCashAccountAction(formData: FormData) {
 }
 
 export async function toggleCashAccountStatusAction(id: string, currentStatus: boolean) {
+  await requireAdmin();
   try {
     await prisma.cashAccount.update({
       where: { id },
@@ -311,6 +332,7 @@ export async function toggleCashAccountStatusAction(id: string, currentStatus: b
 // ==========================================
 
 export async function createCoaAccountAction(formData: FormData) {
+  await requireAdmin();
   const accountCode = (formData.get("accountCode") as string).trim();
   const accountName = (formData.get("accountName") as string).trim();
   const accountType = formData.get("accountType") as CoaType;
@@ -338,6 +360,7 @@ export async function createCoaAccountAction(formData: FormData) {
 }
 
 export async function toggleCoaStatusAction(id: string, currentStatus: boolean) {
+  await requireAdmin();
   try {
     await prisma.coaAccount.update({
       where: { id },
@@ -355,12 +378,14 @@ export async function toggleCoaStatusAction(id: string, currentStatus: boolean) 
 // ==========================================
 
 export async function getMasterVendorsList() {
+  await requireAuth();
   return prisma.vendor.findMany({
     orderBy: [{ isActive: "desc" }, { name: "asc" }],
   });
 }
 
 export async function createVendorAction(formData: FormData) {
+  await requireAuth();
   const code = (formData.get("code") as string)?.trim().toUpperCase() || null;
   const name = (formData.get("name") as string)?.trim();
   const type = (formData.get("type") as VendorType) || VendorType.SUPPLIER;
@@ -368,8 +393,8 @@ export async function createVendorAction(formData: FormData) {
   const address = (formData.get("address") as string)?.trim() || null;
   const notes = (formData.get("notes") as string)?.trim() || null;
 
-  if (!name) {
-    return { error: "Nama Vendor / Rekanan wajib diisi." };
+  if (!name || name.length < 2) {
+    return { error: "Nama Vendor / Rekanan wajib diisi minimal 2 karakter." };
   }
 
   try {
@@ -392,6 +417,7 @@ export async function createVendorAction(formData: FormData) {
 }
 
 export async function updateVendorAction(formData: FormData) {
+  await requireAuth();
   const id = formData.get("id") as string;
   const code = (formData.get("code") as string)?.trim().toUpperCase() || null;
   const name = (formData.get("name") as string)?.trim();
@@ -400,8 +426,8 @@ export async function updateVendorAction(formData: FormData) {
   const address = (formData.get("address") as string)?.trim() || null;
   const notes = (formData.get("notes") as string)?.trim() || null;
 
-  if (!id || !name) {
-    return { error: "ID dan Nama Vendor wajib diisi." };
+  if (!id || !name || name.length < 2) {
+    return { error: "ID dan Nama Vendor wajib diisi minimal 2 karakter." };
   }
 
   try {
@@ -424,6 +450,7 @@ export async function updateVendorAction(formData: FormData) {
 }
 
 export async function toggleVendorStatusAction(id: string, currentStatus: boolean) {
+  await requireAuth();
   try {
     await prisma.vendor.update({
       where: { id },
@@ -437,8 +464,19 @@ export async function toggleVendorStatusAction(id: string, currentStatus: boolea
 }
 
 export async function deleteVendorAction(id: string) {
+  await requireAdmin();
   try {
-    // Check if vendor has been used in transactions in future phases, or safe delete if completely unused
+    const [contractsCount, detailsCount] = await Promise.all([
+      prisma.vendorContract.count({ where: { vendorId: id } }),
+      prisma.expenseItemDetail.count({ where: { vendorId: id } }),
+    ]);
+
+    if (contractsCount > 0 || detailsCount > 0) {
+      return {
+        error: `Vendor tidak dapat dihapus karena telah terkait dengan ${contractsCount} kontrak dan ${detailsCount} rincian transaksi pengeluaran. Anda dapat menonaktifkan status vendor ini.`,
+      };
+    }
+
     await prisma.vendor.delete({
       where: { id },
     });

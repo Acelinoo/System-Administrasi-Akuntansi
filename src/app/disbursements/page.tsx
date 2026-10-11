@@ -2,11 +2,23 @@ import Link from "next/link";
 import { getDisbursementList, getDisbursementPageSummary } from "../actions/disbursement.actions";
 import { formatRupiah, formatDate, txStatusLabel } from "@/lib/utils/format";
 import { PlusIcon } from "../components/Icons";
+import { DataScope } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
 
-export default async function DisbursementListPage() {
-  const [disbursements, stats] = await Promise.all([
-    getDisbursementList(),
-    getDisbursementPageSummary(),
+export default async function DisbursementListPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ scope?: string }>;
+}) {
+  const params = await searchParams;
+  const isTest = params?.scope === "TEST";
+  const scope = isTest ? DataScope.TEST : DataScope.REAL;
+
+  const [disbursements, stats, realCount, testCount] = await Promise.all([
+    getDisbursementList(scope),
+    getDisbursementPageSummary(scope),
+    prisma.disbursement.count({ where: { dataScope: DataScope.REAL } }),
+    prisma.disbursement.count({ where: { dataScope: DataScope.TEST } }),
   ]);
 
   const postedDisbursements = disbursements.filter((d) => d.status === "POSTED");
@@ -19,18 +31,60 @@ export default async function DisbursementListPage() {
     <>
       <div className="page-header">
         <div>
-          <h1>Realisasi Pencairan</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h1>Realisasi Pencairan</h1>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "3px 10px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                MODE UJI COBA (dataScope: TEST)
+              </span>
+            )}
+          </div>
           <div className="page-header-subtitle">
-            Pencatatan realisasi pengeluaran kas proyek berdasarkan data ACC yang telah sah
+            {isTest
+              ? "Lingkungan Terisolasi — Menampilkan voucher pencairan hasil pengujian manual (dataScope: TEST)."
+              : "Pencatatan realisasi pengeluaran kas proyek berdasarkan data ACC yang telah sah"}
           </div>
         </div>
-        <Link href="/disbursements/new" className="btn btn-primary">
+        <Link href={isTest ? "/disbursements/new?scope=TEST" : "/disbursements/new"} className="btn btn-primary">
           <PlusIcon size={14} />
           <span>Pencairan Baru</span>
         </Link>
       </div>
 
       <div className="page-body">
+        {/* Scope Switcher Tabs */}
+        <div className="scope-tabs mb-6">
+          <Link
+            href="/disbursements"
+            className={`scope-tab ${!isTest ? "active" : ""}`}
+            title="Lihat Voucher Pencairan Data Operasional Nyata (REAL)"
+          >
+            <span className="status-indicator-dot online" />
+            <span>Data Operasional (REAL)</span>
+            <span className="scope-tab-badge">{realCount}</span>
+          </Link>
+          <Link
+            href="/disbursements?scope=TEST"
+            className={`scope-tab ${isTest ? "active test-active" : ""}`}
+            title="Lihat Voucher Pencairan Pengujian UAT (TEST)"
+          >
+            <span className="status-indicator-dot test" />
+            <span>Pengujian UAT (TEST)</span>
+            <span className="scope-tab-badge">{testCount}</span>
+          </Link>
+        </div>
+
         {/* 1. 4 SUMMARY CARDS (MONETIRA STYLE) */}
         <div className="stat-grid mb-6">
           <div className="stat-card">
@@ -98,10 +152,47 @@ export default async function DisbursementListPage() {
             {disbursements.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-state-icon">💸</div>
-                <div className="empty-state-title">Belum ada voucher pencairan</div>
-                <div className="empty-state-desc">
-                  Setelah data ACC dicatatkan, Anda dapat mencatatkan pencairan/realisasinya melalui tombol di atas.
+                <div className="empty-state-title">
+                  {!isTest ? "Belum ada voucher pencairan operasional (REAL)" : "Belum ada voucher pencairan pengujian (TEST)"}
                 </div>
+                <div className="empty-state-desc">
+                  {!isTest
+                    ? "Setelah data ACC dicatatkan, Anda dapat mencatatkan pencairan/realisasinya melalui tombol di atas."
+                    : "Pencairan pengujian dengan dataScope=TEST akan tampil di sini."}
+                </div>
+                {!isTest && testCount > 0 && (
+                  <div
+                    style={{
+                      marginTop: 20,
+                      padding: "14px 18px",
+                      borderRadius: 8,
+                      background: "#fef3c7",
+                      border: "1px solid #fde68a",
+                      maxWidth: 520,
+                      marginLeft: "auto",
+                      marginRight: "auto",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                        color: "#92400e",
+                        marginBottom: 10,
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      💡 Ditemukan {testCount} voucher pencairan pada mode pengujian (scope=TEST).
+                    </p>
+                    <Link
+                      href="/disbursements?scope=TEST"
+                      className="btn btn-sm btn-primary"
+                      style={{ background: "#d97706", borderColor: "#b45309" }}
+                    >
+                      Buka Voucher Pencairan UAT ({testCount} Voucher) →
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div style={{ overflowX: "auto" }}>

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CashType } from "@prisma/client";
+import { CashType, DataScope } from "@prisma/client";
 
 export const accExpenseItemInputSchema = z.object({
   noKas: z
@@ -27,6 +27,7 @@ export const createSubmissionBatchSchema = z.object({
   approvedByName: z.string().trim().min(2, "Nama atasan peng-ACC wajib diisi").default("Pa Giri"),
   notes: z.string().trim().nullable().optional(),
   createdById: z.string().uuid().optional(),
+  dataScope: z.nativeEnum(DataScope).optional(),
   items: z.array(accExpenseItemInputSchema).min(1, "Minimal harus ada 1 item ACC dalam batch"),
 });
 

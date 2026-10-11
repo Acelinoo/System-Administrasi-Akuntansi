@@ -20,9 +20,10 @@ export default async function AccReportPage({
   }>;
 }) {
   const params = await searchParams;
+  const isTest = (params as any)?.scope === "TEST" || (params as any)?.dataScope === "TEST";
   const page = params.page ? Math.max(1, parseInt(params.page, 10) || 1) : 1;
   const [data, projects, categories, pics] = await Promise.all([
-    getAccReport({ ...params, page, pageSize: 50 }),
+    getAccReport({ ...params, page, pageSize: 50, dataScope: isTest ? "TEST" : "REAL" }),
     prisma.project.findMany({
       where: { isActive: true },
       select: {
@@ -65,7 +66,24 @@ export default async function AccReportPage({
     <>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Laporan Rekapitulasi Data ACC</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h2 className="text-base font-semibold">Laporan Rekapitulasi Data ACC</h2>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                TEST MODE
+              </span>
+            )}
+          </div>
           <div className="text-xs text-muted">
             Monitoring data hasil ACC atasan, realisasi pencairan, dan sisa outstanding
           </div>

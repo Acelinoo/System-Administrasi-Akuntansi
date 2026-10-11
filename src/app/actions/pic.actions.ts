@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db/prisma";
 import { AccStatus, TransactionStatus, DataScope } from "@prisma/client";
+import { requireAuth } from "@/lib/auth/auth.service";
 
 export interface PicSummaryItem {
   picId: string;
@@ -39,6 +40,7 @@ export async function getPicDistributionData(searchParams?: {
   page?: string | number;
   pageSize?: number;
 }) {
+  await requireAuth();
   const picId = searchParams?.picId;
   const projectId = searchParams?.projectId;
   const status = searchParams?.status;

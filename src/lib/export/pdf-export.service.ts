@@ -14,14 +14,23 @@ function addHeader(
   doc: jsPDF,
   title: string,
   filterSub: string,
-  orientation: "landscape" | "portrait"
+  orientation: "landscape" | "portrait",
+  dataScopeText?: string
 ) {
   const pageWidth = orientation === "landscape" ? 297 : 210;
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
   doc.setTextColor(30, 41, 59); // Slate 800
-  doc.text("ProTrack — Project Administration System", 14, 15);
+  doc.text("ProTrack - Project Administration System", 14, 15);
+
+  const isTest = dataScopeText && (dataScopeText.includes("TEST") || dataScopeText === "TEST");
+  if (isTest) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(180, 83, 9); // Amber 700
+    doc.text("[MODE PENGUJIAN / TEST DATA]", pageWidth - 14, 15, { align: "right" });
+  }
 
   doc.setFontSize(11);
   doc.setTextColor(51, 65, 85);
@@ -69,7 +78,8 @@ export async function buildAccPdf(data: AccReportResult): Promise<Uint8Array> {
     doc,
     "Laporan Rekapitulasi Pengajuan ACC",
     `Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText} | PIC: ${data.filterMeta.picText} | Status: ${data.filterMeta.statusText}`,
-    "landscape"
+    "landscape",
+    data.filterMeta.dataScopeText
   );
 
   const head = [
@@ -155,7 +165,8 @@ export async function buildRealizationPdf(data: RealizationReportResult): Promis
     doc,
     "Laporan Realisasi Pencairan Dana",
     `Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText} | Akun: ${data.filterMeta.accountText} | Status: ${data.filterMeta.statusText}`,
-    "landscape"
+    "landscape",
+    data.filterMeta.dataScopeText
   );
 
   const head = [
@@ -237,34 +248,50 @@ export async function buildProjectPdf(data: ProjectReportResult): Promise<Uint8A
     doc,
     "Laporan Rekapitulasi Alokasi Dana per Proyek",
     `Periode: ${data.filterMeta.periodText} | Proyek: ${data.filterMeta.projectText}`,
-    "landscape"
+    "landscape",
+    data.filterMeta.dataScopeText
   );
 
   const tableBody: (string | { content: string; colSpan?: number; styles?: any })[][] = [];
 
   data.projects.forEach((proj) => {
+    const statusText =
+      proj.costVarianceStatus === "OVERBUDGET"
+        ? "OVER BUDGET"
+        : proj.costVarianceStatus === "WARNING"
+        ? `MENDEKATI (${proj.budgetBurnRatePct ? proj.budgetBurnRatePct.toFixed(0) : "90"}%)`
+        : proj.costVarianceStatus === "HEALTHY"
+        ? `AMAN (${proj.budgetBurnRatePct ? proj.budgetBurnRatePct.toFixed(0) : "0"}%)`
+        : proj.realizedAmount > 0
+        ? "Tanpa RAP"
+        : "-";
+
     // Parent project row
     tableBody.push([
       {
-        content: `PROYEK: ${proj.projectCode} — ${proj.projectName} (${proj.itemCount} item)`,
+        content: `PROYEK: ${proj.projectCode} - ${proj.projectName} (${proj.itemCount} item)`,
         styles: { fontStyle: "bold", fillColor: [241, 245, 249] },
       },
       { content: proj.contractValue != null ? formatRupiah(proj.contractValue) : "-", styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
       { content: formatRupiah(proj.totalInflow), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
+      { content: proj.totalBudget > 0 ? formatRupiah(proj.totalBudget) : "-", styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
       { content: formatRupiah(proj.realizedAmount), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
+      { content: proj.remainingBudget != null ? formatRupiah(proj.remainingBudget) : "-", styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
       { content: formatRupiah(proj.netBalance), styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
-      { content: proj.remainingContract != null ? formatRupiah(proj.remainingContract) : "-", styles: { fontStyle: "bold", halign: "right", fillColor: [241, 245, 249] } },
       { content: proj.receiptProgressPct != null ? `${proj.receiptProgressPct.toFixed(1)}%` : "-", styles: { fontStyle: "bold", halign: "center", fillColor: [241, 245, 249] } },
       { content: proj.physicalProgressPct != null ? `${proj.physicalProgressPct.toFixed(1)}%` : "Belum tersedia", styles: { fontStyle: "bold", halign: "center", fillColor: [241, 245, 249] } },
+      { content: statusText, styles: { fontStyle: "bold", halign: "center", fillColor: [241, 245, 249] } },
     ]);
 
     // Categories breakdown
     proj.categories.forEach((cat) => {
       tableBody.push([
-        `   ↳ ${cat.categoryCode} - ${cat.categoryName}`,
+        `   - ${cat.categoryCode} - ${cat.categoryName}`,
+        "-",
         "-",
         "-",
         formatRupiah(cat.realizedAmount),
+        "-",
         "-",
         "-",
         "-",
@@ -276,9 +303,11 @@ export async function buildProjectPdf(data: ProjectReportResult): Promise<Uint8A
   const foot = [
     [
       `TOTAL KESELURUHAN (${data.totals.projectCount} Proyek)`,
-      formatRupiah(data.totals.totalContractValue),
+      data.totals.totalContractValue > 0 ? formatRupiah(data.totals.totalContractValue) : "-",
       formatRupiah(data.totals.totalInflow),
+      data.totals.totalBudget > 0 ? formatRupiah(data.totals.totalBudget) : "-",
       formatRupiah(data.totals.totalRealized),
+      data.totals.totalBudget > 0 ? formatRupiah(data.totals.totalRemainingBudget) : "-",
       formatRupiah(data.totals.totalNetBalance),
       "-",
       "-",
@@ -287,23 +316,25 @@ export async function buildProjectPdf(data: ProjectReportResult): Promise<Uint8A
   ];
 
   runAutoTable(doc, {
-    head: [["Proyek & Kategori Biaya", "Nilai Kontrak", "Penerimaan", "Biaya Keluar", "Saldo Bersih", "Sisa Kontrak", "Prog. Kas", "Prog. Fisik"]],
+    head: [["Proyek & Kategori Biaya", "Nilai Kontrak", "Penerimaan", "Pagu RAP", "Biaya Keluar", "Sisa RAP", "Saldo Bersih", "Prog. Kas", "Prog. Fisik", "Status Kontrol"]],
     body: tableBody,
     foot,
     startY: 34,
     theme: "grid",
-    styles: { fontSize: 8, cellPadding: 1.8, textColor: [30, 41, 59] },
+    styles: { fontSize: 7.5, cellPadding: 1.5, textColor: [30, 41, 59] },
     headStyles: { fillColor: [30, 41, 59], textColor: [255, 255, 255], fontStyle: "bold" },
     footStyles: { fillColor: [226, 232, 240], textColor: [15, 23, 42], fontStyle: "bold" },
     columnStyles: {
       0: { cellWidth: "auto" },
-      1: { halign: "right", cellWidth: 28 },
-      2: { halign: "right", cellWidth: 28 },
-      3: { halign: "right", cellWidth: 28 },
-      4: { halign: "right", cellWidth: 28 },
-      5: { halign: "right", cellWidth: 28 },
-      6: { halign: "center", cellWidth: 20 },
-      7: { halign: "center", cellWidth: 24 },
+      1: { halign: "right", cellWidth: 23 },
+      2: { halign: "right", cellWidth: 23 },
+      3: { halign: "right", cellWidth: 23 },
+      4: { halign: "right", cellWidth: 23 },
+      5: { halign: "right", cellWidth: 23 },
+      6: { halign: "right", cellWidth: 23 },
+      7: { halign: "right", cellWidth: 23 },
+      8: { halign: "center", cellWidth: 17 },
+      9: { halign: "center", cellWidth: 20 },
     },
   });
 
@@ -320,7 +351,8 @@ export async function buildPicPdf(data: PicReportResult): Promise<Uint8Array> {
     doc,
     "Laporan Monitoring Distribusi PIC Lapangan",
     `Periode: ${data.filterMeta.periodText} | PIC: ${data.filterMeta.picText} | Status: ${data.filterMeta.statusText}`,
-    "landscape"
+    "landscape",
+    data.filterMeta.dataScopeText
   );
 
   const tableBody: any[] = [];
@@ -328,7 +360,7 @@ export async function buildPicPdf(data: PicReportResult): Promise<Uint8Array> {
   data.pics.forEach((p) => {
     tableBody.push([
       {
-        content: `PIC: ${p.picName} ${p.roleTitle ? `(${p.roleTitle})` : ""} — ${p.itemCount} Transaksi`,
+        content: `PIC: ${p.picName} ${p.roleTitle ? `(${p.roleTitle})` : ""} - ${p.itemCount} Transaksi`,
         colSpan: 4,
         styles: { fontStyle: "bold", fillColor: [241, 245, 249] },
       },
@@ -395,7 +427,13 @@ export async function buildPicPdf(data: PicReportResult): Promise<Uint8Array> {
 // ----------------------------------------------------
 export async function buildCashPdf(data: CashReportResult): Promise<Uint8Array> {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  addHeader(doc, "Laporan Posisi Saldo Kas & Bank", "Posisi Saldo Real-Time Rekening Operasional", "portrait");
+  addHeader(
+    doc,
+    "Laporan Posisi Saldo Kas & Bank",
+    "Posisi Saldo Real-Time Rekening Operasional",
+    "portrait",
+    data.filterMeta?.dataScopeText
+  );
 
   const head = [["Akun & Rekening", "Tipe", "Saldo Awal", "Inflow (Masuk)", "Pencairan (Keluar)", "Saldo Akhir"]];
 
@@ -451,7 +489,8 @@ export async function buildJournalPdf(data: JournalReportResult): Promise<Uint8A
     doc,
     "Laporan Buku Jurnal Umum (Double-Entry)",
     `Periode: ${data.filterMeta.periodText} | Sumber: ${data.filterMeta.sourceText} | Status: ${data.filterMeta.statusText}`,
-    "landscape"
+    "landscape",
+    data.filterMeta.dataScopeText
   );
 
   const head = [

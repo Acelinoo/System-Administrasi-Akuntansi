@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   DashboardIcon,
@@ -33,6 +33,9 @@ interface NavSection {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const isTest = searchParams?.get("scope") === "TEST";
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [masterExpanded, setMasterExpanded] = useState(true);
 
@@ -49,6 +52,10 @@ export default function Sidebar() {
       return pathname.startsWith("/reports") && !pathname.startsWith("/reports/projects");
     }
     return pathname.startsWith(href);
+  };
+
+  const getScopedHref = (href: string) => {
+    return isTest ? `${href}?scope=TEST` : href;
   };
 
   const navSections: NavSection[] = [
@@ -95,6 +102,7 @@ export default function Sidebar() {
         { href: "/master/categories", label: "Kategori", icon: <CategoryIcon size={17} /> },
         { href: "/master/pic", label: "PIC", icon: <PicIcon size={17} /> },
         { href: "/master/accounts", label: "Kas & Bank", icon: <BankIcon size={17} /> },
+        { href: "/master/users", label: "Pengguna", icon: <PicIcon size={17} /> },
       ],
     },
   ];
@@ -168,7 +176,7 @@ export default function Sidebar() {
                       return (
                         <Link
                           key={item.href}
-                          href={item.href}
+                          href={getScopedHref(item.href)}
                           className={`sidebar-link${active ? " active" : ""}`}
                           onClick={() => setMobileOpen(false)}
                         >
@@ -186,12 +194,15 @@ export default function Sidebar() {
 
         {/* User Status Footer */}
         <div className="sidebar-user">
-          <div className="sidebar-user-avatar">SA</div>
+          <div className="sidebar-user-avatar" style={isTest ? { background: "#d97706" } : {}}>SA</div>
           <div className="sidebar-user-info">
             <div className="sidebar-user-name">Staff Admin</div>
             <div className="sidebar-user-role">
-              <span className="user-status-dot" />
-              Keuangan Proyek
+              <span
+                className="user-status-dot"
+                style={isTest ? { background: "#f59e0b" } : {}}
+              />
+              {isTest ? "Mode UAT (TEST)" : "Keuangan Proyek"}
             </div>
           </div>
         </div>

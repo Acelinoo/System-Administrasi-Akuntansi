@@ -5,23 +5,42 @@ import {
   createProjectBudget,
   addBudgetItem,
   deleteBudgetItem,
+  deleteProjectBudget,
   createProjectTermin,
   recordTerminPayment,
   createProjectProgressLog,
   createExpenseItemDetail,
+  deleteExpenseItemDetail,
   createVendorContract,
+  deleteVendorContract,
 } from "@/lib/finance/project-360.service";
 import { prisma } from "@/lib/db/prisma";
+import { DataScope } from "@prisma/client";
+import {
+  createProjectBudgetSchema,
+  addBudgetItemSchema,
+  updateProjectContractSchema,
+} from "@/lib/validation/project-budget.schema";
+import {
+  createExpenseItemDetailSchema,
+  createVendorContractSchema,
+} from "@/lib/validation/vendor-expense.schema";
+import { requireAuth, requireAdmin } from "@/lib/auth/auth.service";
 
 export async function createProjectBudgetAction(formData: FormData) {
-  const projectId = formData.get("projectId") as string;
-  const title = (formData.get("title") as string)?.trim();
-  const notes = (formData.get("notes") as string)?.trim() || null;
-  const itemsJson = formData.get("items") as string;
+  await requireAdmin();
+  const parsed = createProjectBudgetSchema.safeParse({
+    projectId: formData.get("projectId"),
+    title: formData.get("title"),
+    notes: formData.get("notes") || null,
+  });
 
-  if (!projectId || !title) {
-    return { error: "ID Proyek dan Judul Anggaran (RAP) wajib diisi." };
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message || "Input anggaran tidak valid." };
   }
+
+  const { projectId, title, notes } = parsed.data;
+  const itemsJson = formData.get("items") as string;
 
   let items = [];
   if (itemsJson) {
@@ -49,21 +68,23 @@ export async function createProjectBudgetAction(formData: FormData) {
 }
 
 export async function addBudgetItemAction(formData: FormData) {
-  const projectId = formData.get("projectId") as string;
-  const budgetId = formData.get("budgetId") as string;
-  const itemCode = (formData.get("itemCode") as string)?.trim() || null;
-  const description = (formData.get("description") as string)?.trim();
-  const category = (formData.get("category") as string)?.trim() || null;
-  const volumeRaw = formData.get("volume") as string;
-  const unit = (formData.get("unit") as string)?.trim() || "ls";
-  const unitPriceRaw = formData.get("unitPrice") as string;
+  await requireAdmin();
+  const parsed = addBudgetItemSchema.safeParse({
+    projectId: formData.get("projectId") || undefined,
+    budgetId: formData.get("budgetId"),
+    itemCode: formData.get("itemCode") || null,
+    description: formData.get("description"),
+    category: formData.get("category") || null,
+    volume: formData.get("volume"),
+    unit: formData.get("unit"),
+    unitPrice: formData.get("unitPrice"),
+  });
 
-  if (!budgetId || !description) {
-    return { error: "Uraian pekerjaan/barang wajib diisi." };
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message || "Input item anggaran tidak valid." };
   }
 
-  const volume = parseFloat(volumeRaw) || 1;
-  const unitPrice = parseFloat(unitPriceRaw) || 0;
+  const { budgetId, projectId, itemCode, description, category, volume, unit, unitPrice } = parsed.data;
 
   try {
     const item = await addBudgetItem({
@@ -87,6 +108,7 @@ export async function addBudgetItemAction(formData: FormData) {
 }
 
 export async function deleteBudgetItemAction(itemId: string, projectId: string) {
+  await requireAdmin();
   try {
     await deleteBudgetItem(itemId);
     revalidatePath(`/projects/${projectId}`);
@@ -97,7 +119,24 @@ export async function deleteBudgetItemAction(itemId: string, projectId: string) 
   }
 }
 
+export async function deleteProjectBudgetAction(budgetId: string, projectId: string) {
+  await requireAdmin();
+  if (!budgetId || !projectId) {
+    return { error: "ID Anggaran dan ID Proyek wajib diisi." };
+  }
+
+  try {
+    await deleteProjectBudget(budgetId);
+    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(`/reports/projects`);
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Gagal menghapus versi anggaran." };
+  }
+}
+
 export async function createProjectTerminAction(formData: FormData) {
+  await requireAuth();
   const projectId = formData.get("projectId") as string;
   const terminNumberRaw = formData.get("terminNumber") as string;
   const name = (formData.get("name") as string)?.trim();
@@ -137,6 +176,7 @@ export async function createProjectTerminAction(formData: FormData) {
 }
 
 export async function recordTerminPaymentAction(formData: FormData) {
+  await requireAuth();
   const projectId = formData.get("projectId") as string;
   const terminId = formData.get("terminId") as string;
   const destinationAccountId = formData.get("destinationAccountId") as string;
@@ -155,6 +195,9 @@ export async function recordTerminPaymentAction(formData: FormData) {
   }
 
   const receivedDate = new Date(receivedDateRaw);
+  const dataScopeRaw = formData.get("dataScope") as string | null;
+  const dataScope: DataScope | undefined =
+    dataScopeRaw === "TEST" ? DataScope.TEST : dataScopeRaw === "REAL" ? DataScope.REAL : undefined;
 
   try {
     const result = await recordTerminPayment({
@@ -164,6 +207,7 @@ export async function recordTerminPaymentAction(formData: FormData) {
       receivedDate,
       referenceNo,
       notes,
+      dataScope,
     });
 
     revalidatePath(`/projects/${projectId}`);
@@ -177,6 +221,7 @@ export async function recordTerminPaymentAction(formData: FormData) {
 }
 
 export async function createProjectProgressLogAction(formData: FormData) {
+  await requireAuth();
   const projectId = formData.get("projectId") as string;
   const logDateRaw = formData.get("logDate") as string;
   const physicalProgressPctRaw = formData.get("physicalProgressPct") as string;
@@ -215,36 +260,40 @@ export async function createProjectProgressLogAction(formData: FormData) {
 }
 
 export async function createExpenseItemDetailAction(formData: FormData) {
-  const projectId = formData.get("projectId") as string;
-  const accItemId = formData.get("accItemId") as string;
+  await requireAuth();
+  const projectId = (formData.get("projectId") as string)?.trim() || null;
+  const accItemId = (formData.get("accItemId") as string)?.trim();
   const itemName = (formData.get("itemName") as string)?.trim();
   const quantityRaw = formData.get("quantity") as string;
   const unit = (formData.get("unit") as string)?.trim() || "bh";
   const unitPriceRaw = formData.get("unitPrice") as string;
-  const vendorId = (formData.get("vendorId") as string)?.trim() || null;
+  const vendorIdRaw = (formData.get("vendorId") as string)?.trim();
+  const vendorId = vendorIdRaw && vendorIdRaw !== "NONE" ? vendorIdRaw : null;
   const referenceNo = (formData.get("referenceNo") as string)?.trim() || null;
   const notes = (formData.get("notes") as string)?.trim() || null;
 
-  if (!accItemId || !itemName) {
-    return { error: "Item pengeluaran dan nama barang/material wajib diisi." };
+  const quantity = parseFloat(quantityRaw);
+  const unitPrice = parseFloat(unitPriceRaw);
+
+  const parsed = createExpenseItemDetailSchema.safeParse({
+    accItemId,
+    itemName,
+    quantity,
+    unit,
+    unitPrice,
+    vendorId,
+    referenceNo,
+    notes,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Data rincian material tidak valid." };
   }
 
-  const quantity = parseFloat(quantityRaw) || 1;
-  const unitPrice = parseFloat(unitPriceRaw) || 0;
-
   try {
-    const detail = await createExpenseItemDetail({
-      accItemId,
-      itemName,
-      quantity,
-      unit,
-      unitPrice,
-      vendorId: vendorId && vendorId !== "NONE" ? vendorId : null,
-      referenceNo,
-      notes,
-    });
+    const detail = await createExpenseItemDetail(parsed.data);
 
-    if (projectId) {
+    if (projectId && projectId !== "NONE") {
       revalidatePath(`/projects/${projectId}`);
     }
     revalidatePath(`/acc/${accItemId}`);
@@ -254,41 +303,65 @@ export async function createExpenseItemDetailAction(formData: FormData) {
   }
 }
 
-export async function createVendorContractAction(formData: FormData) {
+export async function deleteExpenseItemDetailAction(formData: FormData) {
+  await requireAdmin();
+  const detailId = (formData.get("detailId") as string)?.trim();
   const projectId = (formData.get("projectId") as string)?.trim() || null;
-  const vendorId = formData.get("vendorId") as string;
+  const accItemId = (formData.get("accItemId") as string)?.trim() || null;
+
+  if (!detailId) {
+    return { error: "ID rincian barang wajib disertakan." };
+  }
+
+  try {
+    await deleteExpenseItemDetail(detailId);
+    if (projectId && projectId !== "NONE") {
+      revalidatePath(`/projects/${projectId}`);
+    }
+    if (accItemId) {
+      revalidatePath(`/acc/${accItemId}`);
+    }
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Gagal menghapus rincian material." };
+  }
+}
+
+export async function createVendorContractAction(formData: FormData) {
+  await requireAdmin();
+  const projectIdRaw = (formData.get("projectId") as string)?.trim();
+  const projectId = projectIdRaw && projectIdRaw !== "NONE" ? projectIdRaw : null;
+  const vendorId = (formData.get("vendorId") as string)?.trim();
   const contractNumber = (formData.get("contractNumber") as string)?.trim();
   const title = (formData.get("title") as string)?.trim();
   const contractValueRaw = formData.get("contractValue") as string;
-  const startDateRaw = formData.get("startDate") as string;
-  const endDateRaw = formData.get("endDate") as string;
+  const startDateRaw = (formData.get("startDate") as string)?.trim() || null;
+  const endDateRaw = (formData.get("endDate") as string)?.trim() || null;
+  const status = (formData.get("status") as string)?.trim() || "ACTIVE";
   const notes = (formData.get("notes") as string)?.trim() || null;
 
-  if (!vendorId || !contractNumber || !title || !contractValueRaw) {
-    return { error: "Vendor, Nomor Kontrak, Judul, dan Nilai Kontrak wajib diisi." };
-  }
-
   const contractValue = parseFloat(contractValueRaw);
-  if (isNaN(contractValue) || contractValue <= 0) {
-    return { error: "Nilai kontrak vendor harus lebih besar dari 0." };
-  }
 
-  const startDate = startDateRaw ? new Date(startDateRaw) : null;
-  const endDate = endDateRaw ? new Date(endDateRaw) : null;
+  const parsed = createVendorContractSchema.safeParse({
+    vendorId,
+    projectId,
+    contractNumber,
+    title,
+    contractValue,
+    startDate: startDateRaw ? new Date(startDateRaw) : null,
+    endDate: endDateRaw ? new Date(endDateRaw) : null,
+    status,
+    notes,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Data kontrak vendor tidak valid." };
+  }
 
   try {
-    const contract = await createVendorContract({
-      vendorId,
-      projectId: projectId && projectId !== "NONE" ? projectId : null,
-      contractNumber,
-      title,
-      contractValue,
-      startDate,
-      endDate,
-      notes,
-    });
+    const contract = await createVendorContract(parsed.data);
 
-    if (projectId && projectId !== "NONE") {
+    if (projectId) {
       revalidatePath(`/projects/${projectId}`);
     }
     revalidatePath(`/master/vendors`);
@@ -298,18 +371,43 @@ export async function createVendorContractAction(formData: FormData) {
   }
 }
 
-export async function updateProjectContractDetailsAction(formData: FormData) {
-  const id = formData.get("id") as string;
-  const clientName = (formData.get("clientName") as string)?.trim() || null;
-  const projectType = (formData.get("projectType") as string)?.trim() || "KONTRAKTOR";
-  const contractValueRaw = (formData.get("contractValue") as string)?.trim();
-  const contractValue = contractValueRaw ? parseFloat(contractValueRaw) : null;
-  const targetStartDateRaw = (formData.get("targetStartDate") as string)?.trim();
-  const targetStartDate = targetStartDateRaw ? new Date(targetStartDateRaw) : null;
-  const targetEndDateRaw = (formData.get("targetEndDate") as string)?.trim();
-  const targetEndDate = targetEndDateRaw ? new Date(targetEndDateRaw) : null;
+export async function deleteVendorContractAction(formData: FormData) {
+  await requireAdmin();
+  const contractId = (formData.get("contractId") as string)?.trim();
+  const projectId = (formData.get("projectId") as string)?.trim() || null;
 
-  if (!id) return { error: "ID Proyek tidak valid." };
+  if (!contractId) {
+    return { error: "ID kontrak vendor wajib disertakan." };
+  }
+
+  try {
+    await deleteVendorContract(contractId);
+    if (projectId && projectId !== "NONE") {
+      revalidatePath(`/projects/${projectId}`);
+    }
+    revalidatePath(`/master/vendors`);
+    return { success: true };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Gagal menghapus kontrak vendor." };
+  }
+}
+
+export async function updateProjectContractDetailsAction(formData: FormData) {
+  await requireAdmin();
+  const parsed = updateProjectContractSchema.safeParse({
+    id: formData.get("id"),
+    clientName: formData.get("clientName") || null,
+    projectType: formData.get("projectType") || "KONTRAKTOR",
+    contractValue: formData.get("contractValue"),
+    targetStartDate: formData.get("targetStartDate"),
+    targetEndDate: formData.get("targetEndDate"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message || "Data kontrak tidak valid." };
+  }
+
+  const { id, clientName, projectType, contractValue, targetStartDate, targetEndDate } = parsed.data;
 
   try {
     await prisma.project.update({
@@ -317,7 +415,7 @@ export async function updateProjectContractDetailsAction(formData: FormData) {
       data: {
         clientName,
         projectType,
-        contractValue: contractValue !== null && !isNaN(contractValue) ? contractValue : null,
+        contractValue,
         targetStartDate,
         targetEndDate,
       },

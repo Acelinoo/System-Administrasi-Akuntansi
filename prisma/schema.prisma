@@ -96,13 +96,15 @@ enum TerminStatus {
 // ----------------------------------------------------
 
 model User {
-  id        String   @id @default(uuid()) @db.Uuid
-  username  String   @unique @db.VarChar(50)
-  fullName  String   @db.VarChar(100)
-  role      UserRole @default(STAFF)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now()) @db.Timestamptz()
-  updatedAt DateTime @updatedAt @db.Timestamptz()
+  id           String    @id @default(uuid()) @db.Uuid
+  username     String    @unique @db.VarChar(50)
+  fullName     String    @db.VarChar(100)
+  passwordHash String?   @db.VarChar(255)
+  role         UserRole  @default(STAFF)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime? @db.Timestamptz()
+  createdAt    DateTime  @default(now()) @db.Timestamptz()
+  updatedAt    DateTime  @updatedAt @db.Timestamptz()
 
   submissionBatches SubmissionBatch[]
   fundInflows       FundInflow[]

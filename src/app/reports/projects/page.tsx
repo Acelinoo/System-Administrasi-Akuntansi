@@ -14,10 +14,16 @@ export default async function ProjectReportPage({
     startDate?: string;
     endDate?: string;
     projectId?: string;
+    dataScope?: string;
+    scope?: string;
   }>;
 }) {
   const params = await searchParams;
-  const data = await getProjectReport(params);
+  const isTest = params?.scope === "TEST" || params?.dataScope === "TEST";
+  const data = await getProjectReport({
+    ...params,
+    dataScope: isTest ? "TEST" : "REAL",
+  });
 
   const filterConfig = {
     showDates: true,
@@ -28,7 +34,24 @@ export default async function ProjectReportPage({
     <PageMotion>
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h2 className="text-base font-semibold">Monitoring & Pengendalian Biaya Proyek (Project 360°)</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <h2 className="text-base font-semibold">Monitoring & Pengendalian Biaya Proyek (Project 360°)</h2>
+            {isTest && (
+              <span
+                style={{
+                  background: "#fef3c7",
+                  color: "#92400e",
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                  border: "1px solid #fcd34d",
+                }}
+              >
+                TEST MODE
+              </span>
+            )}
+          </div>
           <div className="text-xs text-muted">
             Rekapitulasi nilai kontrak, penerimaan termin, realisasi biaya keluar, saldo penerimaan bersih, dan progres fisik lapangan
           </div>
@@ -37,6 +60,39 @@ export default async function ProjectReportPage({
       </div>
 
       <ReportFilterBar config={filterConfig} />
+
+      {/* Alert Banner jika ada proyek OVER BUDGET atau MENDEKATI RAP */}
+      {(data.totals.overBudgetCount > 0 || data.totals.warningBudgetCount > 0) && (
+        <div
+          style={{
+            background: data.totals.overBudgetCount > 0 ? "#fef2f2" : "#fffbeb",
+            border: `1px solid ${data.totals.overBudgetCount > 0 ? "#fca5a5" : "#fde68a"}`,
+            borderRadius: "6px",
+            padding: "10px 14px",
+            marginBottom: "16px",
+            fontSize: "0.82rem",
+            color: data.totals.overBudgetCount > 0 ? "#991b1b" : "#92400e",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "1rem" }}>⚠️</span>
+            <span>
+              <strong>Perhatian Pengendalian Biaya:</strong> Ditemukan{" "}
+              {data.totals.overBudgetCount > 0 && (
+                <strong>{data.totals.overBudgetCount} proyek OVER BUDGET</strong>
+              )}
+              {data.totals.overBudgetCount > 0 && data.totals.warningBudgetCount > 0 && " dan "}
+              {data.totals.warningBudgetCount > 0 && (
+                <strong>{data.totals.warningBudgetCount} proyek mendekati batas pagu RAP (&ge;90%)</strong>
+              )}
+              . Harap tinjau realisasi pengeluaran dan adendum RAP.
+            </span>
+          </div>
+        </div>
+      )}
 
       <StaggerCards className="stat-grid mb-6">
         <div className="stat-card">
@@ -93,10 +149,13 @@ export default async function ProjectReportPage({
                     <th>Proyek / Kategori Biaya</th>
                     <th className="text-right">Nilai Kontrak</th>
                     <th className="text-right">Penerimaan</th>
+                    <th className="text-right">Pagu RAP</th>
                     <th className="text-right">Biaya Keluar</th>
+                    <th className="text-right">Sisa RAP</th>
                     <th className="text-right">Saldo Bersih</th>
-                    <th className="text-center">Progres Penerimaan</th>
-                    <th className="text-center">Progres Fisik</th>
+                    <th className="text-center">Prog. Penerimaan</th>
+                    <th className="text-center">Prog. Fisik</th>
+                    <th className="text-center">Status Kontrol</th>
                     <th className="text-center">Aksi</th>
                   </tr>
                 </thead>
@@ -132,8 +191,22 @@ export default async function ProjectReportPage({
                           <td className="col-num font-semibold positive">
                             {formatRupiah(proj.totalInflow)}
                           </td>
+                          <td className="col-num font-semibold text-slate-800">
+                            {proj.totalBudget > 0 ? formatRupiah(proj.totalBudget) : "-"}
+                          </td>
                           <td className="col-num font-semibold text-primary">
                             {formatRupiah(proj.realizedAmount)}
+                          </td>
+                          <td
+                            className="col-num font-semibold"
+                            style={{
+                              color:
+                                proj.remainingBudget !== null && proj.remainingBudget < 0
+                                  ? "var(--red-600)"
+                                  : "inherit",
+                            }}
+                          >
+                            {proj.remainingBudget !== null ? formatRupiah(proj.remainingBudget) : "-"}
                           </td>
                           <td className="col-num font-semibold" style={{ color: proj.netBalance >= 0 ? "var(--color-success)" : "var(--color-warning)" }}>
                             {formatRupiah(proj.netBalance)}
@@ -155,6 +228,37 @@ export default async function ProjectReportPage({
                             ) : (
                               <span className="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">
                                 Belum ada
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-center">
+                            {proj.costVarianceStatus === "OVERBUDGET" && (
+                              <span
+                                className="status status-danger font-bold"
+                                style={{ fontSize: "0.72rem", padding: "2px 8px" }}
+                              >
+                                OVER BUDGET
+                              </span>
+                            )}
+                            {proj.costVarianceStatus === "WARNING" && (
+                              <span
+                                className="status status-warning font-bold"
+                                style={{ fontSize: "0.72rem", padding: "2px 8px" }}
+                              >
+                                MENDEKATI RAP ({proj.budgetBurnRatePct ? proj.budgetBurnRatePct.toFixed(0) : "90"}%)
+                              </span>
+                            )}
+                            {proj.costVarianceStatus === "HEALTHY" && (
+                              <span
+                                className="status status-success"
+                                style={{ fontSize: "0.72rem", padding: "2px 8px" }}
+                              >
+                                AMAN ({proj.budgetBurnRatePct ? proj.budgetBurnRatePct.toFixed(0) : "0"}%)
+                              </span>
+                            )}
+                            {proj.costVarianceStatus === "NO_BUDGET" && (
+                              <span className="text-xs text-muted">
+                                {proj.realizedAmount > 0 ? "Tanpa RAP" : "-"}
                               </span>
                             )}
                           </td>
@@ -182,11 +286,14 @@ export default async function ProjectReportPage({
                               </td>
                               <td className="col-num text-xs text-muted">-</td>
                               <td className="col-num text-xs text-muted">-</td>
+                              <td className="col-num text-xs text-muted">-</td>
                               <td className="col-num text-sm text-primary font-medium">{formatRupiah(cat.realizedAmount)}</td>
+                              <td className="col-num text-xs text-muted">-</td>
                               <td className="col-num text-xs text-muted">
                                 ACC: {formatRupiah(cat.approvedAmount)}
                               </td>
                               <td className="text-center text-xs text-muted">{catPct}% cair</td>
+                              <td className="text-center text-xs text-muted">-</td>
                               <td className="text-center text-xs text-muted">-</td>
                               <td></td>
                             </tr>
@@ -201,11 +308,13 @@ export default async function ProjectReportPage({
                     <td>TOTAL KESELURUHAN:</td>
                     <td className="col-num">{formatRupiah(data.totals.totalContractValue)}</td>
                     <td className="col-num positive">{formatRupiah(data.totals.totalInflow)}</td>
+                    <td className="col-num">{data.totals.totalBudget > 0 ? formatRupiah(data.totals.totalBudget) : "-"}</td>
                     <td className="col-num text-primary">{formatRupiah(data.totals.totalRealized)}</td>
+                    <td className="col-num">{data.totals.totalRemainingBudget !== 0 ? formatRupiah(data.totals.totalRemainingBudget) : "-"}</td>
                     <td className="col-num" style={{ color: data.totals.totalNetBalance >= 0 ? "var(--color-success)" : "var(--color-warning)" }}>
                       {formatRupiah(data.totals.totalNetBalance)}
                     </td>
-                    <td colSpan={3}></td>
+                    <td colSpan={4}></td>
                   </tr>
                 </tfoot>
               </table>

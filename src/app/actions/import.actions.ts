@@ -7,6 +7,7 @@ import {
   ExecuteImportPayload,
   ImportPreviewResult,
 } from "../../lib/finance/import.service";
+import { requireAdmin } from "@/lib/auth/auth.service";
 
 export interface ActionResult<T> {
   success: boolean;
@@ -18,6 +19,7 @@ export async function previewExcelImportAction(
   formData: FormData
 ): Promise<ActionResult<ImportPreviewResult>> {
   try {
+    await requireAdmin();
     const file = formData.get("file") as File | null;
     if (!file) {
       return { success: false, error: "Silakan pilih file Excel (.xlsx / .xls) untuk diunggah." };
@@ -57,6 +59,7 @@ export async function confirmExcelImportAction(
   payload: ExecuteImportPayload
 ): Promise<ActionResult<{ batchId: string; batchCode: string; importedCount: number; totalApprovedAmount: number }>> {
   try {
+    await requireAdmin();
     if (!payload.items || payload.items.length === 0) {
       return { success: false, error: "Tidak ada baris data valid yang dapat diimpor." };
     }

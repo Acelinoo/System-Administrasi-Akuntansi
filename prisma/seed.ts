@@ -295,6 +295,7 @@ async function main() {
   const opsKantorCat = await prisma.expenseCategory.findUnique({ where: { code: "OPS_KANTOR" } });
   const kasbonCat = await prisma.expenseCategory.findUnique({ where: { code: "KASBON" } });
   const kontrabonCat = await prisma.expenseCategory.findUnique({ where: { code: "KONTRABON" } });
+  const talanganCat = await prisma.expenseCategory.findUnique({ where: { code: "TALANGAN" } });
 
   const coa5101 = await prisma.coaAccount.findUnique({ where: { accountCode: "5101" } });
   const coa5102 = await prisma.coaAccount.findUnique({ where: { accountCode: "5102" } });
@@ -314,6 +315,7 @@ async function main() {
     { cat: opsKantorCat, coa: coa6101 },
     { cat: kasbonCat, coa: coa1150 },
     { cat: kontrabonCat, coa: coa2101 },
+    { cat: talanganCat, coa: coa5105 },
   ];
 
   for (const m of mappings) {

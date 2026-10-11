@@ -6,6 +6,7 @@ import {
   createVendorAction,
   updateVendorAction,
   toggleVendorStatusAction,
+  deleteVendorAction,
 } from "../../actions/master.actions";
 import { formatDate } from "@/lib/utils/format";
 
@@ -91,6 +92,18 @@ export default function VendorsManager({ vendors }: { vendors: VendorItem[] }) {
     if (!confirm(`Ubah status vendor menjadi ${current ? "NON-AKTIF" : "AKTIF"}?`)) return;
     await toggleVendorStatusAction(id, current);
     router.refresh();
+  };
+
+  const handleDeleteVendor = async (id: string, name: string) => {
+    if (!confirm(`Hapus master vendor '${name}'? Tindakan ini hanya berhasil jika vendor belum memiliki kontrak atau data transaksi.`)) return;
+    setLoading(true);
+    const res = await deleteVendorAction(id);
+    setLoading(false);
+    if (res.error) {
+      alert(res.error);
+    } else {
+      router.refresh();
+    }
   };
 
   const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -303,6 +316,14 @@ export default function VendorsManager({ vendors }: { vendors: VendorItem[] }) {
                           >
                             {vendor.isActive ? "Nonaktifkan" : "Aktifkan"}
                           </button>
+                          <button
+                            className="btn btn-ghost btn-sm text-danger"
+                            style={{ fontSize: "0.75rem", padding: "2px 8px" }}
+                            onClick={() => handleDeleteVendor(vendor.id, vendor.name)}
+                            title="Hapus vendor"
+                          >
+                            Hapus
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -316,7 +337,12 @@ export default function VendorsManager({ vendors }: { vendors: VendorItem[] }) {
 
       {/* MODAL TAMBAH VENDOR */}
       {showAddModal && (
-        <div className="modal-backdrop">
+        <div
+          className="modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowAddModal(false);
+          }}
+        >
           <div className="modal-content" style={{ maxWidth: 460 }}>
             <div className="modal-header">
               <h3>Tambah Vendor Baru</h3>
@@ -413,7 +439,15 @@ export default function VendorsManager({ vendors }: { vendors: VendorItem[] }) {
 
       {/* MODAL EDIT VENDOR */}
       {showEditModal && editingVendor && (
-        <div className="modal-backdrop">
+        <div
+          className="modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowEditModal(false);
+              setEditingVendor(null);
+            }
+          }}
+        >
           <div className="modal-content" style={{ maxWidth: 460 }}>
             <div className="modal-header">
               <h3>Edit Vendor: {editingVendor.name}</h3>

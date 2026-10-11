@@ -38,7 +38,7 @@ export async function GET() {
         database: {
           connected: false,
           latencyMs,
-          error: error instanceof Error ? error.message : "Database connection failed",
+          error: "Database service unreachable",
         },
       },
       {

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAccItemDetail } from "../../actions/acc.actions";
+import { getMasterVendorsList } from "../../actions/master.actions";
 import { formatRupiah, formatDate, accStatusLabel, txStatusLabel } from "@/lib/utils/format";
+import AccMaterialDetailsSection from "./AccMaterialDetailsSection";
 
 export default async function AccDetailPage({
   params,
@@ -9,15 +11,20 @@ export default async function AccDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = await getAccItemDetail(id);
+  const [item, vendors] = await Promise.all([
+    getAccItemDetail(id),
+    getMasterVendorsList(),
+  ]);
 
   if (!item) return notFound();
 
   const statusInfo = accStatusLabel(item.status);
-  const totalRealized = item.disbursementItems.reduce(
-    (sum: number, di: any) => sum + Number(di.realizedAmount),
-    0
-  );
+  const totalRealized = item.disbursementItems
+    .filter((di: any) => di.disbursement?.status === "POSTED")
+    .reduce(
+      (sum: number, di: any) => sum + Number(di.realizedAmount),
+      0
+    );
   const outstanding = Math.max(0, Number(item.approvedAmount) - totalRealized);
 
   return (
@@ -221,56 +228,15 @@ export default async function AccDetailPage({
         </div>
 
         {/* 2.5 RINCIAN MATERIAL / BARANG (OPSIONAL) */}
-        <div className="card mb-6">
-          <div className="card-header flex justify-between items-center">
-            <div>
-              <h2>Rincian Barang & Material Pembelian</h2>
-              <div className="text-xs text-muted">
-                Rincian kuantitas, satuan, harga satuan, dan toko vendor yang terkait dengan voucher pengeluaran ini
-              </div>
-            </div>
-            <span className="text-xs text-muted font-medium">
-              {item.itemDetails.length} rincian barang
-            </span>
-          </div>
-          <div className="card-body-flush">
-            {item.itemDetails.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-title">Tidak ada rincian material terpisah.</div>
-                <div className="empty-state-desc">
-                  Item pengeluaran ini dicatat langsung berdasarkan pagu voucher disetujui (misal: upah tenaga kerja, sewa alat, atau operasional kantor).
-                </div>
-              </div>
-            ) : (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Nama Barang / Material</th>
-                    <th className="text-right">Kuantitas</th>
-                    <th>Satuan</th>
-                    <th className="text-right">Harga Satuan (Rp)</th>
-                    <th className="text-right">Total Harga (Rp)</th>
-                    <th>Vendor / Toko</th>
-                    <th>No. Bukti / Ref</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {item.itemDetails.map((det: any) => (
-                    <tr key={det.id}>
-                      <td className="font-medium text-slate-900">{det.itemName}</td>
-                      <td className="col-num text-sm">{Number(det.quantity).toLocaleString("id-ID")}</td>
-                      <td className="text-xs text-muted">{det.unit}</td>
-                      <td className="col-num text-sm">{formatRupiah(Number(det.unitPrice))}</td>
-                      <td className="col-num text-sm font-semibold">{formatRupiah(Number(det.totalPrice))}</td>
-                      <td className="text-sm">{det.vendor ? det.vendor.name : "-"}</td>
-                      <td className="text-xs col-mono">{det.referenceNo || "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
+        <AccMaterialDetailsSection
+          accItemId={item.id}
+          projectId={item.projectId}
+          noKas={item.noKas}
+          description={item.description}
+          approvedAmount={Number(item.approvedAmount)}
+          itemDetails={item.itemDetails}
+          vendors={vendors}
+        />
 
         {/* 3. RIWAYAT PENCAIRAN / REALISASI */}
         <div className="card">
@@ -320,7 +286,7 @@ export default async function AccDetailPage({
                         <td className="text-sm font-medium">
                           {di.disbursement.cashAccount.accountName}
                         </td>
-                        <td className="col-num font-semibold text-slate-900">
+                        <td className={`col-num font-semibold ${di.disbursement.status === "VOID" ? "text-muted line-through" : "text-slate-900"}`}>
                           {formatRupiah(Number(di.realizedAmount))}
                         </td>
                         <td>
